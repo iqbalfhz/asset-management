@@ -16,6 +16,7 @@ use App\Models\Department;
 use App\Models\Employee;
 use App\Models\Floor;
 use App\Models\Room;
+use App\Models\Setting;
 use Database\Seeders\RoleSeeder;
 use Filament\Actions\CreateAction;
 use Filament\Actions\Testing\TestAction;
@@ -92,7 +93,7 @@ test('with separation on, admin of company A only sees the organization and loca
         Room::factory()->for(Floor::factory()->for(Building::factory()->for($company)))->create();
     }
 
-    config(['app.company_separation' => true]);
+    Setting::put('company_separation', true);
     $this->actingAs(userWithRole('admin_it', attributes: ['company_id' => $this->company->id]));
 
     expect(Department::pluck('company_id')->all())->toBe([$this->company->id])

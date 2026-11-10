@@ -25,15 +25,16 @@ test('the seeders create the first company, four roles and one account per role'
     }
 });
 
-test('admin IT gets no access to roles or to every company', function () {
+test('admin IT gets master data permissions but nothing reserved for super admin', function () {
     config(['app.seed_password' => 'Kantor2026aman']);
 
     $this->seed();
 
     $permissions = Role::findByName('admin_it')->permissions->pluck('name');
 
-    expect($permissions->filter(fn (string $name): bool => str_ends_with($name, ':Role')))->toBeEmpty()
-        ->and($permissions)->not->toContain('view_all_assets', 'view_all_companies');
+    expect($permissions)->toContain('ViewAny:Category', 'Create:Employee', 'Delete:Supplier')
+        ->and($permissions->filter(fn (string $name): bool => str_ends_with($name, ':Role') || str_ends_with($name, ':User') || str_ends_with($name, ':Company')))->toBeEmpty()
+        ->and($permissions)->not->toContain('View:Settings', 'view_all_assets', 'view_all_companies');
 });
 
 test('the user seeder refuses a missing or weak SEED_PASSWORD', function (?string $password) {

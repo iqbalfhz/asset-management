@@ -84,9 +84,6 @@ return [
 
     'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
 
-    // Pemisahan data per perusahaan (nyala/mati). Pindah ke tabel settings di Fase 1.
-    'company_separation' => (bool) env('COMPANY_SEPARATION', false),
-
     // Password akun bawaan dari UserSeeder. Wajib diisi sebelum db:seed.
     'seed_password' => env('SEED_PASSWORD'),
 

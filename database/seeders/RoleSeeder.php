@@ -41,6 +41,7 @@ class RoleSeeder extends Seeder
             ->where('name', 'not like', '%:Role')
             ->where('name', 'not like', '%:User')
             ->where('name', 'not like', '%:Company')
+            ->where('name', '!=', 'View:Settings')
             ->whereNotIn('name', ['view_all_assets', 'view_all_companies'])
             ->get();
 
