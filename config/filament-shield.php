@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-use BezhanSalleh\FilamentShield\Resources\Roles\RoleResource;
+use App\Filament\Resources\Roles\RoleResource;
 use Filament\Pages\Dashboard;
 use Filament\Widgets\AccountWidget;
 use Filament\Widgets\FilamentInfoWidget;
@@ -27,7 +27,7 @@ return [
             'pages' => true,
             'widgets' => true,
             'resources' => true,
-            'custom_permissions' => false,
+            'custom_permissions' => true,
         ],
     ],
 
@@ -71,8 +71,9 @@ return [
     'super_admin' => [
         'enabled' => true,
         'name' => 'super_admin',
-        'define_via_gate' => false,
-        'intercept_gate' => 'before',
+        'define_via_gate' => true,
+        // 'after': super admin lolos semua izin, kecuali policy yang sengaja menjawab false.
+        'intercept_gate' => 'after',
     ],
 
     /*
@@ -87,7 +88,8 @@ return [
     */
 
     'panel_user' => [
-        'enabled' => true,
+        // Mati: satu user hanya punya satu role.
+        'enabled' => false,
         'name' => 'panel_user',
     ],
 
@@ -120,7 +122,7 @@ return [
         'separator' => ':',
         'case' => 'pascal',
         'generate' => true,
-        'format_custom_permission_keys' => true,
+        'format_custom_permission_keys' => false,
     ],
 
     /*
@@ -252,7 +254,10 @@ return [
     |
     */
 
-    'custom_permissions' => [],
+    'custom_permissions' => [
+        'view_all_assets' => 'Lihat aset dari semua pengelola',
+        'view_all_companies' => 'Lihat data semua perusahaan',
+    ],
 
     /*
     |--------------------------------------------------------------------------

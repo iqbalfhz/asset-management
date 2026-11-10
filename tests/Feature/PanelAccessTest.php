@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\User;
+
 test('the login page of each panel is shown in Indonesian', function (string $path) {
     $this->get($path)
         ->assertOk()
@@ -9,3 +11,43 @@ test('the login page of each panel is shown in Indonesian', function (string $pa
 test('panels have no registration page', function (string $path) {
     $this->get($path)->assertNotFound();
 })->with(['/admin/register', '/karyawan/register']);
+
+test('karyawan can open the karyawan panel but not the admin panel', function () {
+    $this->actingAs(userWithRole('karyawan', 'karyawan'));
+
+    $this->get('/karyawan')->assertOk();
+    $this->get('/admin')->assertForbidden();
+});
+
+test('admin IT can open the admin panel but not the karyawan panel', function () {
+    $this->actingAs(userWithRole('admin_it'));
+
+    $this->get('/admin')->assertOk();
+    $this->get('/karyawan')->assertForbidden();
+});
+
+test('super admin can open the admin panel and the roles page', function () {
+    $this->actingAs(userWithRole('super_admin'));
+
+    $this->get('/admin')->assertOk();
+    $this->get('/admin/shield/roles')->assertOk();
+});
+
+test('admin IT cannot open the roles page', function () {
+    $this->actingAs(userWithRole('admin_it'));
+
+    $this->get('/admin/shield/roles')->assertForbidden();
+});
+
+test('an inactive user cannot open the panel of their role', function () {
+    $this->actingAs(userWithRole('super_admin', attributes: ['is_active' => false]));
+
+    $this->get('/admin')->assertForbidden();
+});
+
+test('a user without a role cannot open any panel', function () {
+    $this->actingAs(User::factory()->create());
+
+    $this->get('/admin')->assertForbidden();
+    $this->get('/karyawan')->assertForbidden();
+});
