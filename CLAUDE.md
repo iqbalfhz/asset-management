@@ -1,3 +1,65 @@
+# Asset Management — aturan project
+
+Dokumen rencana lengkap (PRD, ERD, Flow, panduan per fase):
+https://claude.ai/artifact/EeufZa4NcNAVG5zE8Hsej2
+
+Aturan kerja umum (cara berpikir, keamanan, desain, kebijakan versi LTS, komentar singkat) ada di CLAUDE.md global (`~/.claude/CLAUDE.md`). File ini hanya berisi aturan khusus project ini.
+
+Kerjakan per fase. Ikuti sub-tab fase yang sedang aktif. Jangan mengerjakan fitur dari fase lain kecuali diminta.
+
+## Stack
+
+- Laravel + Filament 5, PHP sesuai syarat Laravel/Filament yang terpasang
+- MySQL 9.7 LTS di server (laptop lokal boleh 8.4 LTS)
+- Node.js 26 LTS di server, Node.js 24 LTS di laptop (batas Herd); untuk build tema dan aset
+- Pest untuk test
+- Tema Filament "Kertas" (satu file tema `resources/css/filament/admin/theme.css` untuk dua panel), font lokal lewat @fontsource; tidak boleh memanggil Google Fonts atau CDN lain
+- Deploy: server Coolify milik sendiri (queue worker + scheduler + HTTPS)
+
+## Panel dan akses
+
+- Dua panel: `/admin` (pengelola aset) dan `/karyawan` (aset saya, lapor kerusakan, tombol Terima)
+- Hak akses memakai Filament Shield (Spatie Permission). Role disimpan di tabel `roles` + kolom `panel`
+- `User::canAccessPanel()` = `is_active` dan role punya `panel` yang sama dengan panel yang dibuka
+- Satu user = satu role. Role awal: super_admin, admin_it, admin_ga, karyawan
+- Setiap kategori menunjuk ke role pengelolanya; admin hanya melihat aset kategori yang dikelolanya (kecuali punya izin `view_all_assets`)
+- Tidak ada halaman registrasi. Login pakai username atau email. 2FA (aplikasi authenticator) wajib untuk semua akun
+- Kebijakan password: minimal 12 karakter, huruf dan angka (`Password::defaults()`)
+
+## Aturan data
+
+- Multi-perusahaan: tabel `companies`, `company_id` di tabel utama, dipisah lewat global scope. Pemisahan bisa dinyalakan/dimatikan di pengaturan (awalnya mati, 1 PT)
+- Kode aset: `PERUSAHAAN-KATEGORI-TAHUN-NOMOR`, contoh `TCM-LPT-2026-00001`. Dibuat di dalam transaksi dengan indeks unik. Tidak pernah berubah
+- Spesifikasi aset: JSON (`KeyValue`), kuncinya dari template kategori. Data yang perlu difilter atau diingatkan dijadikan kolom biasa
+- Pemegang aset polimorfik: karyawan, ruang, departemen, atau aset lain (`assigned_type` + `assigned_id`)
+- Status aset hanya berubah lewat transaksi (serah-terima, pengembalian, perbaikan, penghapusan), bukan diedit manual
+- Tidak ada hapus permanen untuk aset; yang tidak dipakai berstatus Dihapuskan lewat proses penghapusan dengan berita acara
+- Stok (barang habis pakai, aksesori, seat lisensi) hanya diubah di dalam transaksi database dengan kunci baris; tidak boleh minus
+- Data rahasia disimpan terenkripsi (cast `encrypted`): secret 2FA, product key lisensi, secret webhook
+- Lampiran dan tanda tangan disimpan di disk privat, diunduh lewat route yang memeriksa izin
+- Perubahan data dicatat dengan `spatie/laravel-activitylog`
+
+## Pengaturan dasar
+
+- Zona waktu `Asia/Jakarta`, `APP_LOCALE=id`, uang dalam Rupiah (`->money('IDR', locale: 'id')`)
+- Teks antarmuka buatan sendiri lewat `__()`
+
+## Cara kerja
+
+- Setiap langkah punya Cek; jangan lanjut sebelum Cek lulus
+- Fitur baru wajib punya Pest test, terutama untuk akses (siapa boleh melihat dan mengubah apa)
+- Setiap ada resource Filament baru: `php artisan shield:generate --all --panel=admin`
+- Jangan commit `.env`. Password seeder diambil dari `SEED_PASSWORD` di `.env`
+- Plugin Filament pihak ketiga diputuskan di awal fase yang memakainya; cek dulu dukungan untuk Filament 5
+
+## Prioritas aturan
+
+- Kalau aturan di file ini bertentangan dengan blok Laravel Boost di bawah, aturan di file ini yang berlaku.
+- Komentar: tetap singkat. PHPDoc hanya untuk tipe yang tidak bisa ditulis di kode (contoh: array shape), bukan di setiap method.
+- Deploy memakai Coolify; abaikan bagian Laravel Cloud.
+- Paket yang sudah tercantum di panduan fase dianggap sudah disetujui. Paket di luar itu tetap tanya dulu.
+- Jangan mengubah isi blok Laravel Boost di bawah. Blok itu ditulis ulang otomatis oleh `php artisan boost:update`.
+
 <laravel-boost-guidelines>
 === foundation rules ===
 

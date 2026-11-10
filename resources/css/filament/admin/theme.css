@@ -1,0 +1,131 @@
+/*
+ * Theme "Kertas" untuk Filament 5
+ * Kertas hangat, judul serif, kolom isian terisi, tombol berbentuk pil.
+ * Warna (gray & primary) diatur di panel provider, bukan di sini.
+ */
+
+@import '../../../../vendor/filament/filament/resources/css/theme.css';
+
+/* Font di-bundle lokal lewat Vite: tidak memanggil CDN font dari luar. */
+@import '@fontsource-variable/plus-jakarta-sans';
+@import '@fontsource-variable/newsreader/opsz.css';
+
+@source '../../../../app/Filament/**/*';
+@source '../../../../resources/views/filament/**/*';
+
+/* ---------- Token: ubah di sini kalau mau mengganti karakter ---------- */
+:root {
+    --kertas-radius-box: 1rem;      /* kartu, tabel, section */
+    --kertas-radius-overlay: 1.25rem; /* modal */
+    --kertas-radius-field: 0.625rem; /* input, select */
+    --kertas-shadow: 0 1px 2px oklch(0.35 0.02 110 / 0.06), 0 2px 8px -2px oklch(0.35 0.02 110 / 0.06);
+    --kertas-ground: oklch(0.956 0.009 105); /* latar halaman (mode terang) */
+}
+
+/* ---------- Latar halaman: kertas hangat, supaya kartu putih terlihat ---------- */
+.fi-body:not(.dark *) {
+    background-color: var(--kertas-ground);
+}
+
+/* ---------- Judul: serif ---------- */
+.fi-header-heading,
+.fi-simple-header-heading,
+.fi-modal-heading,
+.fi-section-header-heading,
+.fi-wi-stats-overview-stat-value {
+    font-family: var(--font-serif);
+    font-optical-sizing: auto;
+    letter-spacing: -0.01em;
+}
+
+.fi-header-heading,
+.fi-simple-header-heading {
+    @apply font-medium;
+}
+
+.fi-section-header-heading,
+.fi-modal-heading {
+    @apply text-base font-semibold;
+}
+
+.fi-wi-stats-overview-stat-value {
+    @apply font-medium;
+}
+
+/* ---------- Wadah: kartu, tabel, section, stat ---------- */
+.fi-section:not(.fi-section-not-contained):not(.fi-aside),
+.fi-ta-ctn,
+.fi-wi-stats-overview-stat {
+    border-radius: var(--kertas-radius-box);
+    box-shadow: var(--kertas-shadow);
+    @apply ring-gray-950/[0.06] dark:shadow-none dark:ring-white/[0.07];
+}
+
+.fi-modal-window {
+    border-radius: var(--kertas-radius-overlay);
+    @apply ring-gray-950/[0.06];
+}
+
+.fi-dropdown-panel {
+    @apply rounded-xl ring-gray-950/[0.07];
+}
+
+/* ---------- Kolom isian: terisi, tanpa garis ---------- */
+.fi-input-wrp {
+    border-radius: var(--kertas-radius-field);
+    @apply bg-gray-100 shadow-none ring-transparent dark:bg-white/[0.06] dark:ring-transparent;
+
+    &.fi-disabled {
+        @apply bg-gray-50 ring-1 ring-gray-200 dark:bg-transparent dark:ring-white/10;
+    }
+}
+
+/* Checkbox & toggle tetap punya garis tipis agar terlihat jelas. */
+.fi-checkbox-input {
+    @apply ring-gray-400/60;
+}
+
+/* ---------- Tombol: pil (kecuali yang tergabung dalam grup) ---------- */
+.fi-btn:not(.fi-btn-group > .fi-btn) {
+    @apply rounded-full px-4;
+}
+
+/* ---------- Badge: pil tanpa garis ---------- */
+.fi-badge {
+    @apply rounded-full ring-0;
+}
+
+/* ---------- Tab filter di atas tabel ---------- */
+.fi-tabs.fi-contained,
+.fi-tabs:not(.fi-contained) {
+    @apply rounded-full;
+}
+
+.fi-tabs-item {
+    @apply rounded-full;
+}
+
+/* ---------- Sidebar: item aktif diberi warna primary lembut ---------- */
+.fi-sidebar-item.fi-active > .fi-sidebar-item-btn {
+    @apply bg-primary-100/70 dark:bg-primary-400/15;
+
+    & > .fi-sidebar-item-label {
+        @apply text-primary-800 dark:text-primary-200;
+    }
+}
+
+.fi-sidebar-item-btn {
+    @apply rounded-full;
+}
+
+/* ---------- Header tabel: label lebih tenang ---------- */
+.fi-ta-header-cell {
+    @apply font-medium text-gray-500 dark:text-gray-400;
+}
+
+/* ---------- Halaman login / daftar ---------- */
+.fi-simple-main {
+    border-radius: var(--kertas-radius-overlay);
+    box-shadow: var(--kertas-shadow);
+    @apply ring-gray-950/[0.06] dark:shadow-none;
+}
