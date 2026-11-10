@@ -41,6 +41,12 @@ class RoleResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
+    // Tambahan di luar Shield: halaman Roles hanya untuk Super Admin, apa pun izin yang dicentang.
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->hasRole('super_admin') ?? false;
+    }
+
     #[Override]
     public static function form(Schema $schema): Schema
     {

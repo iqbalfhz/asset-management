@@ -15,11 +15,12 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable(['name', 'username', 'email', 'password', 'company_id', 'is_active'])]
 #[Hidden(['password', 'remember_token'])]
 #[ScopedBy([CompanyScope::class])]
 class User extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAppAuthenticationRecovery
@@ -31,6 +32,14 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     {
         return $this->is_active
             && $this->roles->contains('panel', $panel->getId());
+    }
+
+    /**
+     * @return BelongsTo<Company, $this>
+     */
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
     }
 
     // Email boleh kosong, jadi nama di aplikasi authenticator memakai username sebagai cadangan.
