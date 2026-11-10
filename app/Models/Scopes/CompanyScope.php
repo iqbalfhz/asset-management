@@ -14,17 +14,25 @@ class CompanyScope implements Scope
      */
     public function apply(Builder $builder, Model $model): void
     {
+        $companyId = static::restrictedCompanyId();
+
+        if ($companyId !== null) {
+            $builder->where($model->qualifyColumn('company_id'), $companyId);
+        }
+    }
+
+    /**
+     * Perusahaan yang boleh dilihat user yang login, atau null kalau datanya tidak dibatasi.
+     */
+    public static function restrictedCompanyId(): ?int
+    {
         // hasUser() does not load the user, so resolving the logged-in user never re-enters this scope.
         if (! config('app.company_separation') || ! Auth::hasUser()) {
-            return;
+            return null;
         }
 
         $user = Auth::user();
 
-        if ($user->can('view_all_companies')) {
-            return;
-        }
-
-        $builder->where($model->qualifyColumn('company_id'), $user->company_id);
+        return $user->can('view_all_companies') ? null : $user->company_id;
     }
 }
