@@ -17,6 +17,7 @@ use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Livewire\Livewire;
@@ -37,6 +38,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Password::defaults(fn () => Password::min(12)->letters()->numbers());
+
+        // Produksi selalu lewat HTTPS (Cloudflare); link yang dibuat aplikasi ikut HTTPS.
+        URL::forceHttps($this->app->isProduction());
 
         // Breezy mendaftarkan nama 'personal_info' untuk komponennya; arahkan ke versi kita (email boleh kosong).
         Livewire::component('personal_info', PersonalInfo::class);

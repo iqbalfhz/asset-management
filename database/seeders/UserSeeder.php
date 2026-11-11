@@ -31,8 +31,18 @@ class UserSeeder extends Seeder
             'karyawan' => ['Karyawan', 'karyawan'],
         ];
 
+        // Produksi: hanya Super Admin; akun admin dan karyawan sungguhan dibuat lewat halaman User.
+        if (app()->isProduction()) {
+            $accounts = array_intersect_key($accounts, ['superadmin' => true]);
+        }
+
         foreach ($accounts as $username => [$name, $role]) {
             $user = User::firstWhere('username', $username) ?? new User;
+
+            // Seeder yang dijalankan ulang di produksi tidak boleh mengganti password akun yang sudah dipakai.
+            if ($user->exists && app()->isProduction()) {
+                continue;
+            }
 
             $user->forceFill([
                 'company_id' => $company->id,

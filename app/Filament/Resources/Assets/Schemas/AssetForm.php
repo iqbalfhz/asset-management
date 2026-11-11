@@ -88,6 +88,8 @@ class AssetForm
                             }),
                         FileUpload::make('foto')
                             ->image()
+                            // Tanpa SVG: SVG bisa membawa skrip saat dibuka di browser.
+                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
                             ->directory('assets')
                             ->maxSize(2048),
                     ]),

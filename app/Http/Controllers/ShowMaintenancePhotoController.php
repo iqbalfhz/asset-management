@@ -20,6 +20,10 @@ class ShowMaintenancePhotoController extends Controller
         abort_if(blank($maintenance->foto), 404);
         Gate::authorize('view', $maintenance);
 
-        return Storage::disk(Maintenance::FOTO_DISK)->response($maintenance->foto);
+        // File unggahan pengguna: browser tidak boleh menebak tipe atau menjalankan skrip di dalamnya.
+        return Storage::disk(Maintenance::FOTO_DISK)->response($maintenance->foto, null, [
+            'X-Content-Type-Options' => 'nosniff',
+            'Content-Security-Policy' => "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; sandbox",
+        ]);
     }
 }

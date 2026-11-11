@@ -41,8 +41,8 @@ class KaryawanPanelProvider extends PanelProvider
             ->plugins([
                 BreezyCore::make()
                     ->myProfile(hasAvatars: true, slug: 'profil')
-                    // Foto profil disimpan di disk privat, bukan publik seperti bawaan Breezy.
-                    ->avatarUploadComponent(fn (FileUpload $fileUpload): FileUpload => $fileUpload->disk('local')->visibility('private'))
+                    // Foto profil di disk privat, tanpa SVG (SVG bisa membawa skrip saat tautannya dibuka).
+                    ->avatarUploadComponent(fn (FileUpload $fileUpload): FileUpload => $fileUpload->disk('local')->visibility('private')->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp']))
                     ->myProfileComponents(['personal_info' => PersonalInfo::class])
                     ->enableTwoFactorAuthentication(force: true, scopeToPanel: false)
                     ->enableBrowserSessions(),

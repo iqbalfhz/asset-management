@@ -79,6 +79,8 @@ class Settings extends Page
                             ->afterStateUpdated(fn (?string $state) => $this->fillForCompany((int) $state)),
                         FileUpload::make('logo')
                             ->image()
+                            // Tanpa SVG: SVG bisa membawa skrip saat dibuka di browser.
+                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
                             ->directory('logos')
                             ->maxSize(1024),
                         Textarea::make('kop_bast')

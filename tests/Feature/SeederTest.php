@@ -6,6 +6,7 @@ use App\Models\User;
 use Database\Seeders\CompanySeeder;
 use Database\Seeders\RoleSeeder;
 use Database\Seeders\UserSeeder;
+use Illuminate\Support\Facades\Hash;
 
 test('the seeders create the first company, four roles and one account per role', function () {
     config(['app.seed_password' => 'Kantor2026aman']);
@@ -43,3 +44,20 @@ test('the user seeder refuses a missing or weak SEED_PASSWORD', function (?strin
 
     expect(fn () => $this->seed(UserSeeder::class))->toThrow(RuntimeException::class);
 })->with([null, 'password']);
+
+test('in production the seeder creates only the super admin and never resets an existing password', function () {
+    config(['app.seed_password' => 'Kantor2026aman']);
+    $this->app['env'] = 'production';
+
+    $this->artisan('db:seed', ['--force' => true])->assertSuccessful();
+
+    expect(User::pluck('username')->all())->toBe(['superadmin']);
+
+    $superAdmin = User::firstWhere('username', 'superadmin');
+    $superAdmin->update(['password' => 'PasswordBaru2026']);
+    config(['app.seed_password' => 'Kantor2026lain']);
+
+    $this->artisan('db:seed', ['--class' => UserSeeder::class, '--force' => true])->assertSuccessful();
+
+    expect(Hash::check('PasswordBaru2026', $superAdmin->refresh()->password))->toBeTrue();
+});

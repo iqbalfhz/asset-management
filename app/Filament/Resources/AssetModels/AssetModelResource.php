@@ -83,6 +83,8 @@ class AssetModelResource extends Resource
                     ->helperText(__('Setiap aset dengan model ini harus punya nomor seri.')),
                 FileUpload::make('foto')
                     ->image()
+                    // Tanpa SVG: SVG bisa membawa skrip saat dibuka di browser.
+                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
                     ->directory('asset-models')
                     ->maxSize(2048)
                     ->columnSpanFull(),

@@ -70,6 +70,8 @@ class ReportDamageAction
             FileUpload::make('foto')
                 ->label(__('Foto (opsional)'))
                 ->image()
+                // Tanpa SVG: SVG bisa membawa skrip saat dibuka di browser.
+                ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
                 ->disk(Maintenance::FOTO_DISK)
                 ->directory('maintenances')
                 ->visibility('private')
