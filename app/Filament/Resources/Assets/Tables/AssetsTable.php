@@ -2,15 +2,18 @@
 
 namespace App\Filament\Resources\Assets\Tables;
 
+use App\Filament\Exports\AssetExporter;
 use App\Filament\Resources\Assets\Actions\AssetTransactionActions;
 use App\Filament\Resources\Assets\AssetResource;
 use App\Models\Asset;
 use App\Models\Assignment;
+use App\Models\Employee;
 use App\Models\Room;
 use App\Models\Status;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\EditAction;
+use Filament\Actions\ExportBulkAction;
 use Filament\Actions\ReplicateAction;
 use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
@@ -30,7 +33,7 @@ class AssetsTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['category', 'status', 'room.floor.building', 'assetModel.manufacturer', 'assigned']))
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['category', 'status', 'room.floor.building', 'assetModel.manufacturer', 'assigned', 'depreciation']))
             ->columns([
                 TextColumn::make('kode')
                     ->searchable()
@@ -70,6 +73,12 @@ class AssetsTable
                     ->money('IDR', locale: 'id')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('nilai_buku')
+                    ->label(__('Nilai buku'))
+                    ->state(fn (Asset $record): ?int => $record->bookValue())
+                    ->money('IDR', locale: 'id')
+                    ->placeholder('—')
+                    ->toggleable(isToggledHiddenByDefault: true),
                 IconColumn::make('is_byod')
                     ->label(__('BYOD'))
                     ->boolean()
@@ -85,6 +94,13 @@ class AssetsTable
                 SelectFilter::make('room_id')
                     ->label(__('Lokasi'))
                     ->relationship('room', 'nama'),
+                SelectFilter::make('karyawan')
+                    ->label(__('Pemegang (karyawan)'))
+                    ->options(fn (): array => Employee::query()->orderBy('nama')->pluck('nama', 'id')->all())
+                    ->searchable()
+                    ->query(fn (Builder $query, array $data): Builder => blank($data['value'] ?? null)
+                        ? $query
+                        : $query->where('assigned_type', (new Employee)->getMorphClass())->where('assigned_id', $data['value'])),
                 TernaryFilter::make('is_byod')
                     ->label(__('BYOD')),
             ])
@@ -102,6 +118,8 @@ class AssetsTable
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
+                    ExportBulkAction::make()
+                        ->exporter(AssetExporter::class),
                     AssetTransactionActions::handOverBulk(),
                     AssetTransactionActions::takeBackBulk(),
                     BulkAction::make('markAs')

@@ -18,8 +18,6 @@ use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
-use Filament\Widgets\AccountWidget;
-use Filament\Widgets\FilamentInfoWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -28,6 +26,7 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Jeffgreco13\FilamentBreezy\BreezyCore;
+use ShuvroRoy\FilamentSpatieLaravelBackup\FilamentSpatieLaravelBackupPlugin;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -88,11 +87,8 @@ class AdminPanelProvider extends PanelProvider
             ->pages([
                 Dashboard::class,
             ])
+            // Dashboard hanya berisi widget aplikasi (App\Filament\Widgets), tanpa widget bawaan Filament.
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
-            ->widgets([
-                AccountWidget::class,
-                FilamentInfoWidget::class,
-            ])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
@@ -114,6 +110,11 @@ class AdminPanelProvider extends PanelProvider
                     ->enableTwoFactorAuthentication(force: true, scopeToPanel: false)
                     ->enableBrowserSessions()
                     ->enableSanctumTokens(),
+                FilamentSpatieLaravelBackupPlugin::make()
+                    ->authorize(fn (): bool => auth()->user()?->hasRole('super_admin') ?? false)
+                    ->navigationGroup(fn (): string => __('Administrasi'))
+                    ->navigationLabel(fn (): string => __('Backup'))
+                    ->navigationSort(97),
             ])
             ->authMiddleware([
                 Authenticate::class,

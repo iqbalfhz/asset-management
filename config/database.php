@@ -62,6 +62,10 @@ return [
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 Mysql::ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
+            // Dump backup tanpa mengunci tabel (semua tabel InnoDB).
+            'dump' => [
+                'useSingleTransaction' => true,
+            ],
         ],
 
         'mariadb' => [

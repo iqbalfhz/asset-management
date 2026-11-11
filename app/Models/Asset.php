@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\LogsChanges;
 use App\Models\Scopes\CompanyScope;
 use App\Models\Scopes\ManagedCategoryScope;
+use Carbon\CarbonInterface;
 use Database\Factories\AssetFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ScopedBy;
@@ -129,6 +130,23 @@ class Asset extends Model
         } finally {
             $this->statusChangeAllowed = false;
         }
+    }
+
+    /**
+     * Nilai buku garis lurus: harga beli dikurangi penyusutan per bulan sejak tanggal beli, minimal 0.
+     * Null untuk BYOD atau data pembelian yang belum lengkap.
+     */
+    public function bookValue(?CarbonInterface $at = null): ?int
+    {
+        $months = $this->depreciation?->jumlah_bulan;
+
+        if ($this->is_byod || $this->harga_beli === null || $this->tgl_beli === null || ! $months) {
+            return null;
+        }
+
+        $elapsed = min($months, max(0, (int) floor($this->tgl_beli->diffInMonths($at ?? now()))));
+
+        return (int) round($this->harga_beli * ($months - $elapsed) / $months);
     }
 
     /**

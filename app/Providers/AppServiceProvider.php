@@ -3,9 +3,13 @@
 namespace App\Providers;
 
 use App\Livewire\PersonalInfo;
+use App\Models\User;
+use App\Policies\ExportPolicy;
 use App\Policies\ImportPolicy;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\Exports\ExportColumn;
+use Filament\Actions\Exports\Models\Export;
 use Filament\Actions\ImportAction;
 use Filament\Actions\Imports\Importer;
 use Filament\Actions\Imports\Models\Import;
@@ -39,6 +43,19 @@ class AppServiceProvider extends ServiceProvider
 
         $this->explainDeletingRecordsStillInUse();
         $this->limitImports();
+        $this->protectExports();
+
+        // Halaman Backup: hanya Super Admin yang mengunduh; backup dihapus oleh pembersihan terjadwal, bukan dari panel.
+        Gate::define('download-backup', fn (User $user): bool => $user->hasRole('super_admin'));
+        Gate::define('delete-backup', fn (): bool => false);
+    }
+
+    private function protectExports(): void
+    {
+        // Hasil export dibuka di Excel; isi yang diawali =, +, -, @ jangan sampai dijalankan sebagai rumus.
+        ExportColumn::configureUsing(fn (ExportColumn $column) => $column->preventFormulaInjection());
+
+        Gate::policy(Export::class, ExportPolicy::class);
     }
 
     private function limitImports(): void

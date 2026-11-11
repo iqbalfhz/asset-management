@@ -1,0 +1,84 @@
+# Dipakai Coolify (build pack: Docker Compose). Nilai rahasia diisi di menu Environment Variables Coolify.
+# Database MySQL 9.7 adalah resource Coolify terpisah; isi DB_HOST dengan nama host internalnya.
+
+x-app: &app
+  build:
+    context: .
+    dockerfile: Dockerfile
+  restart: unless-stopped
+  volumes:
+    - storage-app:/var/www/html/storage/app
+  environment: &env
+    APP_NAME: "Asset Management"
+    APP_ENV: production
+    APP_DEBUG: "false"
+    APP_KEY: ${APP_KEY}
+    APP_URL: ${APP_URL:-https://asset.iqbalfhz.my.id}
+    APP_LOCALE: id
+    APP_FALLBACK_LOCALE: en
+    APP_FAKER_LOCALE: id_ID
+    LOG_CHANNEL: stderr
+    LOG_LEVEL: warning
+    DB_CONNECTION: mysql
+    DB_HOST: ${DB_HOST}
+    DB_PORT: ${DB_PORT:-3306}
+    DB_DATABASE: ${DB_DATABASE}
+    DB_USERNAME: ${DB_USERNAME}
+    DB_PASSWORD: ${DB_PASSWORD}
+    SESSION_DRIVER: database
+    SESSION_SECURE_COOKIE: "true"
+    SESSION_ENCRYPT: "true"
+    CACHE_STORE: database
+    QUEUE_CONNECTION: database
+    FILESYSTEM_DISK: local
+    MAIL_MAILER: ${MAIL_MAILER:-log}
+    MAIL_HOST: ${MAIL_HOST:-}
+    MAIL_PORT: ${MAIL_PORT:-587}
+    MAIL_USERNAME: ${MAIL_USERNAME:-}
+    MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+    MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-}
+    R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID}
+    R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY}
+    R2_BUCKET: ${R2_BUCKET}
+    R2_ENDPOINT: ${R2_ENDPOINT}
+    BACKUP_DISKS: ${BACKUP_DISKS:-r2}
+    BACKUP_ARCHIVE_PASSWORD: ${BACKUP_ARCHIVE_PASSWORD}
+    BACKUP_DATABASES: ${BACKUP_DATABASES-mysql}
+    BACKUP_NOTIFICATION_EMAIL: ${BACKUP_NOTIFICATION_EMAIL:-}
+    SEED_PASSWORD: ${SEED_PASSWORD}
+
+services:
+  app:
+    <<: *app
+    # Hanya terbuka di localhost server; Cloudflare Tunnel meneruskan asset.iqbalfhz.my.id ke sini.
+    ports:
+      - "127.0.0.1:8091:8080"
+    environment:
+      <<: *env
+      AUTORUN_ENABLED: "true"
+      AUTORUN_LARAVEL_MIGRATION: "true"
+
+  worker:
+    <<: *app
+    command: ["php", "/var/www/html/artisan", "queue:work", "--tries=3", "--timeout=600", "--sleep=3"]
+    stop_signal: SIGTERM
+    healthcheck:
+      test: ["CMD", "healthcheck-queue"]
+      start_period: 15s
+    environment:
+      <<: *env
+      AUTORUN_ENABLED: "false"
+
+  scheduler:
+    <<: *app
+    command: ["php", "/var/www/html/artisan", "schedule:work"]
+    stop_signal: SIGTERM
+    healthcheck:
+      test: ["CMD", "healthcheck-schedule"]
+      start_period: 15s
+    environment:
+      <<: *env
+      AUTORUN_ENABLED: "false"
+
+volumes:
+  storage-app:
