@@ -88,6 +88,8 @@ class Settings extends Page
                             ->label(__('Format nomor BAST'))
                             ->helperText(__('Penanda yang tersedia: {KODE}, {TAHUN}, {BULAN}, {NOMOR}.'))
                             ->required()
+                            ->regex('/\{NOMOR\}/')
+                            ->validationMessages(['regex' => __('Format harus memuat {NOMOR} supaya setiap BAST punya nomor sendiri.')])
                             ->maxLength(100),
                     ]),
             ]);

@@ -54,27 +54,30 @@ class AppServiceProvider extends ServiceProvider
     }
 
     /**
-     * Database menolak menghapus data yang masih dirujuk data lain; tampilkan pesan, bukan halaman error.
+     * Database atau model menolak menghapus data yang masih dirujuk data lain; tampilkan pesan, bukan halaman error.
      */
     private function explainDeletingRecordsStillInUse(): void
     {
         DeleteAction::configureUsing(fn (DeleteAction $action) => $action->using(function (Model $record): bool {
             try {
-                return (bool) $record->delete();
+                // false = ditolak model, misalnya karyawan yang punya riwayat serah-terima.
+                if ($record->delete()) {
+                    return true;
+                }
             } catch (QueryException $exception) {
                 // 23000 (MySQL/SQLite) dan 23503 (PostgreSQL): pelanggaran foreign key.
                 if (! in_array($exception->getCode(), ['23000', '23503'], true)) {
                     throw $exception;
                 }
-
-                Notification::make()
-                    ->danger()
-                    ->title(__('Data tidak bisa dihapus'))
-                    ->body(__('Data ini masih dipakai oleh data lain. Ubah atau hapus dulu data yang memakainya.'))
-                    ->send();
-
-                return false;
             }
+
+            Notification::make()
+                ->danger()
+                ->title(__('Data tidak bisa dihapus'))
+                ->body(__('Data ini masih dipakai oleh data lain. Ubah atau hapus dulu data yang memakainya.'))
+                ->send();
+
+            return false;
         }));
 
         DeleteBulkAction::configureUsing(fn (DeleteBulkAction $action) => $action->missingBulkProcessingFailureNotificationMessage(

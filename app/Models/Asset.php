@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Facades\DB;
@@ -111,13 +112,45 @@ class Asset extends Model
             throw new LogicException(__('Status hanya bisa diubah antara Disiapkan dan Tersedia.'));
         }
 
+        $this->transitionTo($target);
+    }
+
+    /**
+     * Ubah status beserta kolom terkait. Hanya dipanggil oleh transaksi (persiapan, serah-terima, pengembalian, offboarding).
+     *
+     * @param  array<string, mixed>  $attributes
+     */
+    public function transitionTo(Status $status, array $attributes = []): void
+    {
         $this->statusChangeAllowed = true;
 
         try {
-            $this->status()->associate($target)->save();
+            $this->forceFill($attributes)->status()->associate($status)->save();
         } finally {
             $this->statusChangeAllowed = false;
         }
+    }
+
+    /**
+     * Rantai induk aset ini (aset yang ditempeli, induknya, dan seterusnya).
+     *
+     * @return array<int, int>
+     */
+    public function parentIds(): array
+    {
+        $ids = [];
+        $current = $this;
+
+        while ($current->assigned_type === $this->getMorphClass() && ! in_array($current->assigned_id, $ids, true)) {
+            $ids[] = $current->assigned_id;
+            $current = static::withoutGlobalScopes()->find($current->assigned_id);
+
+            if ($current === null) {
+                break;
+            }
+        }
+
+        return $ids;
     }
 
     /**
@@ -193,13 +226,31 @@ class Asset extends Model
     }
 
     /**
-     * Pemegang aset: karyawan, ruang, departemen, atau aset lain (diisi di Fase 3).
+     * Pemegang aset: karyawan, ruang, departemen, atau aset lain.
      *
      * @return MorphTo<Model, $this>
      */
     public function assigned(): MorphTo
     {
         return $this->morphTo();
+    }
+
+    /**
+     * Aset lain yang menempel pada aset ini (contoh: monitor pada PC).
+     *
+     * @return MorphMany<Asset, $this>
+     */
+    public function attachedAssets(): MorphMany
+    {
+        return $this->morphMany(Asset::class, 'assigned');
+    }
+
+    /**
+     * @return HasMany<Assignment, $this>
+     */
+    public function assignments(): HasMany
+    {
+        return $this->hasMany(Assignment::class);
     }
 
     /**

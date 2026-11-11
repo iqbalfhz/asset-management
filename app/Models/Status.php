@@ -21,6 +21,10 @@ class Status extends Model
 
     public const string TERSEDIA = 'Tersedia';
 
+    public const string DIPAKAI = 'Dipakai';
+
+    public const string HILANG = 'Hilang';
+
     public static function named(string $nama): self
     {
         return static::query()->where('nama', $nama)->firstOrFail();

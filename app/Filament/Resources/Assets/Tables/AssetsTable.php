@@ -2,8 +2,10 @@
 
 namespace App\Filament\Resources\Assets\Tables;
 
+use App\Filament\Resources\Assets\Actions\AssetTransactionActions;
 use App\Filament\Resources\Assets\AssetResource;
 use App\Models\Asset;
+use App\Models\Assignment;
 use App\Models\Room;
 use App\Models\Status;
 use Filament\Actions\BulkAction;
@@ -28,7 +30,7 @@ class AssetsTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['category', 'status', 'room.floor.building', 'assetModel.manufacturer']))
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['category', 'status', 'room.floor.building', 'assetModel.manufacturer', 'assigned']))
             ->columns([
                 TextColumn::make('kode')
                     ->searchable()
@@ -44,6 +46,10 @@ class AssetsTable
                     ->label(__('Status'))
                     ->badge()
                     ->color(fn (Asset $record): ?array => $record->status->warna ? Color::hex($record->status->warna) : null),
+                TextColumn::make('pemegang')
+                    ->label(__('Pemegang'))
+                    ->state(fn (Asset $record): ?string => $record->assigned ? Assignment::labelFor($record->assigned) : null)
+                    ->placeholder('—'),
                 TextColumn::make('room.nama')
                     ->label(__('Lokasi'))
                     ->description(fn (Asset $record): ?string => $record->room ? "{$record->room->floor->building->nama} — {$record->room->floor->nama}" : null),
@@ -83,6 +89,8 @@ class AssetsTable
                     ->label(__('BYOD')),
             ])
             ->recordActions([
+                AssetTransactionActions::handOver(),
+                AssetTransactionActions::takeBack(),
                 EditAction::make(),
                 ReplicateAction::make()
                     ->label(__('Clone'))
@@ -94,6 +102,8 @@ class AssetsTable
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
+                    AssetTransactionActions::handOverBulk(),
+                    AssetTransactionActions::takeBackBulk(),
                     BulkAction::make('markAs')
                         ->label(__('Ubah status'))
                         ->icon(Heroicon::OutlinedCheckBadge)

@@ -68,3 +68,15 @@ test('turning separation on in the settings page separates the data', function (
 
     expect(Department::pluck('company_id')->all())->toBe([$this->companyA->id]);
 });
+
+test('a BAST number format without {NOMOR} is refused', function () {
+    $this->actingAs($this->superAdmin);
+
+    livewire(Settings::class)
+        ->fillForm(['company_id' => $this->companyA->id])
+        ->fillForm(['format_nomor_bast' => 'BAST/{KODE}/{TAHUN}'])
+        ->call('save')
+        ->assertHasFormErrors(['format_nomor_bast' => 'regex']);
+
+    expect(Setting::get('format_nomor_bast', null, $this->companyA->id))->toBeNull();
+});

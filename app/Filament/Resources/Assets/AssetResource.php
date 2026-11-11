@@ -5,6 +5,8 @@ namespace App\Filament\Resources\Assets;
 use App\Filament\Resources\Assets\Pages\CreateAsset;
 use App\Filament\Resources\Assets\Pages\EditAsset;
 use App\Filament\Resources\Assets\Pages\ListAssets;
+use App\Filament\Resources\Assets\RelationManagers\ActivitiesRelationManager;
+use App\Filament\Resources\Assets\RelationManagers\AssignmentsRelationManager;
 use App\Filament\Resources\Assets\RelationManagers\AttachmentsRelationManager;
 use App\Filament\Resources\Assets\Schemas\AssetForm;
 use App\Filament\Resources\Assets\Tables\AssetsTable;
@@ -49,6 +51,8 @@ class AssetResource extends Resource
     {
         return [
             AttachmentsRelationManager::class,
+            AssignmentsRelationManager::class,
+            ActivitiesRelationManager::class,
         ];
     }
 
