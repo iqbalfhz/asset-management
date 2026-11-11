@@ -29,10 +29,12 @@ RUN npm run build
 FROM vendor AS app
 COPY --chown=www-data:www-data --from=assets /app/public/build ./public/build
 
-# HTTP biasa di port 8080; HTTPS ditangani Cloudflare. Migrasi dan cache Laravel dijalankan otomatis saat container start.
+# HTTP biasa di port 80 seperti aplikasi lain di server (binary frankenphp di image dasar sudah punya izin cap_net_bind_service,
+# jadi tetap jalan sebagai www-data); HTTPS ditangani Cloudflare. Migrasi dan cache Laravel dijalankan otomatis saat container start.
 ENV PHP_OPCACHE_ENABLE=1 \
+    CADDY_HTTP_PORT=80 \
     SSL_MODE=off \
     AUTORUN_ENABLED=true \
     AUTORUN_LARAVEL_MIGRATION=true
 
-EXPOSE 8080
+EXPOSE 80
