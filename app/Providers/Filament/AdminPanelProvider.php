@@ -37,6 +37,7 @@ class AdminPanelProvider extends PanelProvider
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->login(Login::class)
             ->passwordReset()
+            ->databaseNotifications()
             // Route di dalam panel ikut login, 2FA, dan akses panel.
             ->authenticatedRoutes(function (): void {
                 Route::get('lampiran/{attachment}', DownloadAttachmentController::class)->name('attachments.download');

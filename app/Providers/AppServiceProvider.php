@@ -3,11 +3,16 @@
 namespace App\Providers;
 
 use App\Livewire\PersonalInfo;
+use App\Policies\ImportPolicy;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\ImportAction;
+use Filament\Actions\Imports\Importer;
+use Filament\Actions\Imports\Models\Import;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Livewire\Livewire;
@@ -33,6 +38,19 @@ class AppServiceProvider extends ServiceProvider
         Livewire::component('personal_info', PersonalInfo::class);
 
         $this->explainDeletingRecordsStillInUse();
+        $this->limitImports();
+    }
+
+    private function limitImports(): void
+    {
+        ImportAction::configureUsing(fn (ImportAction $action) => $action
+            ->maxRows(5000)
+            ->fileRules(['max:5120']));
+
+        // CSV baris gagal dibuka di Excel; isi yang diawali =, +, -, @ jangan sampai dijalankan sebagai rumus.
+        Importer::preventFormulaInjection();
+
+        Gate::policy(Import::class, ImportPolicy::class);
     }
 
     /**
