@@ -16,6 +16,16 @@ class Status extends Model
     /** @use HasFactory<StatusFactory> */
     use HasFactory, LogsChanges;
 
+    // Nama status inti dikunci, jadi aman dipakai sebagai penanda di kode.
+    public const string DISIAPKAN = 'Disiapkan';
+
+    public const string TERSEDIA = 'Tersedia';
+
+    public static function named(string $nama): self
+    {
+        return static::query()->where('nama', $nama)->firstOrFail();
+    }
+
     protected static function booted(): void
     {
         // Status inti dipakai oleh transaksi aset, jadi nama dan tipenya dikunci.
