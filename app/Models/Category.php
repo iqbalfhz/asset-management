@@ -3,8 +3,11 @@
 namespace App\Models;
 
 use App\Models\Concerns\LogsChanges;
+use App\Models\Scopes\ManagedCategoryScope;
 use Database\Factories\CategoryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -24,6 +27,17 @@ class Category extends Model
     public function role(): BelongsTo
     {
         return $this->belongsTo(Role::class);
+    }
+
+    // Kategori yang boleh dipakai user yang login untuk asetnya.
+    #[Scope]
+    protected function managedByCurrentUser(Builder $query): void
+    {
+        $roleIds = ManagedCategoryScope::restrictedRoleIds();
+
+        if ($roleIds !== null) {
+            $query->whereIn('role_id', $roleIds);
+        }
     }
 
     // Kode dipakai di kode aset, jadi selalu disimpan huruf besar.
