@@ -32,7 +32,7 @@ test('admin IT gets master data permissions but nothing reserved for super admin
 
     $permissions = Role::findByName('admin_it')->permissions->pluck('name');
 
-    expect($permissions)->toContain('ViewAny:Category', 'Create:Employee', 'Delete:Supplier')
+    expect($permissions)->toContain('ViewAny:Category', 'Create:Employee', 'Delete:Supplier', 'ViewAny:Asset', 'Update:Asset')
         ->and($permissions->filter(fn (string $name): bool => str_ends_with($name, ':Role') || str_ends_with($name, ':User') || str_ends_with($name, ':Company')))->toBeEmpty()
         ->and($permissions)->not->toContain('View:Settings', 'view_all_assets', 'view_all_companies');
 });

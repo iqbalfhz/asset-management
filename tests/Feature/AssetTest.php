@@ -62,6 +62,17 @@ test('an asset cannot be deleted', function () {
         ->and(Asset::find($asset->id))->not->toBeNull();
 });
 
+test('changes to an asset are kept in its history', function () {
+    $asset = Asset::factory()->create(['company_id' => $this->tcm->id, 'category_id' => $this->laptop->id, 'nama' => 'Laptop Lama']);
+
+    $asset->update(['nama' => 'Laptop Baru']);
+
+    $change = $asset->activitiesAsSubject()->where('event', 'updated')->sole();
+
+    expect($change->attribute_changes['old'])->toBe(['nama' => 'Laptop Lama'])
+        ->and($change->attribute_changes['attributes'])->toBe(['nama' => 'Laptop Baru']);
+});
+
 test('EOL date and depreciation class come from the asset model when left empty', function () {
     $empatTahun = Depreciation::factory()->create(['jumlah_bulan' => 48]);
     $model = AssetModel::factory()->create(['eol_bulan' => 60, 'depreciation_id' => $empatTahun->id]);

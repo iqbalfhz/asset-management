@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Facades\DB;
 use LogicException;
@@ -25,6 +26,12 @@ class Asset extends Model
 {
     /** @use HasFactory<AssetFactory> */
     use HasFactory, LogsChanges;
+
+    // Sama dengan default di database, supaya riwayat perubahan tidak mencatat null -> false.
+    protected $attributes = [
+        'is_byod' => false,
+        'requestable' => false,
+    ];
 
     // Status hanya boleh berubah lewat method di model ini, bukan lewat form atau update biasa.
     private bool $statusChangeAllowed = false;
@@ -175,6 +182,14 @@ class Asset extends Model
     public function depreciation(): BelongsTo
     {
         return $this->belongsTo(Depreciation::class);
+    }
+
+    /**
+     * @return MorphMany<Attachment, $this>
+     */
+    public function attachments(): MorphMany
+    {
+        return $this->morphMany(Attachment::class, 'attachable');
     }
 
     /**
