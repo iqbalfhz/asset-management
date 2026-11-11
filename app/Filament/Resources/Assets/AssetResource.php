@@ -5,11 +5,13 @@ namespace App\Filament\Resources\Assets;
 use App\Filament\Resources\Assets\Pages\CreateAsset;
 use App\Filament\Resources\Assets\Pages\EditAsset;
 use App\Filament\Resources\Assets\Pages\ListAssets;
+use App\Filament\Resources\Assets\Pages\ViewAsset;
 use App\Filament\Resources\Assets\RelationManagers\ActivitiesRelationManager;
 use App\Filament\Resources\Assets\RelationManagers\AssignmentsRelationManager;
 use App\Filament\Resources\Assets\RelationManagers\AttachmentsRelationManager;
 use App\Filament\Resources\Assets\RelationManagers\MaintenancesRelationManager;
 use App\Filament\Resources\Assets\Schemas\AssetForm;
+use App\Filament\Resources\Assets\Schemas\AssetInfolist;
 use App\Filament\Resources\Assets\Tables\AssetsTable;
 use App\Models\Asset;
 use BackedEnum;
@@ -43,6 +45,11 @@ class AssetResource extends Resource
         return AssetForm::configure($schema);
     }
 
+    public static function infolist(Schema $schema): Schema
+    {
+        return AssetInfolist::configure($schema);
+    }
+
     public static function table(Table $table): Table
     {
         return AssetsTable::configure($table);
@@ -63,6 +70,7 @@ class AssetResource extends Resource
         return [
             'index' => ListAssets::route('/'),
             'create' => CreateAsset::route('/create'),
+            'view' => ViewAsset::route('/{record}'),
             'edit' => EditAsset::route('/{record}/edit'),
         ];
     }

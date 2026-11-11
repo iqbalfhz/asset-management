@@ -6,6 +6,8 @@ use App\Filament\Pages\Auth\Login;
 use App\Http\Controllers\DownloadAttachmentController;
 use App\Http\Controllers\DownloadBastController;
 use App\Http\Controllers\DownloadDisposalReportController;
+use App\Http\Controllers\PrintAssetLabelsController;
+use App\Http\Controllers\ScanAssetController;
 use App\Http\Controllers\ShowMaintenancePhotoController;
 use App\Livewire\PersonalInfo;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
@@ -46,6 +48,8 @@ class AdminPanelProvider extends PanelProvider
                 Route::get('bast/{assignment}', [DownloadBastController::class, 'admin'])->whereNumber('assignment')->name('bast.download');
                 Route::get('perbaikan/{maintenance}/foto', ShowMaintenancePhotoController::class)->whereNumber('maintenance')->name('maintenances.photo');
                 Route::get('penghapusan/{disposal}/berita-acara', DownloadDisposalReportController::class)->whereNumber('disposal')->name('disposals.report');
+                Route::get('scan/{kode}', [ScanAssetController::class, 'admin'])->where('kode', '[A-Za-z0-9-]+')->name('assets.scan');
+                Route::get('label', PrintAssetLabelsController::class)->name('labels');
             })
             ->colors([
                 // Abu-abu hangat (sedikit hijau zaitun), dipakai untuk latar, teks, garis.

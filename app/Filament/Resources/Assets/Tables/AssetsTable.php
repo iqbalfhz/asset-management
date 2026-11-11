@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Assets\Tables;
 
 use App\Filament\Exports\AssetExporter;
 use App\Filament\Resources\Assets\Actions\AssetTransactionActions;
+use App\Filament\Resources\Assets\Actions\PrintLabelActions;
 use App\Filament\Resources\Assets\AssetResource;
 use App\Models\Asset;
 use App\Models\Assignment;
@@ -107,6 +108,7 @@ class AssetsTable
             ->recordActions([
                 AssetTransactionActions::handOver(),
                 AssetTransactionActions::takeBack(),
+                PrintLabelActions::single(),
                 EditAction::make(),
                 ReplicateAction::make()
                     ->label(__('Clone'))
@@ -120,6 +122,7 @@ class AssetsTable
                 BulkActionGroup::make([
                     ExportBulkAction::make()
                         ->exporter(AssetExporter::class),
+                    PrintLabelActions::bulk(),
                     AssetTransactionActions::handOverBulk(),
                     AssetTransactionActions::takeBackBulk(),
                     BulkAction::make('markAs')

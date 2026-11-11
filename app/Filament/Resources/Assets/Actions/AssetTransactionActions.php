@@ -16,6 +16,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
+use Filament\Resources\Pages\ViewRecord;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Support\Icons\Heroicon;
@@ -246,11 +247,15 @@ class AssetTransactionActions
             ->all() ?? [];
     }
 
-    // Halaman edit memegang salinan aset sendiri; muat ulang supaya form tidak menimpa lokasi baru.
+    // Halaman lihat dan edit memegang salinan aset sendiri; muat ulang supaya status dan lokasi baru tampil
+    // (dan form edit tidak menimpa lokasi baru).
     private static function refreshEditPage(Component $livewire): void
     {
-        if ($livewire instanceof EditRecord) {
+        if ($livewire instanceof EditRecord || $livewire instanceof ViewRecord) {
             $livewire->getRecord()->refresh();
+        }
+
+        if ($livewire instanceof EditRecord) {
             $livewire->refreshFormData(['room_id']);
         }
     }

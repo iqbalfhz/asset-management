@@ -2,10 +2,13 @@
 
 namespace App\Filament\Pages;
 
+use App\Enums\LabelField;
+use App\Enums\LabelSize;
 use App\Models\Company;
 use App\Models\Setting;
 use BackedEnum;
 use Filament\Actions\Action;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -93,6 +96,15 @@ class Settings extends Page
                             ->regex('/\{NOMOR\}/')
                             ->validationMessages(['regex' => __('Format harus memuat {NOMOR} supaya setiap BAST punya nomor sendiri.')])
                             ->maxLength(100),
+                        Select::make('label_ukuran')
+                            ->label(__('Ukuran label aset'))
+                            ->options(LabelSize::class)
+                            ->required(),
+                        CheckboxList::make('label_isi')
+                            ->label(__('Isi label aset'))
+                            ->helperText(__('Kode aset selalu tercetak. Untuk label kecil, pilih lebih sedikit.'))
+                            ->options(LabelField::class)
+                            ->columns(3),
                     ]),
             ]);
     }
@@ -121,7 +133,7 @@ class Settings extends Page
         Setting::put('company_separation', (bool) $data['company_separation']);
         Setting::put('telegram_enabled', (bool) $data['telegram_enabled']);
 
-        foreach (['logo', 'kop_bast', 'format_nomor_bast'] as $key) {
+        foreach (['logo', 'kop_bast', 'format_nomor_bast', 'label_ukuran', 'label_isi'] as $key) {
             Setting::put($key, $data[$key] ?? null, (int) $data['company_id']);
         }
 
@@ -138,6 +150,8 @@ class Settings extends Page
             'logo' => Setting::get('logo', null, $companyId),
             'kop_bast' => Setting::get('kop_bast', null, $companyId),
             'format_nomor_bast' => Setting::get('format_nomor_bast', 'BAST/{KODE}/{TAHUN}/{NOMOR}', $companyId),
+            'label_ukuran' => Setting::get('label_ukuran', LabelSize::Thermal50x25->value, $companyId),
+            'label_isi' => Setting::get('label_isi', LabelField::defaults(), $companyId),
         ]);
     }
 }
