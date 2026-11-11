@@ -42,7 +42,7 @@ class AdminPanelProvider extends PanelProvider
             // Route di dalam panel ikut login, 2FA, dan akses panel.
             ->authenticatedRoutes(function (): void {
                 Route::get('lampiran/{attachment}', DownloadAttachmentController::class)->name('attachments.download');
-                Route::get('bast/{assignment}', DownloadBastController::class)->whereNumber('assignment')->name('bast.download');
+                Route::get('bast/{assignment}', [DownloadBastController::class, 'admin'])->whereNumber('assignment')->name('bast.download');
             })
             ->colors([
                 // Abu-abu hangat (sedikit hijau zaitun), dipakai untuk latar, teks, garis.

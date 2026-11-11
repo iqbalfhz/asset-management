@@ -150,6 +150,23 @@ class Assignment extends Model
     }
 
     /**
+     * Karyawan menerima serah-terima dalam satu BAST; hanya aset yang masih dipegangnya.
+     */
+    public static function accept(Employee $employee, string $noBast): int
+    {
+        return static::withoutGlobalScope('asset')
+            ->where('no_bast', $noBast)
+            ->where('jenis', AssignmentType::Keluar)
+            ->where('status', AssignmentStatus::Menunggu)
+            ->where('target_type', $employee->getMorphClass())
+            ->where('target_id', $employee->getKey())
+            ->whereHas('asset', fn (Builder $query) => $query->withoutGlobalScopes()
+                ->where('assigned_type', $employee->getMorphClass())
+                ->where('assigned_id', $employee->getKey()))
+            ->update(['status' => AssignmentStatus::Diterima, 'accepted_at' => now()]);
+    }
+
+    /**
      * Nomor BAST dari format di Pengaturan, berurutan per perusahaan dan tahun.
      */
     public static function nextBastNumber(int $companyId): string

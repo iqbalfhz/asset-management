@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\Auth\Login;
+use App\Http\Controllers\DownloadBastController;
 use App\Livewire\PersonalInfo;
 use Filament\FontProviders\LocalFontProvider;
 use Filament\Forms\Components\FileUpload;
@@ -10,16 +11,16 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
-use Filament\Widgets\AccountWidget;
-use Filament\Widgets\FilamentInfoWidget;
+use Filament\View\PanelsRenderHook;
+use Illuminate\Contracts\View\View;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\Facades\Route;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Jeffgreco13\FilamentBreezy\BreezyCore;
 
@@ -33,6 +34,10 @@ class KaryawanPanelProvider extends PanelProvider
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->login(Login::class)
             ->passwordReset()
+            ->authenticatedRoutes(function (): void {
+                Route::get('bast/{assignment}', [DownloadBastController::class, 'employee'])->whereNumber('assignment')->name('bast.download');
+            })
+            ->renderHook(PanelsRenderHook::AUTH_LOGIN_FORM_AFTER, fn (): View => view('filament.karyawan.login-guide-link'))
             ->plugins([
                 BreezyCore::make()
                     ->myProfile(hasAvatars: true, slug: 'profil')
@@ -78,15 +83,8 @@ class KaryawanPanelProvider extends PanelProvider
             ->font('Plus Jakarta Sans Variable', provider: LocalFontProvider::class)
             ->serifFont('Newsreader Variable', provider: LocalFontProvider::class)
             ->discoverResources(in: app_path('Filament/Karyawan/Resources'), for: 'App\Filament\Karyawan\Resources')
+            // Tanpa dashboard: halaman awal adalah menu pertama (Aset saya).
             ->discoverPages(in: app_path('Filament/Karyawan/Pages'), for: 'App\Filament\Karyawan\Pages')
-            ->pages([
-                Dashboard::class,
-            ])
-            ->discoverWidgets(in: app_path('Filament/Karyawan/Widgets'), for: 'App\Filament\Karyawan\Widgets')
-            ->widgets([
-                AccountWidget::class,
-                FilamentInfoWidget::class,
-            ])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

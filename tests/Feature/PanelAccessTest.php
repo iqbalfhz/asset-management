@@ -15,7 +15,9 @@ test('panels have no registration page', function (string $path) {
 test('karyawan can open the karyawan panel but not the admin panel', function () {
     $this->actingAs(userWithRole('karyawan', 'karyawan'));
 
-    $this->get('/karyawan')->assertOk();
+    // Panel karyawan tidak punya dashboard; halaman awalnya Aset saya.
+    $this->get('/karyawan')->assertRedirect('/karyawan/aset-saya');
+    $this->get('/karyawan/aset-saya')->assertOk();
     $this->get('/admin')->assertForbidden();
 });
 
