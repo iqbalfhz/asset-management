@@ -41,15 +41,12 @@
         <section class="step">
             <div class="num">1</div>
             <div>
-                <h2>{{ __('Masuk pertama kali dan memasang kode keamanan') }}</h2>
+                <h2>{{ __('Masuk pertama kali') }}</h2>
                 <ol>
-                    <li>{{ __('Pasang aplikasi authenticator di HP Anda, misalnya Google Authenticator atau Microsoft Authenticator, dari Play Store atau App Store.') }}</li>
                     <li>{!! __('Buka :link, lalu masuk dengan username atau email dan password dari admin.', ['link' => '<a href="'.e(url('/karyawan')).'">'.e(__('panel karyawan')).'</a>']) !!}</li>
-                    <li>{{ __('Aplikasi meminta Anda mengaktifkan autentikasi dua faktor. Pindai kode QR yang muncul dengan aplikasi authenticator, lalu ketik 6 angka yang tampil di HP.') }}</li>
-                    <li>{{ __('Simpan kode pemulihan yang ditampilkan di tempat aman. Kode ini dipakai kalau HP Anda hilang atau diganti.') }}</li>
-                    <li>{{ __('Setiap kali masuk berikutnya, ketik 6 angka terbaru dari aplikasi authenticator setelah memasukkan password.') }}</li>
+                    <li>{!! __('Halaman :menu langsung terbuka dan menampilkan aset yang Anda pegang.', ['menu' => '<strong>'.e(__('Aset saya')).'</strong>']) !!}</li>
                 </ol>
-                <p class="note">{{ __('Kode di aplikasi authenticator berganti setiap 30 detik. Kalau ditolak, tunggu angka berikutnya lalu coba lagi.') }}</p>
+                <p class="note">{!! __('Tidak wajib, tapi disarankan: aktifkan :fitur supaya akun Anda tidak bisa dibuka hanya dengan password. Caranya: pasang aplikasi authenticator di HP (misalnya Google Authenticator atau Microsoft Authenticator), buka menu :menu di pojok kanan atas, tekan Aktifkan, pindai kode QR, lalu ketik 6 angka yang tampil di HP. Simpan kode pemulihan di tempat aman. Setelah aktif, setiap masuk Anda diminta 6 angka terbaru dari aplikasi itu.', ['fitur' => '<strong>'.e(__('verifikasi dua langkah')).'</strong>', 'menu' => '<strong>'.e(__('Profil saya')).'</strong>']) !!}</p>
             </div>
         </section>
 

@@ -44,7 +44,8 @@ class KaryawanPanelProvider extends PanelProvider
                     // Foto profil di disk privat, tanpa SVG (SVG bisa membawa skrip saat tautannya dibuka).
                     ->avatarUploadComponent(fn (FileUpload $fileUpload): FileUpload => $fileUpload->disk('local')->visibility('private')->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp']))
                     ->myProfileComponents(['personal_info' => PersonalInfo::class])
-                    ->enableTwoFactorAuthentication(force: true, scopeToPanel: false)
+                    // 2FA opsional: user mengaktifkannya sendiri dari Profil.
+                    ->enableTwoFactorAuthentication(scopeToPanel: false)
                     ->enableBrowserSessions(),
             ])
             ->colors([

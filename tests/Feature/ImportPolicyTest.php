@@ -45,6 +45,14 @@ test('the owner cannot download before passing 2FA in this session', function ()
     $this->get(route('filament.imports.failed-rows.download', $this->import))->assertForbidden();
 });
 
+test('an owner without 2FA downloads the failed rows', function () {
+    $owner = userWithRole('admin_it', twoFactor: false);
+    $this->import->update(['user_id' => $owner->id]);
+    $this->be($owner);
+
+    $this->get(route('filament.imports.failed-rows.download', $this->import))->assertOk();
+});
+
 test('a deactivated owner cannot download the failed rows', function () {
     $this->owner->update(['is_active' => false]);
     $this->actingAs($this->owner);

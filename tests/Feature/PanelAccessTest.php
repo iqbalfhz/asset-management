@@ -47,12 +47,11 @@ test('an inactive user cannot open the panel of their role', function () {
     $this->get('/admin')->assertForbidden();
 });
 
-test('a user without 2FA is sent to the profile page to set it up first', function (string $role, string $panel) {
+test('a user without 2FA opens the panel directly because 2FA is optional', function (string $role, string $panel, string $home) {
     $this->actingAs(userWithRole($role, $panel, twoFactor: false));
 
-    $this->get("/{$panel}")->assertRedirect("/{$panel}/profil");
-    $this->get("/{$panel}/profil")->assertOk();
-})->with([['admin_it', 'admin'], ['karyawan', 'karyawan']]);
+    $this->get($home)->assertOk();
+})->with([['admin_it', 'admin', '/admin'], ['karyawan', 'karyawan', '/karyawan/aset-saya']]);
 
 test('the password reset request page of each panel is shown', function (string $path) {
     $this->get($path)->assertOk();

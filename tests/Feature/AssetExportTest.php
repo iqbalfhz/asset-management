@@ -116,3 +116,16 @@ test('an export file is refused to other users and to its owner before passing 2
     $this->be($this->adminIt);
     $this->get(route('filament.exports.download', ['export' => $export, 'format' => 'csv']))->assertForbidden();
 });
+
+test('an owner without 2FA passes the export download check', function () {
+    $owner = userWithRole('admin_it', attributes: ['company_id' => $this->tcm->id], twoFactor: false);
+    $export = Export::create([
+        'file_name' => 'aset',
+        'file_disk' => 'local',
+        'exporter' => AssetExporter::class,
+        'total_rows' => 1,
+        'user_id' => $owner->id,
+    ]);
+
+    expect($owner->can('view', $export))->toBeTrue();
+});
