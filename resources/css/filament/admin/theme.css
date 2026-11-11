@@ -13,6 +13,7 @@
 @source '../../../../app/Filament/**/*';
 @source '../../../../resources/views/filament/**/*';
 @source '../../../../vendor/jeffgreco13/filament-breezy/resources/views/**/*';
+@source '../../../../vendor/shuvroroy/filament-spatie-laravel-backup/resources/views/**/*';
 
 /* ---------- Token: ubah di sini kalau mau mengganti karakter ---------- */
 :root {
