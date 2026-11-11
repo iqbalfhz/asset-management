@@ -61,6 +61,126 @@ class Maintenance extends Model
     }
 
     /**
+     * Admin membuat perbaikan langsung (servis rutin); langsung diproses.
+     *
+     * @param  array{keluhan: string, supplier_id?: ?int, tgl_mulai?: ?string, catatan_admin?: ?string}  $data
+     */
+    public static function startDirect(Asset $asset, array $data): self
+    {
+        return DB::transaction(function () use ($asset, $data): self {
+            $asset = Asset::query()->with('status')->whereKey($asset->getKey())->lockForUpdate()->firstOrFail();
+
+            if (static::withoutGlobalScopes()->where('asset_id', $asset->getKey())->whereIn('status', MaintenanceStatus::open())->exists()) {
+                throw new LogicException(__('Aset :kode sudah punya perbaikan yang sedang berjalan.', ['kode' => $asset->kode]));
+            }
+
+            $maintenance = static::query()->create([
+                'asset_id' => $asset->getKey(),
+                'dibuat_oleh' => auth()->id(),
+                'status' => MaintenanceStatus::Dilaporkan,
+                'keluhan' => $data['keluhan'],
+            ]);
+
+            $maintenance->process($data);
+
+            return $maintenance;
+        });
+    }
+
+    /**
+     * @param  array{supplier_id?: ?int, tgl_mulai?: ?string, catatan_admin?: ?string}  $data
+     */
+    public function process(array $data): void
+    {
+        DB::transaction(function () use ($data): void {
+            $this->ensureStatus(MaintenanceStatus::Dilaporkan);
+            $asset = $this->lockedAsset();
+
+            if (! in_array($asset->status->nama, [Status::TERSEDIA, Status::DIPAKAI], true)) {
+                throw new LogicException(__('Aset :kode berstatus :status, jadi tidak bisa diperbaiki.', ['kode' => $asset->kode, 'status' => $asset->status->nama]));
+            }
+
+            $this->update([
+                'status' => MaintenanceStatus::Diproses,
+                'status_sebelum_id' => $asset->status_id,
+                'supplier_id' => $data['supplier_id'] ?? null,
+                'tgl_mulai' => $data['tgl_mulai'] ?? now()->toDateString(),
+                'catatan_admin' => $data['catatan_admin'] ?? null,
+            ]);
+
+            $asset->transitionTo(Status::named(Status::DALAM_PERBAIKAN));
+        });
+    }
+
+    public function reject(string $catatan): void
+    {
+        DB::transaction(function () use ($catatan): void {
+            $this->ensureStatus(MaintenanceStatus::Dilaporkan);
+
+            $this->update(['status' => MaintenanceStatus::Ditolak, 'catatan_admin' => $catatan]);
+        });
+    }
+
+    /**
+     * Perbaikan berhasil: aset kembali ke status sebelumnya, pemegangnya tetap.
+     *
+     * @param  array{hasil: string, biaya?: ?int, tgl_selesai?: ?string}  $data
+     */
+    public function finish(array $data): void
+    {
+        $this->close(MaintenanceStatus::Selesai, null, $data);
+    }
+
+    /**
+     * Perbaikan gagal: aset Rusak dan menunggu dihapuskan.
+     *
+     * @param  array{hasil: string, biaya?: ?int, tgl_selesai?: ?string}  $data
+     */
+    public function markBroken(array $data): void
+    {
+        $this->close(MaintenanceStatus::Rusak, Status::named(Status::RUSAK), $data);
+    }
+
+    /**
+     * @param  ?Status  $assetStatus  status aset setelahnya; null = kembali ke status sebelum diperbaiki
+     * @param  array{hasil: string, biaya?: ?int, tgl_selesai?: ?string}  $data
+     */
+    private function close(MaintenanceStatus $result, ?Status $assetStatus, array $data): void
+    {
+        DB::transaction(function () use ($result, $assetStatus, $data): void {
+            $this->ensureStatus(MaintenanceStatus::Diproses);
+            $asset = $this->lockedAsset();
+            $assetStatus ??= Status::query()->findOrFail(static::withoutGlobalScopes()->whereKey($this->getKey())->value('status_sebelum_id'));
+
+            $this->update([
+                'status' => $result,
+                'hasil' => $data['hasil'],
+                'biaya' => $data['biaya'] ?? null,
+                'tgl_selesai' => $data['tgl_selesai'] ?? now()->toDateString(),
+            ]);
+
+            $asset->transitionTo($assetStatus);
+        });
+    }
+
+    // Dibaca ulang dengan kunci baris, supaya dua admin tidak memproses laporan yang sama bersamaan.
+    private function ensureStatus(MaintenanceStatus $expected): void
+    {
+        /** @var MaintenanceStatus $current */
+        $current = static::withoutGlobalScopes()->whereKey($this->getKey())->lockForUpdate()->value('status');
+
+        if ($current !== $expected) {
+            throw new LogicException(__('Perbaikan ini berstatus :status, jadi aksi ini tidak bisa dilakukan.', ['status' => $current->getLabel()]));
+        }
+    }
+
+    // Aset dibaca tanpa scope kategori: perbaikan sudah lolos hak lihat saat dibuka.
+    private function lockedAsset(): Asset
+    {
+        return Asset::withoutGlobalScope(ManagedCategoryScope::class)->with('status')->whereKey($this->asset_id)->lockForUpdate()->firstOrFail();
+    }
+
+    /**
      * @return BelongsTo<Asset, $this>
      */
     public function asset(): BelongsTo

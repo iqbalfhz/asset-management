@@ -23,7 +23,13 @@ class Status extends Model
 
     public const string DIPAKAI = 'Dipakai';
 
+    public const string DALAM_PERBAIKAN = 'Dalam Perbaikan';
+
+    public const string RUSAK = 'Rusak';
+
     public const string HILANG = 'Hilang';
+
+    public const string DIHAPUSKAN = 'Dihapuskan';
 
     public static function named(string $nama): self
     {

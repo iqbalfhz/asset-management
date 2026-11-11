@@ -9,6 +9,7 @@ use App\Models\Asset;
 use App\Models\Assignment;
 use App\Models\Employee;
 use App\Models\Scopes\ManagedCategoryScope;
+use App\Models\Status;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Checkbox;
@@ -80,7 +81,8 @@ class MyAssets extends Page implements HasTable
                 ->withoutGlobalScope(ManagedCategoryScope::class)
                 ->with(['category', 'status', 'assetModel.manufacturer'])
                 ->where('assigned_type', (new Employee)->getMorphClass())
-                ->where('assigned_id', $employee?->getKey() ?? 0))
+                ->where('assigned_id', $employee?->getKey() ?? 0)
+                ->whereHas('status', fn (Builder $query) => $query->whereIn('nama', [Status::DIPAKAI, Status::DALAM_PERBAIKAN])))
             ->emptyStateHeading(__('Belum ada aset yang Anda pegang'))
             ->emptyStateDescription($employee === null ? __('Akun Anda belum terhubung ke data karyawan. Hubungi admin.') : null)
             ->columns([

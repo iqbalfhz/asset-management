@@ -8,6 +8,7 @@ use App\Filament\Resources\Assets\Pages\ListAssets;
 use App\Filament\Resources\Assets\RelationManagers\ActivitiesRelationManager;
 use App\Filament\Resources\Assets\RelationManagers\AssignmentsRelationManager;
 use App\Filament\Resources\Assets\RelationManagers\AttachmentsRelationManager;
+use App\Filament\Resources\Assets\RelationManagers\MaintenancesRelationManager;
 use App\Filament\Resources\Assets\Schemas\AssetForm;
 use App\Filament\Resources\Assets\Tables\AssetsTable;
 use App\Models\Asset;
@@ -52,6 +53,7 @@ class AssetResource extends Resource
         return [
             AttachmentsRelationManager::class,
             AssignmentsRelationManager::class,
+            MaintenancesRelationManager::class,
             ActivitiesRelationManager::class,
         ];
     }

@@ -254,6 +254,14 @@ class Asset extends Model
     }
 
     /**
+     * @return HasMany<Maintenance, $this>
+     */
+    public function maintenances(): HasMany
+    {
+        return $this->hasMany(Maintenance::class);
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>

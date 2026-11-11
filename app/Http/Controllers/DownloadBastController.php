@@ -7,7 +7,6 @@ use App\Models\Setting;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -60,19 +59,7 @@ class DownloadBastController extends Controller
             'rows' => $rows,
             'company' => $company,
             'kop' => Setting::get('kop_bast', null, $company->id),
-            'logo' => $this->logoDataUri(Setting::get('logo', null, $company->id)),
+            'logo' => Setting::logoDataUri($company->id),
         ])->setPaper('a4')->download(Str::of($first->no_bast)->replaceMatches('/[^A-Za-z0-9]+/', '-')->trim('-').'.pdf');
-    }
-
-    // Logo disematkan sebagai data URI supaya dompdf tidak perlu membaca file atau URL luar.
-    private function logoDataUri(?string $path): ?string
-    {
-        $disk = Storage::disk(config('filament.default_filesystem_disk'));
-
-        if (blank($path) || ! $disk->exists($path)) {
-            return null;
-        }
-
-        return 'data:'.$disk->mimeType($path).';base64,'.base64_encode($disk->get($path));
     }
 }

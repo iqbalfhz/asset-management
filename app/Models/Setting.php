@@ -6,6 +6,7 @@ use App\Models\Concerns\LogsChanges;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 
 #[Fillable(['company_id', 'key', 'value'])]
 class Setting extends Model
@@ -31,6 +32,21 @@ class Setting extends Model
         static::query()->updateOrCreate(['company_id' => $companyId, 'key' => $key], ['value' => $value]);
 
         Cache::memo()->forget(static::cacheKey($key, $companyId));
+    }
+
+    /**
+     * Logo perusahaan sebagai data URI untuk dokumen PDF, supaya dompdf tidak membaca file atau URL luar.
+     */
+    public static function logoDataUri(int $companyId): ?string
+    {
+        $path = static::get('logo', null, $companyId);
+        $disk = Storage::disk(config('filament.default_filesystem_disk'));
+
+        if (blank($path) || ! $disk->exists($path)) {
+            return null;
+        }
+
+        return 'data:'.$disk->mimeType($path).';base64,'.base64_encode($disk->get($path));
     }
 
     private static function cacheKey(string $key, ?int $companyId): string

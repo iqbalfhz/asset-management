@@ -5,6 +5,8 @@ namespace App\Providers\Filament;
 use App\Filament\Pages\Auth\Login;
 use App\Http\Controllers\DownloadAttachmentController;
 use App\Http\Controllers\DownloadBastController;
+use App\Http\Controllers\DownloadDisposalReportController;
+use App\Http\Controllers\ShowMaintenancePhotoController;
 use App\Livewire\PersonalInfo;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\FontProviders\LocalFontProvider;
@@ -43,6 +45,8 @@ class AdminPanelProvider extends PanelProvider
             ->authenticatedRoutes(function (): void {
                 Route::get('lampiran/{attachment}', DownloadAttachmentController::class)->name('attachments.download');
                 Route::get('bast/{assignment}', [DownloadBastController::class, 'admin'])->whereNumber('assignment')->name('bast.download');
+                Route::get('perbaikan/{maintenance}/foto', ShowMaintenancePhotoController::class)->whereNumber('maintenance')->name('maintenances.photo');
+                Route::get('penghapusan/{disposal}/berita-acara', DownloadDisposalReportController::class)->whereNumber('disposal')->name('disposals.report');
             })
             ->colors([
                 // Abu-abu hangat (sedikit hijau zaitun), dipakai untuk latar, teks, garis.

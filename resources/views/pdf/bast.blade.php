@@ -34,20 +34,7 @@
     </style>
 </head>
 <body>
-    <table class="kop">
-        <tr>
-            @if ($logo)
-                <td style="width: 130pt;"><img src="{{ $logo }}" alt=""></td>
-            @endif
-            <td>
-                @if (filled($kop))
-                    <div class="kop-text">{{ $kop }}</div>
-                @else
-                    <div class="kop-name">{{ $company->nama }}</div>
-                @endif
-            </td>
-        </tr>
-    </table>
+    @include('pdf.partials.kop')
 
     <h1>{{ $isReturn ? __('BERITA ACARA PENGEMBALIAN ASET') : __('BERITA ACARA SERAH TERIMA ASET') }}</h1>
     <div class="nomor">{{ __('Nomor') }}: {{ $first->no_bast }}</div>
