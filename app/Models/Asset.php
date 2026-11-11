@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\LogsChanges;
 use App\Models\Scopes\CompanyScope;
+use App\Models\Scopes\ManagedCategoryScope;
 use Database\Factories\AssetFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ScopedBy;
@@ -19,7 +20,7 @@ use LogicException;
     'supplier_id', 'tgl_beli', 'harga_beli', 'depreciation_id', 'order_number', 'garansi_sampai', 'eol_date',
     'spesifikasi', 'is_byod', 'requestable', 'next_audit_date', 'notes',
 ])]
-#[ScopedBy([CompanyScope::class])]
+#[ScopedBy([CompanyScope::class, ManagedCategoryScope::class])]
 class Asset extends Model
 {
     /** @use HasFactory<AssetFactory> */
