@@ -14,7 +14,8 @@ Kerjakan per fase. Ikuti sub-tab fase yang sedang aktif. Jangan mengerjakan fitu
 - Node.js 26 LTS di server, Node.js 24 LTS di laptop (batas Herd); untuk build tema dan aset
 - Pest untuk test
 - Tema Filament "Kertas" (satu file tema `resources/css/filament/admin/theme.css` untuk dua panel), font lokal lewat @fontsource; tidak boleh memanggil Google Fonts atau CDN lain
-- Deploy: server Coolify milik sendiri (queue worker + scheduler + HTTPS)
+- Deploy: server Coolify milik sendiri, satu container FrankenPHP dari `Dockerfile` (bukan nginx). Tanpa container worker: antrean dan jadwal lewat Scheduled Task Coolify (`php artisan schedule:run` tiap menit). HTTPS dan domain lewat Cloudflare Tunnel. Manfaatkan fitur Coolify dan Cloudflare Tunnel dulu sebelum mencari opsi lain
+- Semua yang dipakai saat build (image Node, OS dasar, MySQL) memakai versi LTS terbaru
 
 ## Panel dan akses
 
