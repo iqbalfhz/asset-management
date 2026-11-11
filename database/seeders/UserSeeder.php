@@ -24,35 +24,23 @@ class UserSeeder extends Seeder
 
         $company = Company::where('kode', 'TCM')->firstOrFail();
 
-        $accounts = [
-            'superadmin' => ['Super Admin', 'super_admin'],
-            'adminit' => ['Admin IT', 'admin_it'],
-            'adminga' => ['Admin GA', 'admin_ga'],
-            'karyawan' => ['Karyawan', 'karyawan'],
-        ];
+        // Hanya satu akun awal; admin dan karyawan lain dibuat Super Admin lewat halaman User.
+        $user = User::firstWhere('username', 'administrator') ?? new User;
 
-        // Produksi: hanya Super Admin; akun admin dan karyawan sungguhan dibuat lewat halaman User.
-        if (app()->isProduction()) {
-            $accounts = array_intersect_key($accounts, ['superadmin' => true]);
+        // Seeder yang dijalankan ulang di produksi tidak boleh mengganti password akun yang sudah dipakai.
+        if ($user->exists && app()->isProduction()) {
+            return;
         }
 
-        foreach ($accounts as $username => [$name, $role]) {
-            $user = User::firstWhere('username', $username) ?? new User;
+        $user->forceFill([
+            'company_id' => $company->id,
+            'name' => 'Super Admin',
+            'username' => 'administrator',
+            'email' => 'admin.it@tangcity.com',
+            'password' => $password,
+            'is_active' => true,
+        ])->save();
 
-            // Seeder yang dijalankan ulang di produksi tidak boleh mengganti password akun yang sudah dipakai.
-            if ($user->exists && app()->isProduction()) {
-                continue;
-            }
-
-            $user->forceFill([
-                'company_id' => $company->id,
-                'name' => $name,
-                'username' => $username,
-                'password' => $password,
-                'is_active' => true,
-            ])->save();
-
-            $user->syncRoles([$role]);
-        }
+        $user->syncRoles(['super_admin']);
     }
 }

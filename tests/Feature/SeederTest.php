@@ -8,10 +8,12 @@ use Database\Seeders\RoleSeeder;
 use Database\Seeders\UserSeeder;
 use Illuminate\Support\Facades\Hash;
 
-test('the seeders create the first company, four roles and one account per role', function () {
+test('the seeders create the first company, four roles and a single super admin account', function () {
     config(['app.seed_password' => 'Kantor2026aman']);
 
     $this->seed();
+
+    $administrator = User::sole();
 
     expect(Company::pluck('nama', 'kode')->all())->toBe(['TCM' => 'Tangcity'])
         ->and(Role::pluck('panel', 'name')->sortKeys()->all())->toBe([
@@ -19,11 +21,10 @@ test('the seeders create the first company, four roles and one account per role'
             'admin_it' => 'admin',
             'karyawan' => 'karyawan',
             'super_admin' => 'admin',
-        ]);
-
-    foreach (['superadmin' => 'super_admin', 'adminit' => 'admin_it', 'adminga' => 'admin_ga', 'karyawan' => 'karyawan'] as $username => $role) {
-        expect(User::firstWhere('username', $username)->getRoleNames()->all())->toBe([$role]);
-    }
+        ])
+        ->and($administrator->only(['name', 'username', 'email']))->toBe(['name' => 'Super Admin', 'username' => 'administrator', 'email' => 'admin.it@tangcity.com'])
+        ->and($administrator->getRoleNames()->all())->toBe(['super_admin'])
+        ->and(Hash::check('Kantor2026aman', $administrator->password))->toBeTrue();
 });
 
 test('admin IT gets master data permissions but nothing reserved for super admin', function () {
@@ -45,15 +46,13 @@ test('the user seeder refuses a missing or weak SEED_PASSWORD', function (?strin
     expect(fn () => $this->seed(UserSeeder::class))->toThrow(RuntimeException::class);
 })->with([null, 'password']);
 
-test('in production the seeder creates only the super admin and never resets an existing password', function () {
+test('in production a second seeder run never resets the super admin password', function () {
     config(['app.seed_password' => 'Kantor2026aman']);
     $this->app['env'] = 'production';
 
     $this->artisan('db:seed', ['--force' => true])->assertSuccessful();
 
-    expect(User::pluck('username')->all())->toBe(['superadmin']);
-
-    $superAdmin = User::firstWhere('username', 'superadmin');
+    $superAdmin = User::sole();
     $superAdmin->update(['password' => 'PasswordBaru2026']);
     config(['app.seed_password' => 'Kantor2026lain']);
 
