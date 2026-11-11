@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\LogsChanges;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
@@ -9,6 +10,8 @@ use Illuminate\Support\Facades\Cache;
 #[Fillable(['company_id', 'key', 'value'])]
 class Setting extends Model
 {
+    use LogsChanges;
+
     /**
      * Baca pengaturan global (companyId null) atau milik satu perusahaan.
      */

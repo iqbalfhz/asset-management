@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\LogsChanges;
 use App\Models\Scopes\CompanyScope;
 use Database\Factories\RoomFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Room extends Model
 {
     /** @use HasFactory<RoomFactory> */
-    use HasFactory;
+    use HasFactory, LogsChanges;
 
     protected static function booted(): void
     {

@@ -12,6 +12,7 @@ use Filament\Actions\EditAction;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
@@ -71,6 +72,15 @@ class AssetModelResource extends Resource
                     ->label(__('Kelas penyusutan'))
                     ->relationship('depreciation', 'nama')
                     ->preload(),
+                TextInput::make('eol_bulan')
+                    ->label(__('Umur pakai (EOL)'))
+                    ->helperText(__('Dipakai menghitung tanggal EOL aset dari tanggal belinya.'))
+                    ->integer()
+                    ->minValue(1)
+                    ->suffix(__('bulan')),
+                Toggle::make('wajib_nomor_seri')
+                    ->label(__('Wajib nomor seri'))
+                    ->helperText(__('Setiap aset dengan model ini harus punya nomor seri.')),
                 FileUpload::make('foto')
                     ->image()
                     ->directory('asset-models')

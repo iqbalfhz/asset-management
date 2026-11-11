@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\LogsChanges;
 use App\Models\Scopes\CompanyScope;
 use Database\Factories\FloorFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -15,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Floor extends Model
 {
     /** @use HasFactory<FloorFactory> */
-    use HasFactory;
+    use HasFactory, LogsChanges;
 
     protected static function booted(): void
     {

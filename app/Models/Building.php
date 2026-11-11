@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\LogsChanges;
 use App\Models\Scopes\CompanyScope;
 use Database\Factories\BuildingFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -16,7 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Building extends Model
 {
     /** @use HasFactory<BuildingFactory> */
-    use HasFactory;
+    use HasFactory, LogsChanges;
 
     /**
      * @return BelongsTo<Company, $this>

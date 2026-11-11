@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\StatusType;
+use App\Models\Concerns\LogsChanges;
 use Database\Factories\StatusFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,7 +14,7 @@ use LogicException;
 class Status extends Model
 {
     /** @use HasFactory<StatusFactory> */
-    use HasFactory;
+    use HasFactory, LogsChanges;
 
     protected static function booted(): void
     {
