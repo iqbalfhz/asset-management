@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\User;
-use Filament\Facades\Filament;
 
 test('the login page of each panel is shown in Indonesian', function (string $path) {
     $this->get($path)
@@ -46,12 +45,12 @@ test('an inactive user cannot open the panel of their role', function () {
     $this->get('/admin')->assertForbidden();
 });
 
-test('a user without 2FA is sent to set it up before opening the panel', function () {
-    $this->actingAs(userWithRole('admin_it', attributes: ['app_authentication_secret' => null]));
+test('a user without 2FA is sent to the profile page to set it up first', function (string $role, string $panel) {
+    $this->actingAs(userWithRole($role, $panel, twoFactor: false));
 
-    $this->get('/admin')
-        ->assertRedirect(Filament::getPanel('admin')->getSetUpRequiredMultiFactorAuthenticationUrl());
-});
+    $this->get("/{$panel}")->assertRedirect("/{$panel}/profil");
+    $this->get("/{$panel}/profil")->assertOk();
+})->with([['admin_it', 'admin'], ['karyawan', 'karyawan']]);
 
 test('the password reset request page of each panel is shown', function (string $path) {
     $this->get($path)->assertOk();

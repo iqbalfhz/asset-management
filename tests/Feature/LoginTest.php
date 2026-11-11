@@ -2,10 +2,11 @@
 
 use App\Filament\Pages\Auth\Login;
 use App\Models\User;
-use Filament\Auth\MultiFactor\App\AppAuthentication;
 use Filament\Facades\Filament;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
+use Jeffgreco13\FilamentBreezy\Pages\TwoFactorPage;
+use PragmaRX\Google2FA\Google2FA;
 
 use function Pest\Livewire\livewire;
 
@@ -18,8 +19,7 @@ test('a user can log in with username or email', function (string $login) {
         'username' => 'budi',
         'email' => 'budi@tangcity.com',
         'password' => 'Kantor2026aman',
-        'app_authentication_secret' => null,
-    ]);
+    ], twoFactor: false);
 
     livewire(Login::class)
         ->fillForm(['login' => $login, 'password' => 'Kantor2026aman'])
@@ -40,33 +40,37 @@ test('a wrong password is rejected', function () {
     $this->assertGuest();
 });
 
-test('a user with 2FA is only logged in with a valid code', function () {
+test('after login, a user with 2FA must enter a valid code before opening the panel', function () {
     $user = userWithRole('admin_it', attributes: ['username' => 'budi', 'password' => 'Kantor2026aman']);
-    $validCode = AppAuthentication::make()->getCurrentCode($user);
+    $validCode = app(Google2FA::class)->getCurrentOtp($user->breezySession->two_factor_secret);
     $wrongCode = $validCode === '000000' ? '111111' : '000000';
 
-    $login = livewire(Login::class)
+    livewire(Login::class)
         ->fillForm(['login' => 'budi', 'password' => 'Kantor2026aman'])
         ->call('authenticate');
 
-    $this->assertGuest();
+    $this->get('/admin')->assertRedirectContains('two-factor');
 
-    $login->set('data.multiFactor.app.code', $wrongCode)
+    livewire(TwoFactorPage::class)
+        ->set('data.code', $wrongCode)
         ->call('authenticate')
-        ->assertHasErrors(['data.multiFactor.app.code']);
+        ->assertHasErrors(['data.code']);
 
-    $this->assertGuest();
+    $this->get('/admin')->assertRedirectContains('two-factor');
 
-    $login->set('data.multiFactor.app.code', $validCode)
-        ->call('authenticate');
+    livewire(TwoFactorPage::class)
+        ->set('data.code', $validCode)
+        ->call('authenticate')
+        ->assertHasNoErrors();
 
-    $this->assertAuthenticatedAs($user);
+    $this->get('/admin')->assertOk();
 });
 
-test('the 2FA secret is stored encrypted', function () {
-    $user = User::factory()->withAppAuthentication()->create();
-    $stored = DB::table('users')->where('id', $user->id)->value('app_authentication_secret');
+test('the 2FA secret and recovery codes are stored encrypted', function () {
+    $user = User::factory()->withTwoFactor()->create();
+    $stored = DB::table('breezy_sessions')->where('authenticatable_id', $user->id)->first();
 
-    expect($stored)->not->toBe($user->getAppAuthenticationSecret())
-        ->and(Crypt::decryptString($stored))->toBe($user->getAppAuthenticationSecret());
+    expect($stored->two_factor_secret)->not->toBe($user->breezySession->two_factor_secret)
+        ->and(Crypt::decryptString($stored->two_factor_secret))->toBe($user->breezySession->two_factor_secret)
+        ->and($stored->two_factor_recovery_codes)->not->toContain($user->breezySession->two_factor_recovery_codes[0]);
 });

@@ -52,13 +52,14 @@ function something()
 }
 
 /**
- * Create a user with 2FA set up, holding one role that belongs to the given panel.
+ * Create a user holding one role that belongs to the given panel, with 2FA set up unless told otherwise.
  *
  * @param  array<string, mixed>  $attributes
  */
-function userWithRole(string $role, string $panel = 'admin', array $attributes = []): User
+function userWithRole(string $role, string $panel = 'admin', array $attributes = [], bool $twoFactor = true): User
 {
-    $user = User::factory()->withAppAuthentication()->create($attributes);
+    $factory = User::factory();
+    $user = ($twoFactor ? $factory->withTwoFactor() : $factory)->create($attributes);
     $user->assignRole(Role::firstOrCreate(['name' => $role, 'guard_name' => 'web'], ['panel' => $panel]));
 
     return $user;

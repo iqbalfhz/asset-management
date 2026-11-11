@@ -148,12 +148,10 @@ class UserResource extends Resource
                     ->color('danger')
                     ->requiresConfirmation()
                     ->modalDescription(__('User harus mengatur ulang aplikasi authenticator saat login berikutnya.'))
-                    ->visible(fn (User $record): bool => filled($record->getAppAuthenticationSecret()))
+                    ->visible(fn (User $record): bool => $record->hasEnabledTwoFactor())
                     ->action(function (User $record): void {
-                        $record->forceFill([
-                            'app_authentication_secret' => null,
-                            'app_authentication_recovery_codes' => null,
-                        ])->save();
+                        // Semua sesi 2FA Breezy dihapus, termasuk dari panel lain.
+                        $record->breezySessions()->delete();
 
                         Notification::make()->title(__('2FA sudah direset.'))->success()->send();
                     }),

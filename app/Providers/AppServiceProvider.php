@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Livewire\PersonalInfo;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Notifications\Notification;
@@ -9,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Livewire\Livewire;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -26,6 +28,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Password::defaults(fn () => Password::min(12)->letters()->numbers());
+
+        // Breezy mendaftarkan nama 'personal_info' untuk komponennya; arahkan ke versi kita (email boleh kosong).
+        Livewire::component('personal_info', PersonalInfo::class);
 
         $this->explainDeletingRecordsStillInUse();
     }

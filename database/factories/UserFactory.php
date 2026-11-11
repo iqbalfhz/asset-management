@@ -4,10 +4,10 @@ namespace Database\Factories;
 
 use App\Models\Company;
 use App\Models\User;
-use Filament\Auth\MultiFactor\App\AppAuthentication;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use PragmaRX\Google2FA\Google2FA;
 
 /**
  * @extends Factory<User>
@@ -49,13 +49,17 @@ class UserFactory extends Factory
     }
 
     /**
-     * Indicate that the user has set up an authenticator app (2FA).
+     * Indicate that the user has set up and confirmed an authenticator app (Breezy 2FA).
      */
-    public function withAppAuthentication(): static
+    public function withTwoFactor(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'app_authentication_secret' => AppAuthentication::make()->generateSecret(),
-        ]);
+        return $this->afterCreating(function (User $user): void {
+            $user->breezySessions()->create([
+                'two_factor_secret' => app(Google2FA::class)->generateSecretKey(),
+                'two_factor_recovery_codes' => $user->generateRecoveryCodes(),
+                'two_factor_confirmed_at' => now(),
+            ]);
+        });
     }
 
     /**

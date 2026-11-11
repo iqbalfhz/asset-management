@@ -2,10 +2,10 @@
 
 namespace App\Providers\Filament;
 
-use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Pages\Auth\Login;
-use Filament\Auth\MultiFactor\App\AppAuthentication;
+use App\Livewire\PersonalInfo;
 use Filament\FontProviders\LocalFontProvider;
+use Filament\Forms\Components\FileUpload;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -21,6 +21,7 @@ use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Jeffgreco13\FilamentBreezy\BreezyCore;
 
 class KaryawanPanelProvider extends PanelProvider
 {
@@ -32,10 +33,15 @@ class KaryawanPanelProvider extends PanelProvider
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->login(Login::class)
             ->passwordReset()
-            ->profile(EditProfile::class)
-            ->multiFactorAuthentication([
-                AppAuthentication::make()->recoverable(),
-            ], isRequired: true)
+            ->plugins([
+                BreezyCore::make()
+                    ->myProfile(hasAvatars: true, slug: 'profil')
+                    // Foto profil disimpan di disk privat, bukan publik seperti bawaan Breezy.
+                    ->avatarUploadComponent(fn (FileUpload $fileUpload): FileUpload => $fileUpload->disk('local')->visibility('private'))
+                    ->myProfileComponents(['personal_info' => PersonalInfo::class])
+                    ->enableTwoFactorAuthentication(force: true, scopeToPanel: false)
+                    ->enableBrowserSessions(),
+            ])
             ->colors([
                 // Abu-abu hangat (sedikit hijau zaitun), dipakai untuk latar, teks, garis.
                 'gray' => [

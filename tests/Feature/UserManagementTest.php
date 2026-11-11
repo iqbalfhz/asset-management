@@ -90,7 +90,7 @@ test('users have no delete action', function () {
 
 test('super admin can reset a password and reset 2FA', function () {
     $this->actingAs($this->superAdmin);
-    $budi = userWithRole('admin_it', attributes: ['company_id' => $this->company->id, 'app_authentication_recovery_codes' => ['a', 'b']]);
+    $budi = userWithRole('admin_it', attributes: ['company_id' => $this->company->id]);
 
     livewire(ManageUsers::class)
         ->callAction(TestAction::make('resetPassword')->table($budi), data: ['password' => 'Gudang2026baru', 'passwordConfirmation' => 'Gudang2026baru'])
@@ -100,8 +100,8 @@ test('super admin can reset a password and reset 2FA', function () {
     $budi->refresh();
 
     expect(Hash::check('Gudang2026baru', $budi->password))->toBeTrue()
-        ->and($budi->getAppAuthenticationSecret())->toBeNull()
-        ->and($budi->getAppAuthenticationRecoveryCodes())->toBeNull();
+        ->and($budi->hasEnabledTwoFactor())->toBeFalse()
+        ->and($budi->breezySessions()->count())->toBe(0);
 });
 
 test('super admin creates a company and its code is stored in capitals', function () {
