@@ -62,6 +62,10 @@ class AssetInfolist
                             ->label(__('Lokasi default'))
                             ->state(fn (Asset $record): ?string => static::roomLabel($record->defaultRoom))
                             ->placeholder('—'),
+                        TextEntry::make('next_audit_date')
+                            ->label(__('Audit berikutnya'))
+                            ->date('j M Y')
+                            ->placeholder(__('Belum dijadwalkan')),
                     ]),
                 Section::make(__('Pembelian'))
                     ->columns(2)

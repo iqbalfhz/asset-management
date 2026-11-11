@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Enums\LabelField;
 use App\Enums\LabelSize;
+use App\Models\Audit;
 use App\Models\Company;
 use App\Models\Setting;
 use BackedEnum;
@@ -105,6 +106,14 @@ class Settings extends Page
                             ->helperText(__('Kode aset selalu tercetak. Untuk label kecil, pilih lebih sedikit.'))
                             ->options(LabelField::class)
                             ->columns(3),
+                        TextInput::make('audit_interval_bulan')
+                            ->label(__('Interval stock opname'))
+                            ->helperText(__('Jadwal audit berikutnya = tanggal sesi ditutup + interval ini.'))
+                            ->integer()
+                            ->minValue(1)
+                            ->maxValue(60)
+                            ->suffix(__('bulan'))
+                            ->required(),
                     ]),
             ]);
     }
@@ -137,6 +146,8 @@ class Settings extends Page
             Setting::put($key, $data[$key] ?? null, (int) $data['company_id']);
         }
 
+        Setting::put('audit_interval_bulan', (int) $data['audit_interval_bulan'], (int) $data['company_id']);
+
         Notification::make()->title(__('Pengaturan sudah disimpan.'))->success()->send();
     }
 
@@ -152,6 +163,7 @@ class Settings extends Page
             'format_nomor_bast' => Setting::get('format_nomor_bast', 'BAST/{KODE}/{TAHUN}/{NOMOR}', $companyId),
             'label_ukuran' => Setting::get('label_ukuran', LabelSize::Thermal50x25->value, $companyId),
             'label_isi' => Setting::get('label_isi', LabelField::defaults(), $companyId),
+            'audit_interval_bulan' => Setting::get('audit_interval_bulan', Audit::DEFAULT_INTERVAL_MONTHS, $companyId),
         ]);
     }
 }

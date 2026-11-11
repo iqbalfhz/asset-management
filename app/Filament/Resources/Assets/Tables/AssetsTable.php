@@ -22,6 +22,7 @@ use Filament\Support\Colors\Color;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
@@ -84,6 +85,12 @@ class AssetsTable
                     ->label(__('BYOD'))
                     ->boolean()
                     ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('next_audit_date')
+                    ->label(__('Audit berikutnya'))
+                    ->date('j M Y')
+                    ->placeholder(__('Belum dijadwalkan'))
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 SelectFilter::make('category_id')
@@ -104,6 +111,12 @@ class AssetsTable
                         : $query->where('assigned_type', (new Employee)->getMorphClass())->where('assigned_id', $data['value'])),
                 TernaryFilter::make('is_byod')
                     ->label(__('BYOD')),
+                Filter::make('perlu_audit')
+                    ->label(__('Perlu diaudit'))
+                    ->toggle()
+                    ->query(fn (Builder $query): Builder => $query
+                        ->whereDoesntHave('status', fn (Builder $query) => $query->whereIn('nama', [Status::HILANG, Status::DIHAPUSKAN]))
+                        ->where(fn (Builder $query) => $query->whereNull('next_audit_date')->orWhereDate('next_audit_date', '<=', today()))),
             ])
             ->recordActions([
                 AssetTransactionActions::handOver(),

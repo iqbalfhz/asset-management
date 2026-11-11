@@ -4,6 +4,7 @@ namespace App\Providers\Filament;
 
 use App\Filament\Pages\Auth\Login;
 use App\Http\Controllers\DownloadAttachmentController;
+use App\Http\Controllers\DownloadAuditReportController;
 use App\Http\Controllers\DownloadBastController;
 use App\Http\Controllers\DownloadDisposalReportController;
 use App\Http\Controllers\PrintAssetLabelsController;
@@ -50,6 +51,7 @@ class AdminPanelProvider extends PanelProvider
                 Route::get('penghapusan/{disposal}/berita-acara', DownloadDisposalReportController::class)->whereNumber('disposal')->name('disposals.report');
                 Route::get('scan/{kode}', [ScanAssetController::class, 'admin'])->where('kode', '[A-Za-z0-9-]+')->name('assets.scan');
                 Route::get('label', PrintAssetLabelsController::class)->name('labels');
+                Route::get('stock-opname/{audit}/laporan', DownloadAuditReportController::class)->whereNumber('audit')->name('audits.report');
             })
             ->colors([
                 // Abu-abu hangat (sedikit hijau zaitun), dipakai untuk latar, teks, garis.
