@@ -1,5 +1,6 @@
 <?php
 
+use App\Filament\Pages\Auth\RequestPasswordReset as AppRequestPasswordReset;
 use App\Models\User;
 use Filament\Auth\Notifications\ResetPassword as ResetPasswordNotification;
 use Filament\Auth\Pages\PasswordReset\RequestPasswordReset;
@@ -68,3 +69,18 @@ test('no reset link is sent for a panel the account cannot open', function () {
 
     Notification::assertNotSentTo($user, ResetPasswordNotification::class);
 });
+
+test('the reset form gives the same answer for an unknown email and a repeated request', function (string $email) {
+    Notification::fake();
+    $user = userWithRole('admin_it', attributes: ['email' => 'budi@tangcity.com']);
+    Password::broker()->createToken($user);
+
+    livewire(AppRequestPasswordReset::class)
+        ->fillForm(['email' => $email])
+        ->call('request')
+        ->assertNotified(__('passwords.sent'))
+        ->assertFormSet(['email' => null]);
+})->with([
+    'unknown email' => 'tidakada@tangcity.com',
+    'email that just got a link' => 'budi@tangcity.com',
+]);

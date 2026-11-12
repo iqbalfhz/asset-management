@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\Auth\Login;
+use App\Filament\Pages\Auth\RequestPasswordReset;
 use App\Http\Controllers\DownloadBastController;
 use App\Livewire\PersonalInfo;
 use Filament\FontProviders\LocalFontProvider;
@@ -33,7 +34,7 @@ class KaryawanPanelProvider extends PanelProvider
             ->path('karyawan')
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->login(Login::class)
-            ->passwordReset()
+            ->passwordReset(RequestPasswordReset::class)
             ->authenticatedRoutes(function (): void {
                 Route::get('bast/{assignment}', [DownloadBastController::class, 'employee'])->whereNumber('assignment')->name('bast.download');
             })

@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\Auth\Login;
+use App\Filament\Pages\Auth\RequestPasswordReset;
 use App\Http\Controllers\DownloadAttachmentController;
 use App\Http\Controllers\DownloadAuditReportController;
 use App\Http\Controllers\DownloadBastController;
@@ -41,7 +42,7 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->login(Login::class)
-            ->passwordReset()
+            ->passwordReset(RequestPasswordReset::class)
             ->databaseNotifications()
             // Route di dalam panel ikut login, 2FA, dan akses panel.
             ->authenticatedRoutes(function (): void {
