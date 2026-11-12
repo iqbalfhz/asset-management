@@ -18,6 +18,7 @@ class ActivityColumns
                 'updated' => __('Diubah'),
                 'deleted' => __('Dihapus'),
                 'dinonaktifkan_paksa' => __('Nonaktif paksa'),
+                'ditemukan_kembali' => __('Ditemukan kembali'),
                 default => (string) $state,
             });
     }

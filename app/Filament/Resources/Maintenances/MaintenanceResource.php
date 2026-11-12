@@ -65,7 +65,7 @@ class MaintenanceResource extends Resource
                 Select::make('asset_id')
                     ->label(__('Aset'))
                     ->relationship('asset', 'kode', modifyQueryUsing: fn (Builder $query): Builder => $query
-                        ->whereHas('status', fn (Builder $query) => $query->whereIn('nama', [Status::TERSEDIA, Status::DIPAKAI])))
+                        ->whereHas('status', fn (Builder $query) => $query->whereIn('nama', [Status::TERSEDIA, Status::DIPAKAI, Status::RUSAK])))
                     ->getOptionLabelFromRecordUsing(fn (Asset $record): string => "{$record->kode} — {$record->nama}")
                     ->searchable(['kode', 'nama'])
                     ->required(),

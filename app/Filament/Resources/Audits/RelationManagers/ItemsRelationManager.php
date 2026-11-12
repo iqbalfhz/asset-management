@@ -3,9 +3,11 @@
 namespace App\Filament\Resources\Audits\RelationManagers;
 
 use App\Enums\AuditResult;
+use App\Filament\Exports\AuditItemExporter;
 use App\Models\AuditItem;
 use App\Models\Status;
 use Filament\Actions\Action;
+use Filament\Actions\ExportAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Support\Icons\Heroicon;
@@ -64,6 +66,10 @@ class ItemsRelationManager extends RelationManager
             ->filters([
                 SelectFilter::make('hasil')
                     ->options(AuditResult::class),
+            ])
+            ->headerActions([
+                ExportAction::make()
+                    ->exporter(AuditItemExporter::class),
             ])
             ->recordActions([
                 Action::make('move')

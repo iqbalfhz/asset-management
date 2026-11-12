@@ -26,7 +26,7 @@ class TransactionsRelationManager extends RelationManager
         return true;
     }
 
-    // Dimuat ulang setelah aksi Masuk atau Keluar di halaman yang sama.
+    // Dimuat ulang setelah aksi stok di halaman yang sama.
     #[On('stock-moved')]
     public function refreshAfterStockMoved(): void {}
 
@@ -41,7 +41,7 @@ class TransactionsRelationManager extends RelationManager
                 TextColumn::make('jenis')
                     ->badge(),
                 TextColumn::make('jumlah')
-                    ->formatStateUsing(fn (int $state, ConsumableTransaction $record): string => ($record->jenis === StockMovement::Masuk ? '+' : '−').$state),
+                    ->formatStateUsing(fn (int $state, ConsumableTransaction $record): string => ($record->jenis->isIncoming() ? '+' : '−').$state),
                 TextColumn::make('stok_sesudah')
                     ->label(__('Stok sesudah')),
                 TextColumn::make('pihak')

@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\DisposalMethod;
+use App\Filament\Exports\LicenseExporter;
 use App\Filament\Resources\Assets\Pages\ViewAsset;
 use App\Filament\Resources\Assets\RelationManagers\LicenseSeatsRelationManager;
 use App\Filament\Resources\Employees\Pages\ManageEmployees;
@@ -21,6 +22,7 @@ use App\Models\Role;
 use App\Models\Status;
 use Database\Seeders\RoleSeeder;
 use Database\Seeders\StatusSeeder;
+use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\Select;
@@ -220,4 +222,14 @@ test('the dashboard lists licenses that expire soon', function () {
     livewire(LicensesExpiring::class)
         ->assertCanSeeTableRecords([$soon, $expired])
         ->assertCanNotSeeTableRecords([$this->license, $perpetual]);
+});
+
+test('the license export carries seat usage but never the product key', function () {
+    $this->license->assignSeat($this->budi);
+
+    $row = LicenseExporter::test(columnMap: ['nama_software' => 'Software', 'jumlah_seat' => 'Jumlah seat', 'active_seats_count' => 'Seat terpakai'])
+        ->export(License::query()->withCount('activeSeats')->find($this->license->id));
+
+    expect($row)->toBe(['Microsoft 365', '2', '1'])
+        ->and(collect(LicenseExporter::getColumns())->map(fn (ExportColumn $column): string => $column->getName()))->not->toContain('product_key');
 });

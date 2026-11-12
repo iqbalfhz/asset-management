@@ -62,7 +62,9 @@ class Audit extends Model
             $expected = Asset::query()
                 ->where('room_id', $room->getKey())
                 ->whereHas('status', fn (Builder $query) => $query->whereNotIn('nama', [Status::HILANG, Status::DIHAPUSKAN]))
-                ->get(['id', 'room_id']);
+                ->get(['id', 'room_id', 'assigned_type', 'assigned_id'])
+                // Lokasi aset yang dibawa karyawan atau departemen tidak pasti; kalau discan di sini tetap tercatat.
+                ->reject(fn (Asset $asset): bool => $asset->isWithEmployeeOrDepartment());
 
             $audit->items()->createMany($expected->map(fn (Asset $asset): array => [
                 'asset_id' => $asset->getKey(),

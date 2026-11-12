@@ -96,9 +96,11 @@ class Maintenance extends Model
             $this->ensureStatus(MaintenanceStatus::Dilaporkan);
             $asset = $this->lockedAsset();
 
-            if (! in_array($asset->status->nama, [Status::TERSEDIA, Status::DIPAKAI], true)) {
+            if (! in_array($asset->status->nama, [Status::TERSEDIA, Status::DIPAKAI, Status::RUSAK], true)) {
                 throw new LogicException(__('Aset :kode berstatus :status, jadi tidak bisa diperbaiki.', ['kode' => $asset->kode, 'status' => $asset->status->nama]));
             }
+
+            $asset->ensureNoPendingDisposal();
 
             $this->update([
                 'status' => MaintenanceStatus::Diproses,
@@ -158,6 +160,17 @@ class Maintenance extends Model
                 'biaya' => $data['biaya'] ?? null,
                 'tgl_selesai' => $data['tgl_selesai'] ?? now()->toDateString(),
             ]);
+
+            // Aset Rusak yang berhasil diperbaiki kembali ke lokasi default sebagai Tersedia; pemegang lamanya dilepas.
+            if ($result === MaintenanceStatus::Selesai && $assetStatus->nama === Status::RUSAK) {
+                $asset->transitionTo(Status::named(Status::TERSEDIA), [
+                    'assigned_type' => null,
+                    'assigned_id' => null,
+                    'room_id' => $asset->default_room_id ?? $asset->room_id,
+                ]);
+
+                return;
+            }
 
             $asset->transitionTo($assetStatus);
         });

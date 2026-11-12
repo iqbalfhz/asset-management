@@ -238,7 +238,7 @@ class Assignment extends Model
         return $all;
     }
 
-    private static function companyIdOf(Model $target): ?int
+    public static function companyIdOf(Model $target): ?int
     {
         return $target instanceof Room
             ? Building::withoutGlobalScopes()->whereKey(Floor::withoutGlobalScopes()->whereKey($target->floor_id)->value('building_id'))->value('company_id')

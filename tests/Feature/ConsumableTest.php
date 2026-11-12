@@ -1,6 +1,8 @@
 <?php
 
 use App\Enums\StockMovement;
+use App\Filament\Exports\ConsumableExporter;
+use App\Filament\Exports\ConsumableTransactionExporter;
 use App\Filament\Resources\Consumables\ConsumableResource;
 use App\Filament\Resources\Consumables\Pages\CreateConsumable;
 use App\Filament\Resources\Consumables\Pages\EditConsumable;
@@ -14,8 +16,11 @@ use App\Models\Employee;
 use App\Models\Role;
 use App\Models\Supplier;
 use Database\Seeders\RoleSeeder;
+use Filament\Actions\ExportAction;
+use Filament\Actions\Exports\Models\Export;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
+use Illuminate\Database\Eloquent\Builder;
 
 use function Pest\Livewire\livewire;
 
@@ -56,6 +61,37 @@ test('stock out is refused beyond the stock, for zero, and for inactive or outsi
         ->and(fn () => $this->toner->issue(1, $inactive))->toThrow(LogicException::class, 'nonaktif')
         ->and(fn () => $this->toner->issue(1, $outsider))->toThrow(LogicException::class, 'perusahaan lain')
         ->and($this->toner->refresh()->stok)->toBe(2);
+});
+
+test('an adjustment sets the stock to the counted amount, records the difference, and needs a reason', function () {
+    $this->toner->receive(10);
+
+    $down = $this->toner->adjust(7, 'Hitung fisik November');
+    $up = $this->toner->adjust(9, 'Salah catat keluar');
+
+    expect($this->toner->stok)->toBe(9)
+        ->and($down->jenis)->toBe(StockMovement::PenyesuaianKurang)
+        ->and($down->jumlah)->toBe(3)
+        ->and($down->stok_sesudah)->toBe(7)
+        ->and($down->catatan)->toBe('Hitung fisik November')
+        ->and($up->jenis)->toBe(StockMovement::PenyesuaianTambah)
+        ->and($up->jumlah)->toBe(2)
+        ->and(fn () => $this->toner->adjust(9, 'Sama'))->toThrow(LogicException::class, 'sudah 9')
+        ->and(fn () => $this->toner->adjust(5, ''))->toThrow(LogicException::class, 'wajib')
+        ->and(fn () => $this->toner->adjust(-1, 'Minus'))->toThrow(LogicException::class, 'minus')
+        ->and($this->toner->refresh()->stok)->toBe(9);
+});
+
+test('an admin adjusts the stock from the item page, with a reason', function () {
+    $this->toner->receive(4);
+
+    livewire(ViewConsumable::class, ['record' => $this->toner->id])
+        ->callAction('adjust', data: ['stok_sebenarnya' => 0, 'tanggal' => today()->toDateString(), 'alasan' => 'Toner bocor, dibuang'])
+        ->assertNotified('Penyesuaian stok tercatat')
+        ->callAction('adjust', data: ['stok_sebenarnya' => 2, 'tanggal' => today()->toDateString(), 'alasan' => ''])
+        ->assertHasActionErrors(['alasan' => 'required']);
+
+    expect($this->toner->refresh()->stok)->toBe(0);
 });
 
 test('the stock cannot be edited directly and the history cannot be changed', function () {
@@ -138,4 +174,31 @@ test('the dashboard lists items at or below their minimum, but not unmonitored o
     livewire(LowStockConsumables::class)
         ->assertCanSeeTableRecords([$this->toner])
         ->assertCanNotSeeTableRecords([$paper, $unmonitored]);
+});
+
+test('the stock export shows each item with its stock and whether it runs low', function () {
+    $this->toner->receive(2);
+
+    expect(ConsumableExporter::test(columnMap: ['nama' => 'Nama', 'stok' => 'Stok', 'menipis' => 'Stok menipis'])->export($this->toner->fresh()))
+        ->toBe(['Toner HP 85A', '2', 'ya']);
+});
+
+test('the history export follows the table search and the date range, with signed amounts', function () {
+    $this->toner->receive(10, ['tanggal' => '2026-10-31']);
+    $inRange = $this->toner->issue(3, $this->budi, ['tanggal' => '2026-11-05']);
+    Consumable::factory()->create(['company_id' => $this->tcm->id, 'nama' => 'Kertas A4'])->receive(5, ['tanggal' => '2026-11-05']);
+    $exports = ExportAction::fake();
+
+    livewire(ListConsumables::class)
+        ->searchTable('Toner')
+        ->callAction('exportTransactions', data: ['dari' => '2026-11-01', 'sampai' => '2026-11-30'])
+        ->assertHasNoFormErrors();
+
+    $exports->assertDispatched(ConsumableTransactionExporter::class, function (Export $export, Builder $query) use ($inRange): bool {
+        expect($query->pluck('consumable_transactions.id')->all())->toBe([$inRange->id]);
+
+        return true;
+    });
+
+    expect(ConsumableTransactionExporter::test(columnMap: ['jenis' => 'Jenis', 'jumlah' => 'Jumlah'])->export($inRange))->toBe(['Keluar', '-3']);
 });

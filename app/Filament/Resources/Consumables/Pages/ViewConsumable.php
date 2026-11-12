@@ -16,6 +16,7 @@ class ViewConsumable extends ViewRecord
         return [
             StockActions::receive(),
             StockActions::issue(),
+            StockActions::adjust(),
             EditAction::make(),
         ];
     }

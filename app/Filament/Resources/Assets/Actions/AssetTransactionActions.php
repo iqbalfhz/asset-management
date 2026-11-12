@@ -65,6 +65,49 @@ class AssetTransactionActions
             ->deselectRecordsAfterCompletion();
     }
 
+    public static function recover(): Action
+    {
+        return Action::make('recover')
+            ->label(__('Ditemukan kembali'))
+            ->icon(Heroicon::OutlinedArrowPath)
+            ->visible(fn (Asset $record): bool => $record->status->nama === Status::HILANG)
+            ->authorize('update')
+            ->modalHeading(__('Aset ditemukan kembali'))
+            ->modalDescription(__('Aset menjadi Tersedia di ruang yang dipilih dan pemegang lamanya dilepas. Serahkan lagi lewat serah-terima kalau perlu.'))
+            ->modalSubmitActionLabel(__('Simpan'))
+            ->schema([
+                Select::make('room_id')
+                    ->label(__('Disimpan di'))
+                    ->options(fn (Asset $record): array => Room::query()
+                        ->with('floor.building')
+                        ->whereHas('floor.building', fn (Builder $query) => $query->where('company_id', $record->company_id))
+                        ->get()
+                        ->mapWithKeys(fn (Room $room): array => [$room->getKey() => Assignment::labelFor($room)])
+                        ->sort()
+                        ->all())
+                    ->default(fn (Asset $record): ?int => $record->default_room_id ?? $record->room_id)
+                    ->searchable()
+                    ->required(),
+                Textarea::make('alasan')
+                    ->label(__('Keterangan'))
+                    ->helperText(__('Contoh: dikembalikan mantan karyawan, ditemukan saat stock opname.'))
+                    ->rows(2)
+                    ->required()
+                    ->maxLength(1000),
+            ])
+            ->action(function (Asset $record, array $data, Action $action): void {
+                try {
+                    $record->recover(Room::query()->findOrFail($data['room_id']), $data['alasan']);
+                } catch (LogicException $exception) {
+                    Notification::make()->danger()->title(__('Aksi dibatalkan'))->body($exception->getMessage())->send();
+                    $action->halt();
+                }
+
+                Notification::make()->success()->title(__('Aset kembali Tersedia'))->send();
+            })
+            ->after(fn (Component $livewire) => static::refreshEditPage($livewire));
+    }
+
     /**
      * @template TAction of Action
      *

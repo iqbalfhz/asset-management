@@ -17,6 +17,7 @@ class ViewAsset extends ViewRecord
         return [
             AssetTransactionActions::handOver(),
             AssetTransactionActions::takeBack(),
+            AssetTransactionActions::recover(),
             PrintLabelActions::single(),
             EditAction::make(),
         ];

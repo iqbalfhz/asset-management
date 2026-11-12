@@ -7,6 +7,7 @@ use App\Enums\AuditStatus;
 use App\Filament\Resources\Audits\AuditResource;
 use App\Models\Audit;
 use App\Models\AuditItem;
+use App\Models\Status;
 use Filament\Actions\Action;
 use Filament\Resources\Pages\Concerns\InteractsWithRecord;
 use Filament\Resources\Pages\Page;
@@ -67,7 +68,7 @@ class ScanAudit extends Page
         }
 
         try {
-            $item = $this->record->scan($scanned)->load(['asset', 'recordedRoom']);
+            $item = $this->record->scan($scanned)->load(['asset.status', 'recordedRoom']);
         } catch (LogicException $exception) {
             $this->lastResult = ['tone' => 'danger', 'title' => __('Tidak tercatat'), 'body' => $exception->getMessage()];
 
@@ -78,6 +79,7 @@ class ScanAudit extends Page
 
         $this->lastResult = match (true) {
             ! $item->wasRecentlyCreated && ! $item->wasChanged() => ['tone' => 'gray', 'title' => __('Sudah discan'), 'body' => "{$asset} · {$item->hasil->getLabel()}"],
+            $item->asset->status->nama === Status::HILANG => ['tone' => 'warning', 'title' => __('Aset berstatus Hilang'), 'body' => $asset.' · '.__('tercatat ditemukan. Pulihkan statusnya lewat Ditemukan kembali di halaman aset.')],
             $item->hasil === AuditResult::SalahTempat => ['tone' => 'warning', 'title' => __('Salah tempat'), 'body' => $asset.' · '.__('tercatat di :ruang', ['ruang' => $item->recordedRoom?->nama ?? __('belum ada lokasi')])],
             default => ['tone' => 'success', 'title' => __('Ditemukan'), 'body' => $asset],
         };

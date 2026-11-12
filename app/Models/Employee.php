@@ -89,6 +89,34 @@ class Employee extends Model
             ->whereNull('dilepas_pada');
     }
 
+    /**
+     * Aset yang tercatat dipegang karyawan ini, sebatas kategori yang dikelola admin yang membuka.
+     *
+     * @return MorphMany<Asset, $this>
+     */
+    public function assignedAssets(): MorphMany
+    {
+        return $this->morphMany(Asset::class, 'assigned');
+    }
+
+    /**
+     * @return HasMany<LicenseSeat, $this>
+     */
+    public function licenseSeats(): HasMany
+    {
+        return $this->hasMany(LicenseSeat::class);
+    }
+
+    /**
+     * Barang habis pakai yang diterima karyawan ini.
+     *
+     * @return HasMany<ConsumableTransaction, $this>
+     */
+    public function consumableTransactions(): HasMany
+    {
+        return $this->hasMany(ConsumableTransaction::class);
+    }
+
     // Contoh: "2 aset dan 1 seat lisensi".
     public static function describeHoldings(int $assets, int $seats): string
     {

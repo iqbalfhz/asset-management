@@ -96,6 +96,40 @@ class StockActions
             ));
     }
 
+    public static function adjust(): Action
+    {
+        return Action::make('adjust')
+            ->label(__('Penyesuaian'))
+            ->icon(Heroicon::OutlinedAdjustmentsHorizontal)
+            ->color('gray')
+            ->authorize('update')
+            ->modalHeading(fn (Consumable $record): string => __('Penyesuaian stok: :nama', ['nama' => $record->nama]))
+            ->modalDescription(__('Untuk memperbaiki salah catat atau menyamakan dengan hasil hitung fisik. Selisihnya dicatat di riwayat.'))
+            ->schema([
+                TextInput::make('stok_sebenarnya')
+                    ->label(__('Stok sebenarnya'))
+                    ->integer()
+                    ->minValue(0)
+                    ->maxValue(1_000_000)
+                    ->suffix(fn (Consumable $record): string => $record->satuan)
+                    ->helperText(fn (Consumable $record): string => __('Stok tercatat sekarang :stok :satuan.', ['stok' => $record->stok, 'satuan' => $record->satuan]))
+                    ->required(),
+                DatePicker::make('tanggal')
+                    ->default(today())
+                    ->maxDate(today())
+                    ->required(),
+                Textarea::make('alasan')
+                    ->label(__('Alasan'))
+                    ->required()
+                    ->maxLength(1000),
+            ])
+            ->action(fn (Consumable $record, array $data, Action $action) => static::run(
+                $action,
+                fn () => $record->adjust((int) $data['stok_sebenarnya'], $data['alasan'], Arr::only($data, ['tanggal'])),
+                __('Penyesuaian stok tercatat'),
+            ));
+    }
+
     private static function run(Action $action, callable $transaction, string $successTitle): void
     {
         try {

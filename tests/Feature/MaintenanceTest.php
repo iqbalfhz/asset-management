@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\DisposalMethod;
 use App\Enums\MaintenanceStatus;
 use App\Filament\Karyawan\Pages\MyAssets;
 use App\Filament\Resources\Maintenances\Pages\CreateMaintenance;
@@ -8,9 +9,11 @@ use App\Models\Asset;
 use App\Models\Assignment;
 use App\Models\Category;
 use App\Models\Company;
+use App\Models\Disposal;
 use App\Models\Employee;
 use App\Models\Maintenance;
 use App\Models\Role;
+use App\Models\Room;
 use App\Models\Status;
 use Database\Seeders\RoleSeeder;
 use Database\Seeders\StatusSeeder;
@@ -115,6 +118,34 @@ test('an admin starts a repair directly for an available asset', function () {
     expect($repair->status)->toBe(MaintenanceStatus::Diproses)
         ->and($repair->previousStatus->nama)->toBe(Status::TERSEDIA)
         ->and($printer->refresh()->status->nama)->toBe(Status::DALAM_PERBAIKAN);
+});
+
+test('a broken asset can still be repaired and comes back available in its default room, without its old holder', function () {
+    $this->report->process([]);
+    $this->report->markBroken(['hasil' => 'Motherboard mati']);
+    $store = Room::factory()->create();
+    $this->laptop->refresh()->update(['default_room_id' => $store->id]);
+
+    livewire(CreateMaintenance::class)
+        ->fillForm(['asset_id' => $this->laptop->id, 'keluhan' => 'Dicoba vendor lain', 'tgl_mulai' => now()->toDateString()])
+        ->call('create')
+        ->assertHasNoFormErrors();
+
+    Maintenance::query()->where('asset_id', $this->laptop->id)->latest('id')->first()->finish(['hasil' => 'Ganti motherboard']);
+    $this->laptop->refresh();
+
+    expect($this->laptop->status->nama)->toBe(Status::TERSEDIA)
+        ->and($this->laptop->assigned_type)->toBeNull()
+        ->and($this->laptop->room_id)->toBe($store->id);
+});
+
+test('a broken asset waiting for disposal cannot go into repair', function () {
+    $this->report->process([]);
+    $this->report->markBroken(['hasil' => 'Motherboard mati']);
+    Disposal::submit($this->laptop, ['alasan' => 'Rusak total', 'metode' => DisposalMethod::Dibuang]);
+
+    expect(fn () => Maintenance::startDirect($this->laptop, ['keluhan' => 'Dicoba lagi']))->toThrow(LogicException::class, 'ajuan penghapusan')
+        ->and($this->laptop->refresh()->status->nama)->toBe(Status::RUSAK);
 });
 
 test('an admin of another category sees neither the repair nor its photo', function () {

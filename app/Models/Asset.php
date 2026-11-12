@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\DisposalStatus;
 use App\Models\Concerns\LogsChanges;
 use App\Models\Scopes\CompanyScope;
 use App\Models\Scopes\ManagedCategoryScope;
@@ -130,6 +131,59 @@ class Asset extends Model
         } finally {
             $this->statusChangeAllowed = false;
         }
+    }
+
+    /**
+     * Aset Hilang ditemukan kembali: Tersedia di ruang yang dipilih, pemegang lamanya dilepas, alasannya dicatat.
+     */
+    public function recover(Room $room, string $reason): void
+    {
+        if (blank($reason)) {
+            throw new LogicException(__('Keterangan wajib diisi.'));
+        }
+
+        DB::transaction(function () use ($room, $reason): void {
+            $asset = static::query()->with('status')->whereKey($this->getKey())->lockForUpdate()->firstOrFail();
+
+            if ($asset->status->nama !== Status::HILANG) {
+                throw new LogicException(__('Hanya aset Hilang yang bisa ditandai ditemukan kembali.'));
+            }
+
+            $asset->ensureNoPendingDisposal();
+
+            if (Assignment::companyIdOf($room) !== $asset->company_id) {
+                throw new LogicException(__('Ruang :ruang berada di perusahaan lain.', ['ruang' => $room->nama]));
+            }
+
+            $asset->transitionTo(Status::named(Status::TERSEDIA), ['assigned_type' => null, 'assigned_id' => null, 'room_id' => $room->getKey()]);
+
+            activity()
+                ->performedOn($asset)
+                ->event('ditemukan_kembali')
+                ->withProperties(['alasan' => $reason])
+                ->log(__('Aset ditemukan kembali'));
+        });
+
+        $this->refresh();
+    }
+
+    // Ajuan penghapusan yang masih menunggu harus ditolak dulu sebelum aset dipakai lagi.
+    public function ensureNoPendingDisposal(): void
+    {
+        if (Disposal::withoutGlobalScopes()->where('asset_id', $this->getKey())->where('status', DisposalStatus::Diajukan)->exists()) {
+            throw new LogicException(__('Aset :kode punya ajuan penghapusan yang menunggu keputusan. Minta Super Admin menolaknya dulu.', ['kode' => $this->kode]));
+        }
+    }
+
+    /**
+     * Dipegang karyawan atau departemen, langsung atau lewat aset induknya, jadi tidak terikat ke satu ruang.
+     */
+    public function isWithEmployeeOrDepartment(): bool
+    {
+        $parentIds = $this->parentIds();
+        $holder = $parentIds === [] ? $this : static::withoutGlobalScopes()->find(end($parentIds), ['id', 'assigned_type']);
+
+        return in_array($holder?->assigned_type, [(new Employee)->getMorphClass(), (new Department)->getMorphClass()], true);
     }
 
     /**
@@ -285,6 +339,14 @@ class Asset extends Model
     public function licenseSeats(): HasMany
     {
         return $this->hasMany(LicenseSeat::class);
+    }
+
+    /**
+     * @return HasMany<AuditItem, $this>
+     */
+    public function auditItems(): HasMany
+    {
+        return $this->hasMany(AuditItem::class);
     }
 
     /**

@@ -2,8 +2,11 @@
 
 use App\Enums\AuditResult;
 use App\Enums\AuditStatus;
+use App\Filament\Exports\AuditItemExporter;
 use App\Filament\Pages\Settings;
 use App\Filament\Resources\Assets\Pages\ListAssets;
+use App\Filament\Resources\Assets\Pages\ViewAsset;
+use App\Filament\Resources\Assets\RelationManagers\AuditItemsRelationManager;
 use App\Filament\Resources\Audits\AuditResource;
 use App\Filament\Resources\Audits\Pages\CreateAudit;
 use App\Filament\Resources\Audits\Pages\ListAudits;
@@ -16,6 +19,8 @@ use App\Models\Audit;
 use App\Models\Building;
 use App\Models\Category;
 use App\Models\Company;
+use App\Models\Department;
+use App\Models\Employee;
 use App\Models\Floor;
 use App\Models\Role;
 use App\Models\Room;
@@ -23,9 +28,13 @@ use App\Models\Setting;
 use App\Models\Status;
 use Database\Seeders\RoleSeeder;
 use Database\Seeders\StatusSeeder;
+use Filament\Actions\ExportAction;
+use Filament\Actions\Exports\Models\Export;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 
 use function Pest\Livewire\livewire;
@@ -138,6 +147,38 @@ test('an asset handed over to a room is not moved by the audit', function () {
 
     expect(fn () => $item->moveToAuditRoom())->toThrow(LogicException::class, 'serah-terima')
         ->and($this->projector->refresh()->room_id)->toBe($this->warehouse->id);
+});
+
+test('an asset with an employee or department, directly or through its parent, is not expected in the room but is recorded when scanned', function () {
+    $newInLab = fn (): Asset => Asset::factory()->create([
+        'company_id' => $this->tcm->id,
+        'category_id' => $this->itCategory->id,
+        'status_id' => Status::named(Status::TERSEDIA)->id,
+        'room_id' => $this->lab->id,
+    ]);
+    $monitor = $newInLab();
+    $scanner = $newInLab();
+    $handOver = fn (Asset $asset, Model $target) => Assignment::handOver(new Collection([$asset]), $target, ['tanggal' => now()->toDateString(), 'kondisi' => 'Baik']);
+    $handOver($this->laptop, Employee::factory()->create(['company_id' => $this->tcm->id]));
+    $handOver($monitor, $this->laptop->refresh());
+    $handOver($scanner, Department::factory()->create(['company_id' => $this->tcm->id]));
+
+    $audit = Audit::start($this->lab);
+
+    expect($audit->items()->pluck('asset_id')->all())->toBe([$this->printer->id])
+        ->and($audit->scan($this->laptop->kode)->hasil)->toBe(AuditResult::Ditemukan);
+});
+
+test('scanning a lost asset records it and points the admin to recovering it', function () {
+    Filament::setCurrentPanel('admin');
+    $audit = Audit::start($this->lab);
+
+    livewire(ScanAudit::class, ['record' => $audit->id])
+        ->call('scan', $this->lost->kode)
+        ->assertSet('lastResult.title', 'Aset berstatus Hilang');
+
+    expect($audit->items()->where('asset_id', $this->lost->id)->value('hasil'))->toBe(AuditResult::Ditemukan)
+        ->and($this->lost->refresh()->status->nama)->toBe(Status::HILANG);
 });
 
 test('an asset not found can be marked lost after the session is closed, a found one cannot', function () {
@@ -265,4 +306,36 @@ test('the asset table filters assets that are due for an audit', function () {
         ->filterTable('perlu_audit', true)
         ->assertCanSeeTableRecords([$this->printer, $this->projector])
         ->assertCanNotSeeTableRecords([$this->laptop, $this->lost]);
+});
+
+test('the results of a session export per asset', function () {
+    Filament::setCurrentPanel('admin');
+    $audit = Audit::start($this->lab);
+    $found = $audit->scan($this->laptop->kode);
+    $exports = ExportAction::fake();
+
+    livewire(ItemsRelationManager::class, ['ownerRecord' => $audit, 'pageClass' => ViewAudit::class])
+        ->callAction(TestAction::make('export')->table())
+        ->assertHasNoFormErrors();
+
+    $exports->assertDispatched(AuditItemExporter::class, function (Export $export, Builder $query) use ($audit): bool {
+        expect($query->pluck('audit_items.id')->sort()->values()->all())->toBe($audit->items()->orderBy('id')->pluck('id')->all());
+
+        return true;
+    });
+
+    expect(AuditItemExporter::test(columnMap: ['asset.kode' => 'Kode', 'hasil' => 'Hasil'])->export($found))->toBe([$this->laptop->kode, 'Ditemukan']);
+});
+
+test('the asset page lists its audit history, also from sessions of another role', function () {
+    Filament::setCurrentPanel('admin');
+    $this->actingAs(userWithRole('super_admin', attributes: ['company_id' => $this->tcm->id]));
+    $audit = Audit::start($this->lab);
+    $item = $audit->scan($this->laptop->kode);
+
+    $this->actingAs($this->adminIt);
+
+    livewire(AuditItemsRelationManager::class, ['ownerRecord' => $this->laptop, 'pageClass' => ViewAsset::class])
+        ->assertCanSeeTableRecords([$item])
+        ->assertSee('Lab');
 });

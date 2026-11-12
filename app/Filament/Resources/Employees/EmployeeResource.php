@@ -3,6 +3,10 @@
 namespace App\Filament\Resources\Employees;
 
 use App\Filament\Resources\Employees\Pages\ManageEmployees;
+use App\Filament\Resources\Employees\Pages\ViewEmployee;
+use App\Filament\Resources\Employees\RelationManagers\AssetsRelationManager;
+use App\Filament\Resources\Employees\RelationManagers\ConsumableTransactionsRelationManager;
+use App\Filament\Resources\Employees\RelationManagers\LicenseSeatsRelationManager;
 use App\Filament\Schemas\Components\CompanySelect;
 use App\Models\Asset;
 use App\Models\Employee;
@@ -14,11 +18,15 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Infolists\Components\IconEntry;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -83,6 +91,34 @@ class EmployeeResource extends Resource
             ]);
     }
 
+    public static function infolist(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                Section::make(__('Karyawan'))
+                    ->columns(3)
+                    ->columnSpanFull()
+                    ->schema([
+                        TextEntry::make('nik')
+                            ->label(__('NIK')),
+                        TextEntry::make('nama'),
+                        TextEntry::make('jabatan')
+                            ->placeholder('—'),
+                        TextEntry::make('department.nama')
+                            ->label(__('Departemen'))
+                            ->placeholder('—'),
+                        TextEntry::make('user.username')
+                            ->label(__('Akun login'))
+                            ->placeholder(__('Tidak punya akun')),
+                        TextEntry::make('company.nama')
+                            ->label(__('Perusahaan')),
+                        IconEntry::make('is_active')
+                            ->label(__('Aktif'))
+                            ->boolean(),
+                    ]),
+            ]);
+    }
+
     public static function table(Table $table): Table
     {
         return $table
@@ -111,6 +147,7 @@ class EmployeeResource extends Resource
                     ->label(__('Aktif')),
             ])
             ->recordActions([
+                ViewAction::make(),
                 EditAction::make(),
                 static::deactivateAction(),
                 Action::make('reactivate')
@@ -183,10 +220,20 @@ class EmployeeResource extends Resource
             });
     }
 
+    public static function getRelations(): array
+    {
+        return [
+            AssetsRelationManager::class,
+            LicenseSeatsRelationManager::class,
+            ConsumableTransactionsRelationManager::class,
+        ];
+    }
+
     public static function getPages(): array
     {
         return [
             'index' => ManageEmployees::route('/'),
+            'view' => ViewEmployee::route('/{record}'),
         ];
     }
 }

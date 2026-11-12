@@ -6,6 +6,7 @@ use App\Enums\StockMovement;
 use App\Models\Concerns\LogsChanges;
 use App\Models\Scopes\CompanyScope;
 use App\Models\Scopes\ManagedRoleScope;
+use Closure;
 use Database\Factories\ConsumableFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -25,14 +26,14 @@ class Consumable extends Model
     /** @use HasFactory<ConsumableFactory> */
     use HasFactory, LogsChanges;
 
-    // Stok hanya boleh berubah lewat receive() dan issue(), bukan lewat form atau update biasa.
+    // Stok hanya boleh berubah lewat receive(), issue(), dan adjust(), bukan lewat form atau update biasa.
     private bool $stockChangeAllowed = false;
 
     protected static function booted(): void
     {
         static::updating(function (Consumable $consumable): void {
             if ($consumable->isDirty('stok') && ! $consumable->stockChangeAllowed) {
-                throw new LogicException(__('Stok hanya berubah lewat transaksi masuk atau keluar.'));
+                throw new LogicException(__('Stok hanya berubah lewat transaksi masuk, keluar, atau penyesuaian.'));
             }
         });
 
@@ -50,7 +51,7 @@ class Consumable extends Model
      */
     public function receive(int $jumlah, array $data = []): ConsumableTransaction
     {
-        return $this->move(StockMovement::Masuk, $jumlah, $data);
+        return $this->move(fn (): array => [StockMovement::Masuk, $jumlah], $data);
     }
 
     /**
@@ -68,7 +69,34 @@ class Consumable extends Model
             throw new LogicException(__(':nama berada di perusahaan lain.', ['nama' => $penerima->nama]));
         }
 
-        return $this->move(StockMovement::Keluar, $jumlah, ['employee_id' => $penerima->getKey()] + $data);
+        return $this->move(fn (): array => [StockMovement::Keluar, $jumlah], ['employee_id' => $penerima->getKey()] + $data);
+    }
+
+    /**
+     * Samakan stok dengan jumlah sebenarnya (salah catat atau hasil hitung fisik); selisihnya dicatat dengan alasan.
+     *
+     * @param  array{tanggal?: ?string}  $data
+     */
+    public function adjust(int $stokSebenarnya, string $alasan, array $data = []): ConsumableTransaction
+    {
+        if (blank($alasan)) {
+            throw new LogicException(__('Alasan penyesuaian wajib diisi.'));
+        }
+
+        if ($stokSebenarnya < 0) {
+            throw new LogicException(__('Stok sebenarnya tidak boleh minus.'));
+        }
+
+        // Selisih dihitung dari stok yang sudah dikunci, bukan dari stok yang tampil di layar.
+        return $this->move(function (Consumable $item) use ($stokSebenarnya): array {
+            $selisih = $stokSebenarnya - $item->stok;
+
+            if ($selisih === 0) {
+                throw new LogicException(__('Stok :nama sudah :stok :satuan.', ['nama' => $item->nama, 'stok' => $item->stok, 'satuan' => $item->satuan]));
+            }
+
+            return [$selisih > 0 ? StockMovement::PenyesuaianTambah : StockMovement::PenyesuaianKurang, abs($selisih)];
+        }, ['catatan' => $alasan] + $data);
     }
 
     public function isLow(): bool
@@ -84,26 +112,28 @@ class Consumable extends Model
     }
 
     /**
+     * @param  Closure(Consumable): array{0: StockMovement, 1: int}  $resolve  jenis dan jumlah, dari barang yang sudah dikunci
      * @param  array{employee_id?: int, supplier_id?: ?int, tanggal?: ?string, catatan?: ?string}  $data
      */
-    private function move(StockMovement $jenis, int $jumlah, array $data): ConsumableTransaction
+    private function move(Closure $resolve, array $data): ConsumableTransaction
     {
-        if ($jumlah < 1) {
-            throw new LogicException(__('Jumlah minimal 1.'));
-        }
-
         // Baris barang dikunci, supaya dua transaksi bersamaan tidak membuat stok minus.
-        $transaction = DB::transaction(function () use ($jenis, $jumlah, $data): ConsumableTransaction {
+        $transaction = DB::transaction(function () use ($resolve, $data): ConsumableTransaction {
             $item = static::withoutGlobalScopes()->whereKey($this->getKey())->lockForUpdate()->firstOrFail();
+            [$jenis, $jumlah] = $resolve($item);
 
-            if ($jenis === StockMovement::Keluar && $jumlah > $item->stok) {
+            if ($jumlah < 1) {
+                throw new LogicException(__('Jumlah minimal 1.'));
+            }
+
+            if (! $jenis->isIncoming() && $jumlah > $item->stok) {
                 throw new LogicException(__('Stok :nama tinggal :stok :satuan.', ['nama' => $item->nama, 'stok' => $item->stok, 'satuan' => $item->satuan]));
             }
 
             $item->stockChangeAllowed = true;
 
             try {
-                $item->forceFill(['stok' => $jenis === StockMovement::Masuk ? $item->stok + $jumlah : $item->stok - $jumlah])->save();
+                $item->forceFill(['stok' => $jenis->isIncoming() ? $item->stok + $jumlah : $item->stok - $jumlah])->save();
             } finally {
                 $item->stockChangeAllowed = false;
             }
