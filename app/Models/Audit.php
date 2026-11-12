@@ -5,7 +5,7 @@ namespace App\Models;
 use App\Enums\AuditResult;
 use App\Enums\AuditStatus;
 use App\Models\Concerns\LogsChanges;
-use App\Models\Scopes\ManagedCategoryScope;
+use App\Models\Scopes\ManagedRoleScope;
 use Database\Factories\AuditFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -28,13 +28,7 @@ class Audit extends Model
     {
         // Sesi ikut perusahaan ruangnya dan role pengelolanya, sama seperti hak lihat aset.
         static::addGlobalScope('room', fn (Builder $query) => $query->whereHas('room'));
-        static::addGlobalScope('role', function (Builder $query): void {
-            $roleIds = ManagedCategoryScope::restrictedRoleIds();
-
-            if ($roleIds !== null) {
-                $query->whereIn($query->qualifyColumn('role_id'), $roleIds);
-            }
-        });
+        static::addGlobalScope(new ManagedRoleScope);
     }
 
     /**

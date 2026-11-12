@@ -83,6 +83,9 @@ class Disposal extends Model
             ]);
 
             $asset->transitionTo(Status::named(Status::DIHAPUSKAN), ['assigned_type' => null, 'assigned_id' => null]);
+
+            // Aset yang dihapuskan tidak lagi memakai seat lisensi.
+            LicenseSeat::releaseAllFor($asset);
         });
     }
 

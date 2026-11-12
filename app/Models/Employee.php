@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Facades\DB;
 use LogicException;
@@ -34,20 +35,27 @@ class Employee extends Model
     {
         DB::transaction(function () use ($forcedReason): void {
             $held = $this->heldAssets()->lockForUpdate()->get();
+            $seats = $this->activeLicenseSeats()->lockForUpdate()->get();
 
-            if ($held->isNotEmpty()) {
+            if ($held->isNotEmpty() || $seats->isNotEmpty()) {
                 if (blank($forcedReason)) {
-                    throw new LogicException(__(':nama masih memegang :count aset. Proses pengembaliannya dulu.', ['nama' => $this->nama, 'count' => $held->count()]));
+                    throw new LogicException(__(':nama masih memegang :barang. Proses pengembaliannya dulu.', ['nama' => $this->nama, 'barang' => static::describeHoldings($held->count(), $seats->count())]));
                 }
 
                 foreach ($held as $asset) {
                     $asset->transitionTo(Status::named(Status::HILANG));
                 }
 
+                LicenseSeat::releaseAllFor($this);
+
                 activity()
                     ->performedOn($this)
                     ->event('dinonaktifkan_paksa')
-                    ->withProperties(['alasan' => $forcedReason, 'aset' => $held->pluck('kode')->all()])
+                    ->withProperties([
+                        'alasan' => $forcedReason,
+                        'aset' => $held->pluck('kode')->all(),
+                        'seat_lisensi' => $seats->map(fn (LicenseSeat $seat): string => $seat->license->nama_software)->all(),
+                    ])
                     ->log(__('Karyawan dinonaktifkan paksa'));
             }
 
@@ -66,6 +74,28 @@ class Employee extends Model
         return $this->morphMany(Asset::class, 'assigned')
             ->withoutGlobalScope(ManagedCategoryScope::class)
             ->whereRelation('status', 'nama', Status::DIPAKAI);
+    }
+
+    /**
+     * Seat lisensi yang belum dilepas, dari role pengelola mana pun, supaya offboarding tidak melewatkannya.
+     *
+     * @return HasMany<LicenseSeat, $this>
+     */
+    public function activeLicenseSeats(): HasMany
+    {
+        return $this->hasMany(LicenseSeat::class)
+            ->withoutGlobalScope('license')
+            ->with(['license' => fn ($query) => $query->withoutGlobalScopes()])
+            ->whereNull('dilepas_pada');
+    }
+
+    // Contoh: "2 aset dan 1 seat lisensi".
+    public static function describeHoldings(int $assets, int $seats): string
+    {
+        return collect([
+            $assets > 0 ? __(':count aset', ['count' => $assets]) : null,
+            $seats > 0 ? __(':count seat lisensi', ['count' => $seats]) : null,
+        ])->filter()->implode(' '.__('dan').' ');
     }
 
     /**

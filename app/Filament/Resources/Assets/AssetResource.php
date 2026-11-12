@@ -9,6 +9,7 @@ use App\Filament\Resources\Assets\Pages\ViewAsset;
 use App\Filament\Resources\Assets\RelationManagers\ActivitiesRelationManager;
 use App\Filament\Resources\Assets\RelationManagers\AssignmentsRelationManager;
 use App\Filament\Resources\Assets\RelationManagers\AttachmentsRelationManager;
+use App\Filament\Resources\Assets\RelationManagers\LicenseSeatsRelationManager;
 use App\Filament\Resources\Assets\RelationManagers\MaintenancesRelationManager;
 use App\Filament\Resources\Assets\Schemas\AssetForm;
 use App\Filament\Resources\Assets\Schemas\AssetInfolist;
@@ -61,6 +62,7 @@ class AssetResource extends Resource
             AttachmentsRelationManager::class,
             AssignmentsRelationManager::class,
             MaintenancesRelationManager::class,
+            LicenseSeatsRelationManager::class,
             ActivitiesRelationManager::class,
         ];
     }
