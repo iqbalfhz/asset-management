@@ -11,6 +11,8 @@ use App\Http\Controllers\ScanAssetController;
 use App\Http\Controllers\ShowMaintenancePhotoController;
 use App\Livewire\PersonalInfo;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
+use Filament\Actions\Action;
+use Filament\Facades\Filament;
 use Filament\FontProviders\LocalFontProvider;
 use Filament\Forms\Components\FileUpload;
 use Filament\Http\Middleware\Authenticate;
@@ -20,6 +22,7 @@ use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -42,6 +45,13 @@ class AdminPanelProvider extends PanelProvider
             ->viteTheme('resources/css/filament/admin/theme.css')
             // Halaman masuk bersama ada di /login (panel auth).
             ->login(fn (): RedirectResponse => redirect()->route('filament.auth.auth.login'))
+            // Admin juga memegang aset; pindah ke panel karyawan untuk melihat aset sendiri.
+            ->userMenuItems([
+                Action::make('karyawanPanel')
+                    ->label(fn (): string => __('Panel karyawan'))
+                    ->icon(Heroicon::OutlinedArrowsRightLeft)
+                    ->url(fn (): string => Filament::getPanel('karyawan')->getUrl()),
+            ])
             ->databaseNotifications()
             // Route di dalam panel ikut login, 2FA, dan akses panel.
             ->authenticatedRoutes(function (): void {

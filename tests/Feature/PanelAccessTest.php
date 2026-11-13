@@ -48,6 +48,20 @@ test('every admin role can open both the admin panel and the karyawan panel', fu
     $this->get('/karyawan/aset-saya')->assertOk();
 })->with(['super_admin', 'admin_it', 'admin_ga']);
 
+test('the user menu of the admin panel links to the karyawan panel', function () {
+    $this->actingAs(userWithRole('admin_it'));
+
+    $this->get('/admin')->assertSee('Panel karyawan')->assertSee(url('/karyawan'));
+});
+
+test('the user menu of the karyawan panel links to the admin panel only for admins', function (string $role, string $panel, bool $seesLink) {
+    $this->actingAs(userWithRole($role, $panel));
+
+    $response = $this->get('/karyawan/aset-saya');
+
+    $seesLink ? $response->assertSee('Panel admin') : $response->assertDontSee('Panel admin');
+})->with([['admin_it', 'admin', true], ['karyawan', 'karyawan', false]]);
+
 test('super admin can open the admin panel and the roles page', function () {
     $this->actingAs(userWithRole('super_admin'));
 

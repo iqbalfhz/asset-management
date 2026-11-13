@@ -4,6 +4,8 @@ namespace App\Providers\Filament;
 
 use App\Http\Controllers\DownloadBastController;
 use App\Livewire\PersonalInfo;
+use Filament\Actions\Action;
+use Filament\Facades\Filament;
 use Filament\FontProviders\LocalFontProvider;
 use Filament\Forms\Components\FileUpload;
 use Filament\Http\Middleware\Authenticate;
@@ -12,6 +14,7 @@ use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Panel;
 use Filament\PanelProvider;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -32,6 +35,13 @@ class KaryawanPanelProvider extends PanelProvider
             ->viteTheme('resources/css/filament/admin/theme.css')
             // Halaman masuk bersama ada di /login (panel auth).
             ->login(fn (): RedirectResponse => redirect()->route('filament.auth.auth.login'))
+            ->userMenuItems([
+                Action::make('adminPanel')
+                    ->label(fn (): string => __('Panel admin'))
+                    ->icon(Heroicon::OutlinedArrowsRightLeft)
+                    ->url(fn (): string => Filament::getPanel('admin')->getUrl())
+                    ->visible(fn (): bool => auth()->user()->canAccessPanel(Filament::getPanel('admin'))),
+            ])
             ->authenticatedRoutes(function (): void {
                 Route::get('bast/{assignment}', [DownloadBastController::class, 'employee'])->whereNumber('assignment')->name('bast.download');
             })
