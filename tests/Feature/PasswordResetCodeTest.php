@@ -42,9 +42,12 @@ test('a reset code is sent after the response to an account that can open the pa
     requestResetCode('budi@tangcity.com')->assertHasNoFormErrors();
 
     Notification::assertSentTo($user, PasswordResetCode::class, function (PasswordResetCode $notification) use ($user): bool {
+        $html = (string) $notification->toMail($user)->render();
+
         return $notification->connection === 'deferred'
             && preg_match('/^\d{6}$/', $notification->code) === 1
-            && in_array('**'.$notification->code.'**', $notification->toMail($user)->introLines, true);
+            && str_contains($html, '>'.$notification->code.'<')
+            && str_contains($html, e($user->name));
     });
 })->with([
     'admin panel' => ['admin_it', 'admin'],

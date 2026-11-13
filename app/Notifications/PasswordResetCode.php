@@ -31,9 +31,11 @@ class PasswordResetCode extends Notification implements ShouldQueue
     {
         return (new MailMessage)
             ->subject(__('Kode atur ulang kata sandi'))
-            ->line(__('Kode untuk mengatur ulang kata sandi akun Anda di :app:', ['app' => config('app.name')]))
-            ->line('**'.$this->code.'**')
-            ->line(__('Kode berlaku :menit menit. Jangan berikan kode ini kepada siapa pun, termasuk admin.', ['menit' => RequestPasswordReset::CODE_MINUTES]))
-            ->line(__('Kalau Anda tidak memintanya, abaikan email ini. Kata sandi Anda tidak berubah.'));
+            ->view(['html' => 'mail.password-reset-code', 'text' => 'mail.password-reset-code-text'], [
+                'code' => $this->code,
+                'name' => $notifiable->name ?? null,
+                'minutes' => RequestPasswordReset::CODE_MINUTES,
+                'appName' => config('app.name'),
+            ]);
     }
 }
