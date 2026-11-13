@@ -131,6 +131,29 @@
     @apply font-medium text-gray-500 dark:text-gray-400;
 }
 
+/* Latar halaman masuk (milik project): kertas buku inventaris, garis baris hijau pinus dan margin ganda merah bata. */
+.fi-simple-layout {
+    --kertas-ruling: color-mix(in oklab, var(--primary-700) 12%, transparent);
+    --kertas-margin: color-mix(in oklab, var(--danger-600) 40%, transparent);
+    --kertas-margin-x: clamp(1.25rem, 8vw, 6rem);
+
+    background-image:
+        linear-gradient(
+            to right,
+            transparent var(--kertas-margin-x),
+            var(--kertas-margin) var(--kertas-margin-x) calc(var(--kertas-margin-x) + 1px),
+            transparent calc(var(--kertas-margin-x) + 1px) calc(var(--kertas-margin-x) + 4px),
+            var(--kertas-margin) calc(var(--kertas-margin-x) + 4px) calc(var(--kertas-margin-x) + 5px),
+            transparent calc(var(--kertas-margin-x) + 5px)
+        ),
+        repeating-linear-gradient(to bottom, transparent 0 calc(2rem - 1px), var(--kertas-ruling) calc(2rem - 1px) 2rem);
+}
+
+.dark .fi-simple-layout {
+    --kertas-ruling: color-mix(in oklab, var(--primary-400) 9%, transparent);
+    --kertas-margin: color-mix(in oklab, var(--danger-400) 32%, transparent);
+}
+
 /* ---------- Halaman login / daftar ---------- */
 .fi-simple-main {
     border-radius: var(--kertas-radius-overlay);
