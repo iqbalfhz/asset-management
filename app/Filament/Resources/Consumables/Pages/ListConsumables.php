@@ -4,10 +4,13 @@ namespace App\Filament\Resources\Consumables\Pages;
 
 use App\Filament\Exports\ConsumableExporter;
 use App\Filament\Exports\ConsumableTransactionExporter;
+use App\Filament\Imports\ConsumableImporter;
 use App\Filament\Resources\Consumables\ConsumableResource;
+use App\Models\Consumable;
 use App\Models\ConsumableTransaction;
 use Filament\Actions\CreateAction;
 use Filament\Actions\ExportAction;
+use Filament\Actions\ImportAction;
 use Filament\Resources\Pages\ListRecords;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -28,6 +31,9 @@ class ListConsumables extends ListRecords
                 ->modifyQueryUsing(fn (Builder $query, array $options): Builder => ConsumableTransactionExporter::modifyQuery(ConsumableTransaction::query())
                     ->whereIn('consumable_id', $query->reorder()->select('consumables.id'))
                     ->whereBetween('tanggal', [$options['dari'], $options['sampai']])),
+            ImportAction::make()
+                ->importer(ConsumableImporter::class)
+                ->authorize('create', Consumable::class),
             CreateAction::make(),
         ];
     }

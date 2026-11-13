@@ -2,7 +2,10 @@
 
 use App\Filament\Imports\AssetImporter;
 use App\Filament\Resources\Assets\Pages\ListAssets;
+use App\Filament\Resources\Consumables\Pages\ListConsumables;
 use App\Filament\Resources\Employees\Pages\ManageEmployees;
+use App\Filament\Resources\Licenses\Pages\ListLicenses;
+use App\Filament\Resources\Rooms\Pages\ManageRooms;
 use App\Models\Role;
 use Database\Seeders\RoleSeeder;
 use Filament\Actions\ImportAction;
@@ -65,4 +68,20 @@ test('the import button is hidden from roles that may not create the records', f
 })->with([
     'assets' => [ListAssets::class, 'ViewAny:Asset'],
     'employees' => [ManageEmployees::class, 'ViewAny:Employee'],
+    'rooms' => [ManageRooms::class, 'ViewAny:Room'],
+    'licenses' => [ListLicenses::class, 'ViewAny:License'],
+    'consumables' => [ListConsumables::class, 'ViewAny:Consumable'],
 ]);
+
+test('the location import also needs permission to create buildings', function () {
+    $auditor = userWithRole('auditor');
+    Role::findByName('auditor')->givePermissionTo(['ViewAny:Room', 'Create:Room']);
+    $this->actingAs($auditor);
+
+    livewire(ManageRooms::class)->assertActionHidden('import');
+
+    Role::findByName('auditor')->givePermissionTo('Create:Building');
+    $this->actingAs($auditor->refresh());
+
+    livewire(ManageRooms::class)->assertActionVisible('import');
+});

@@ -2,13 +2,13 @@
 
 namespace App\Filament\Imports;
 
+use App\Filament\Imports\Concerns\CastsIndonesianFormats;
 use App\Filament\Imports\Concerns\HasCompanyColumn;
 use App\Models\Asset;
 use App\Models\AssetModel;
 use App\Models\Category;
 use App\Models\Room;
 use App\Models\Status;
-use DateTimeImmutable;
 use Filament\Actions\Imports\Exceptions\RowImportFailedException;
 use Filament\Actions\Imports\ImportColumn;
 use Filament\Actions\Imports\Importer;
@@ -18,7 +18,7 @@ use Illuminate\Support\Number;
 
 class AssetImporter extends Importer
 {
-    use HasCompanyColumn;
+    use CastsIndonesianFormats, HasCompanyColumn;
 
     protected static ?string $model = Asset::class;
 
@@ -228,38 +228,6 @@ class AssetImporter extends Importer
             ->whereIn('nama', [Status::DISIAPKAN, Status::TERSEDIA])
             ->get()
             ->first(fn (Status $status): bool => strcasecmp($status->nama, $name) === 0);
-    }
-
-    // Tanggal Indonesia (31/01/2026 atau 31-01-2026) diubah ke Y-m-d; format lain dibiarkan untuk divalidasi.
-    private static function date(?string $state): ?string
-    {
-        if (blank($state)) {
-            return null;
-        }
-
-        foreach (['d/m/Y', 'd-m-Y', 'Y-m-d'] as $format) {
-            $date = DateTimeImmutable::createFromFormat("!{$format}", $state);
-
-            // Dicocokkan balik supaya tanggal yang tidak ada (31/02/2026) ikut ditolak.
-            if ($date !== false && $date->format($format) === $state) {
-                return $date->format('Y-m-d');
-            }
-        }
-
-        return $state;
-    }
-
-    // "Rp 12.500.000" atau "12500000,00" menjadi "12500000".
-    private static function rupiah(?string $state): ?string
-    {
-        if (blank($state)) {
-            return null;
-        }
-
-        $withoutCents = preg_replace('/[.,]\d{2}$/', '', $state);
-        $digits = preg_replace('/[^0-9]/', '', $withoutCents);
-
-        return $digits === '' ? $state : $digits;
     }
 
     /**
