@@ -28,10 +28,17 @@ function lastResetCode(User $user): string
     return Notification::sent($user, PasswordResetCode::class)->last()->code;
 }
 
-function submitResetCode(Testable $page, string $code, string $password = 'Gudang2026baru'): Testable
+function verifyResetCode(Testable $page, string $code): Testable
 {
     return $page
-        ->fillForm(['code' => $code, 'password' => $password, 'passwordConfirmation' => $password])
+        ->fillForm(['code' => $code])
+        ->call('request');
+}
+
+function setNewPassword(Testable $page, string $password = 'Gudang2026baru'): Testable
+{
+    return $page
+        ->fillForm(['password' => $password, 'passwordConfirmation' => $password])
         ->call('request');
 }
 
@@ -71,34 +78,50 @@ test('every email gets the same code step', function (string $email) {
     requestResetCode($email)
         ->assertHasNoFormErrors()
         ->assertSet('email', $email)
-        ->assertSee('kode 6 digit sudah dikirim');
+        ->assertSee('kode 6 digit sudah dikirim')
+        ->assertFormFieldVisible('code')
+        ->assertFormFieldHidden('password');
 })->with([
     'registered email' => 'budi@tangcity.com',
     'unknown email' => 'tidakada@tangcity.com',
 ]);
+
+test('the new password fields appear only after the right code', function () {
+    $user = userWithRole('admin_it', attributes: ['email' => 'budi@tangcity.com']);
+    $page = requestResetCode('budi@tangcity.com');
+    $code = lastResetCode($user);
+
+    verifyResetCode($page, $code === '000000' ? '111111' : '000000')
+        ->assertHasFormErrors(['code'])
+        ->assertFormFieldHidden('password');
+
+    verifyResetCode($page, $code)
+        ->assertHasNoFormErrors()
+        ->assertFormFieldHidden('code')
+        ->assertFormFieldVisible('password')
+        ->assertFormFieldVisible('passwordConfirmation');
+});
 
 test('the right code sets the new password and cannot be used again', function () {
     $user = userWithRole('admin_it', attributes: ['email' => 'budi@tangcity.com', 'password' => 'Kantor2026lama']);
     $page = requestResetCode('budi@tangcity.com');
     $code = lastResetCode($user);
 
-    submitResetCode($page, $code)
+    setNewPassword(verifyResetCode($page, $code))
         ->assertHasNoFormErrors()
         ->assertRedirect(Filament::getLoginUrl());
 
     expect(Hash::check('Gudang2026baru', $user->refresh()->password))->toBeTrue();
 
-    submitResetCode(requestResetCode('budi@tangcity.com'), $code, 'Lemari2026baru')
+    verifyResetCode(requestResetCode('budi@tangcity.com'), $code)
         ->assertHasFormErrors(['code']);
-
-    expect(Hash::check('Gudang2026baru', $user->refresh()->password))->toBeTrue();
 });
 
 test('the new password must follow the password policy', function () {
     $user = userWithRole('admin_it', attributes: ['email' => 'budi@tangcity.com']);
     $page = requestResetCode('budi@tangcity.com');
 
-    submitResetCode($page, lastResetCode($user), '12345678')
+    setNewPassword(verifyResetCode($page, lastResetCode($user)), '12345678')
         ->assertHasFormErrors(['password']);
 });
 
@@ -109,26 +132,41 @@ test('five wrong codes burn the code', function () {
     $wrongCode = $code === '000000' ? '111111' : '000000';
 
     foreach (range(1, 5) as $attempt) {
-        submitResetCode($page, $wrongCode)->assertHasFormErrors(['code']);
+        verifyResetCode($page, $wrongCode)->assertHasFormErrors(['code']);
     }
 
-    submitResetCode($page, $code)->assertHasFormErrors(['code']);
+    verifyResetCode($page, $code)->assertHasFormErrors(['code']);
 
     $this->travel(61)->minutes();
 
-    submitResetCode($page, $code)->assertHasFormErrors(['code']);
+    verifyResetCode($page, $code)
+        ->assertHasFormErrors(['code'])
+        ->assertFormFieldHidden('password');
 
     expect(Hash::check('Kantor2026lama', $user->refresh()->password))->toBeTrue();
 });
 
 test('an expired code is rejected', function () {
-    $user = userWithRole('admin_it', attributes: ['email' => 'budi@tangcity.com', 'password' => 'Kantor2026lama']);
+    $user = userWithRole('admin_it', attributes: ['email' => 'budi@tangcity.com']);
     $page = requestResetCode('budi@tangcity.com');
     $code = lastResetCode($user);
 
     $this->travel(RequestPasswordReset::CODE_MINUTES + 1)->minutes();
 
-    submitResetCode($page, $code)->assertHasFormErrors(['code']);
+    verifyResetCode($page, $code)
+        ->assertHasFormErrors(['code'])
+        ->assertFormFieldHidden('password');
+});
+
+test('the time to set a new password runs out', function () {
+    $user = userWithRole('admin_it', attributes: ['email' => 'budi@tangcity.com', 'password' => 'Kantor2026lama']);
+    $page = verifyResetCode(requestResetCode('budi@tangcity.com'), lastResetCode($user));
+
+    $this->travel(RequestPasswordReset::CODE_MINUTES + 1)->minutes();
+
+    setNewPassword($page)
+        ->assertNotified(__('Waktu atur ulang habis. Minta kode baru.'))
+        ->assertFormFieldVisible('code');
 
     expect(Hash::check('Kantor2026lama', $user->refresh()->password))->toBeTrue();
 });
@@ -149,8 +187,8 @@ test('a new code waits 60 seconds and replaces the old one', function () {
 
     // Kode baru acak; kalau kebetulan sama dengan kode lama, pengecekan kode lama dilewati.
     if ($newCode !== $oldCode) {
-        submitResetCode($page, $oldCode)->assertHasFormErrors(['code']);
+        verifyResetCode($page, $oldCode)->assertHasFormErrors(['code']);
     }
 
-    submitResetCode($page, $newCode)->assertHasNoFormErrors();
+    verifyResetCode($page, $newCode)->assertHasNoFormErrors();
 });

@@ -82,6 +82,12 @@
     }
 }
 
+/* Kotak kode OTP (milik project): terisi tanpa garis seperti kolom isian lain; garis primary hanya saat fokus. */
+.fi-one-time-code-input-ctn > .fi-one-time-code-input-digit {
+    border-radius: var(--kertas-radius-field);
+    @apply h-12 w-11 border-transparent bg-gray-100 text-lg dark:border-transparent dark:bg-white/[0.06];
+}
+
 /* Checkbox & toggle tetap punya garis tipis agar terlihat jelas. */
 .fi-checkbox-input {
     @apply ring-gray-400/60;

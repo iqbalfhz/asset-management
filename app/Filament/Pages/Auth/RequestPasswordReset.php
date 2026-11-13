@@ -8,6 +8,7 @@ use DanHarrin\LivewireRateLimiting\Exceptions\TooManyRequestsException;
 use Filament\Actions\Action;
 use Filament\Auth\Pages\PasswordReset\RequestPasswordReset as BaseRequestPasswordReset;
 use Filament\Facades\Filament;
+use Filament\Forms\Components\OneTimeCodeInput;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Text;
@@ -23,7 +24,7 @@ use Illuminate\Validation\Rules\Password as PasswordRule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Locked;
 
-// Lupa password memakai kode 6 digit lewat email: langkah 1 isi email, langkah 2 isi kode dan kata sandi baru.
+// Lupa password memakai kode 6 digit lewat email: isi email, verifikasi kode, lalu buat kata sandi baru.
 class RequestPasswordReset extends BaseRequestPasswordReset
 {
     public const CODE_MINUTES = 10;
@@ -32,52 +33,44 @@ class RequestPasswordReset extends BaseRequestPasswordReset
 
     private const RESEND_SECONDS = 60;
 
-    // Email yang sedang direset; null berarti masih di langkah 1.
+    // Email yang sedang direset; null berarti masih di langkah isi email.
     #[Locked]
     public ?string $email = null;
+
+    // Kode yang sudah terbukti benar; terisi berarti tinggal membuat kata sandi baru.
+    #[Locked]
+    public ?string $verifiedCode = null;
 
     #[Exposed]
     public function request(): void
     {
-        if ($this->email !== null) {
+        if ($this->email === null) {
+            $this->requestCode();
+        } elseif ($this->verifiedCode === null) {
+            $this->verifyCode();
+        } else {
             $this->resetPassword();
-
-            return;
         }
-
-        try {
-            $this->rateLimit(2);
-        } catch (TooManyRequestsException $exception) {
-            $this->getRateLimitedNotification($exception)?->send();
-
-            return;
-        }
-
-        $this->email = Str::lower(trim($this->form->getState()['email']));
-        $this->sendCode();
-        $this->form->fill();
     }
 
     #[Unexposed]
     public function form(Schema $schema): Schema
     {
-        $onCodeStep = fn (): bool => $this->email !== null;
-
         return $schema
             ->components([
                 $this->getEmailFormComponent()
-                    ->hidden($onCodeStep),
+                    ->visible(fn (): bool => $this->step() === 1),
                 Text::make(fn (): string => __('Kalau :email terdaftar, kode 6 digit sudah dikirim ke email tersebut. Biasanya masuk dalam beberapa detik; cek juga folder spam. Kode berlaku :menit menit.', [
                     'email' => $this->email,
                     'menit' => self::CODE_MINUTES,
                 ]))
-                    ->visible($onCodeStep),
-                TextInput::make('code')
+                    ->visible(fn (): bool => $this->step() === 2),
+                OneTimeCodeInput::make('code')
                     ->label(__('Kode dari email'))
                     ->required()
-                    ->rule('digits:6')
                     ->validationAttribute(__('kode'))
-                    ->autocomplete('one-time-code')
+                    ->submitOnCompletion()
+                    ->autofocus()
                     ->belowContent([
                         Action::make('resendCode')
                             ->label(__('Kirim ulang kode'))
@@ -92,7 +85,9 @@ class RequestPasswordReset extends BaseRequestPasswordReset
                                 $this->form->fill();
                             }),
                     ])
-                    ->visible($onCodeStep),
+                    ->visible(fn (): bool => $this->step() === 2),
+                Text::make(fn (): string => __('Kode benar. Buat kata sandi baru untuk :email.', ['email' => $this->email]))
+                    ->visible(fn (): bool => $this->step() === 3),
                 TextInput::make('password')
                     ->label(__('filament-panels::auth/pages/password-reset/reset-password.form.password.label'))
                     ->password()
@@ -102,7 +97,7 @@ class RequestPasswordReset extends BaseRequestPasswordReset
                     ->rule(PasswordRule::default())
                     ->same('passwordConfirmation')
                     ->validationAttribute(__('filament-panels::auth/pages/password-reset/reset-password.form.password.validation_attribute'))
-                    ->visible($onCodeStep),
+                    ->visible(fn (): bool => $this->step() === 3),
                 TextInput::make('passwordConfirmation')
                     ->label(__('filament-panels::auth/pages/password-reset/reset-password.form.password_confirmation.label'))
                     ->password()
@@ -110,14 +105,18 @@ class RequestPasswordReset extends BaseRequestPasswordReset
                     ->autocomplete('new-password')
                     ->required()
                     ->dehydrated(false)
-                    ->visible($onCodeStep),
+                    ->visible(fn (): bool => $this->step() === 3),
             ]);
     }
 
     protected function getRequestFormAction(): Action
     {
         return parent::getRequestFormAction()
-            ->label(fn (): string => $this->email === null ? __('Kirim kode') : __('Ganti kata sandi'));
+            ->label(fn (): string => match ($this->step()) {
+                1 => __('Kirim kode'),
+                2 => __('Verifikasi kode'),
+                default => __('Simpan kata sandi baru'),
+            });
     }
 
     protected function resendCode(): void
@@ -135,6 +134,30 @@ class RequestPasswordReset extends BaseRequestPasswordReset
             ->title(__('Kode baru dikirim kalau email ini terdaftar.'))
             ->success()
             ->send();
+    }
+
+    private function step(): int
+    {
+        return match (true) {
+            $this->email === null => 1,
+            $this->verifiedCode === null => 2,
+            default => 3,
+        };
+    }
+
+    private function requestCode(): void
+    {
+        try {
+            $this->rateLimit(2);
+        } catch (TooManyRequestsException $exception) {
+            $this->getRateLimitedNotification($exception)?->send();
+
+            return;
+        }
+
+        $this->email = Str::lower(trim($this->form->getState()['email']));
+        $this->sendCode();
+        $this->form->fill();
     }
 
     // Jeda kirim ulang dan batas kode salah dihitung per email, terdaftar atau tidak, supaya jawabannya selalu sama.
@@ -167,7 +190,7 @@ class RequestPasswordReset extends BaseRequestPasswordReset
         return true;
     }
 
-    private function resetPassword(): void
+    private function verifyCode(): void
     {
         try {
             $this->rateLimit(10);
@@ -177,7 +200,7 @@ class RequestPasswordReset extends BaseRequestPasswordReset
             return;
         }
 
-        $data = $this->form->getState();
+        $code = (string) $this->form->getState()['code'];
 
         if (RateLimiter::tooManyAttempts($this->wrongCodeKey(), self::MAX_WRONG_CODES_PER_HOUR)) {
             throw ValidationException::withMessages([
@@ -187,9 +210,7 @@ class RequestPasswordReset extends BaseRequestPasswordReset
             ]);
         }
 
-        $user = $this->userWithValidCode($data['code']);
-
-        if (! $user) {
+        if (! $this->userWithValidCode($code)) {
             RateLimiter::hit($this->wrongCodeKey(), 3600);
 
             // Kode ikut hangus saat batas tercapai, jadi tebakan berikutnya tidak berguna walau batasnya sudah lewat.
@@ -202,13 +223,38 @@ class RequestPasswordReset extends BaseRequestPasswordReset
             ]);
         }
 
+        // Waktu untuk membuat kata sandi baru dihitung ulang dari saat kode terverifikasi.
+        DB::table('password_reset_tokens')->where('email', $this->email)->update(['created_at' => now()]);
+        RateLimiter::clear($this->wrongCodeKey());
+
+        $this->verifiedCode = $code;
+        $this->form->fill();
+    }
+
+    private function resetPassword(): void
+    {
+        $data = $this->form->getState();
+        $user = $this->userWithValidCode($this->verifiedCode);
+
+        // Waktunya habis, atau kode sudah diganti kode baru dari tab lain: kembali ke langkah kode.
+        if (! $user) {
+            $this->verifiedCode = null;
+            $this->form->fill();
+
+            Notification::make()
+                ->title(__('Waktu atur ulang habis. Minta kode baru.'))
+                ->warning()
+                ->send();
+
+            return;
+        }
+
         $user->forceFill([
             'password' => $data['password'],
             'remember_token' => Str::random(60),
         ])->save();
 
         DB::table('password_reset_tokens')->where('email', $this->email)->delete();
-        RateLimiter::clear($this->wrongCodeKey());
         event(new PasswordReset($user));
 
         Notification::make()
