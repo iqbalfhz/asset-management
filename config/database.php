@@ -62,9 +62,10 @@ return [
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 Mysql::ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
-            // Dump backup tanpa mengunci tabel (semua tabel InnoDB).
+            // Dump backup tanpa mengunci tabel (semua tabel InnoDB); tanpa info tablespace karena user database tidak punya izin PROCESS.
             'dump' => [
                 'useSingleTransaction' => true,
+                'addExtraOption' => '--no-tablespaces',
             ],
         ],
 
