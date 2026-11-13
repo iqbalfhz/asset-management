@@ -3,13 +3,17 @@
 use App\Enums\AssignmentStatus;
 use App\Enums\MaintenanceStatus;
 use App\Filament\Karyawan\Pages\MyAssets;
+use App\Filament\Karyawan\Pages\MyConsumables;
 use App\Filament\Karyawan\Pages\MyDamageReports;
 use App\Filament\Karyawan\Pages\MyHistory;
+use App\Filament\Karyawan\Pages\MyLicenses;
 use App\Models\Asset;
 use App\Models\Assignment;
 use App\Models\Category;
 use App\Models\Company;
+use App\Models\Consumable;
 use App\Models\Employee;
+use App\Models\License;
 use App\Models\Maintenance;
 use App\Models\Role;
 use App\Models\Status;
@@ -175,4 +179,39 @@ test('the guide opens without logging in and is linked from the login page', fun
 
     $this->get('/panduan')->assertOk()->assertSee('Panduan karyawan')->assertSee('Menerima aset dari admin');
     $this->get('/login')->assertSee(route('panduan'));
+});
+
+test('an employee sees only their own active license seats, without the product key', function () {
+    $this->actingAs($this->adminIt);
+    $office = License::factory()->create(['company_id' => $this->tcm->id, 'nama_software' => 'Microsoft 365 Business', 'product_key' => 'RAHASIA-12345']);
+    $acrobat = License::factory()->create(['company_id' => $this->tcm->id, 'nama_software' => 'Adobe Acrobat Pro']);
+    $rinaSeat = $office->assignSeat($this->rina);
+    $budiSeat = $office->assignSeat($this->budi);
+    $releasedSeat = $acrobat->assignSeat($this->rina);
+    $releasedSeat->release();
+
+    $this->actingAs($this->rinaUser);
+    $this->get('/karyawan/lisensi-saya')->assertOk();
+
+    livewire(MyLicenses::class)
+        ->assertCanSeeTableRecords([$rinaSeat])
+        ->assertCanNotSeeTableRecords([$budiSeat, $releasedSeat])
+        ->assertSee('Microsoft 365 Business')
+        ->assertDontSee('RAHASIA-12345');
+});
+
+test('an employee sees only the consumables issued to them', function () {
+    $this->actingAs($this->adminIt);
+    $paper = Consumable::factory()->create(['company_id' => $this->tcm->id, 'nama' => 'Kertas A4', 'satuan' => 'rim']);
+    $received = $paper->receive(10);
+    $forRina = $paper->issue(2, $this->rina);
+    $forBudi = $paper->issue(3, $this->budi);
+
+    $this->actingAs($this->rinaUser);
+    $this->get('/karyawan/barang-diterima')->assertOk();
+
+    livewire(MyConsumables::class)
+        ->assertCanSeeTableRecords([$forRina])
+        ->assertCanNotSeeTableRecords([$forBudi, $received])
+        ->assertSee('2 rim');
 });
