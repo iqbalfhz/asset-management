@@ -79,6 +79,7 @@ test('every email gets the same code step', function (string $email) {
         ->assertHasNoFormErrors()
         ->assertSet('email', $email)
         ->assertSee('kode 6 digit sudah dikirim')
+        ->assertSee('Periksa lagi ejaan email')
         ->assertFormFieldVisible('code')
         ->assertFormFieldHidden('password');
 })->with([

@@ -86,6 +86,9 @@ class RequestPasswordReset extends BaseRequestPasswordReset
                             }),
                     ])
                     ->visible(fn (): bool => $this->step() === 2),
+                // Pengganti pesan "email tidak terdaftar": pengguna yang salah ketik tetap terbantu tanpa membocorkan akun yang ada.
+                Text::make(__('Belum ada email setelah 1 menit? Periksa lagi ejaan email di atas, lalu pilih Ganti email. Kalau sudah benar dan kode tetap tidak masuk, hubungi tim IT kantor Anda.'))
+                    ->visible(fn (): bool => $this->step() === 2),
                 Text::make(fn (): string => __('Kode benar. Buat kata sandi baru untuk :email.', ['email' => $this->email]))
                     ->visible(fn (): bool => $this->step() === 3),
                 TextInput::make('password')
