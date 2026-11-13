@@ -70,17 +70,19 @@ test('no reset link is sent for a panel the account cannot open', function () {
     Notification::assertNotSentTo($user, ResetPasswordNotification::class);
 });
 
-test('the reset form gives the same answer for an unknown email and a repeated request', function (string $email) {
+test('the reset form gives the same answer with the waiting notice for every email', function (string $email) {
     Notification::fake();
+    userWithRole('admin_it', attributes: ['email' => 'ani@tangcity.com']);
     $user = userWithRole('admin_it', attributes: ['email' => 'budi@tangcity.com']);
     Password::broker()->createToken($user);
 
     livewire(AppRequestPasswordReset::class)
         ->fillForm(['email' => $email])
         ->call('request')
-        ->assertNotified(__('passwords.sent'))
+        ->assertNotified(__('Cek email Anda'))
         ->assertFormSet(['email' => null]);
 })->with([
+    'registered email' => 'ani@tangcity.com',
     'unknown email' => 'tidakada@tangcity.com',
     'email that just got a link' => 'budi@tangcity.com',
 ]);

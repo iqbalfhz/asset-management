@@ -15,4 +15,14 @@ class RequestPasswordReset extends BaseRequestPasswordReset
 
         return $this->getSentNotification(Password::RESET_LINK_SENT);
     }
+
+    // Email dikirim lewat antrean yang jalan tiap menit, jadi pengguna perlu tahu harus menunggu.
+    protected function getSentNotification(string $status): ?Notification
+    {
+        return Notification::make()
+            ->title(__('Cek email Anda'))
+            ->body(__('Kalau email ini terdaftar, link atur ulang kata sandi masuk dalam 1–2 menit. Cek juga folder spam.'))
+            ->success()
+            ->persistent();
+    }
 }
