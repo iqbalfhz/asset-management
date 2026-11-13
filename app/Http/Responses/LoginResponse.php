@@ -17,15 +17,15 @@ class LoginResponse implements LoginResponseContract
         $user = Filament::auth()->user();
         $intended = session()->pull('url.intended');
 
-        if (is_string($intended) && $this->canOpen($user, $intended)) {
+        if (is_string($intended) && $this->shouldReturnTo($user, $intended)) {
             return redirect()->to($intended);
         }
 
         return redirect()->to($user->homePanel()->getUrl());
     }
 
-    // Tautan ke panel yang tidak boleh dibuka (karyawan membuka tautan admin) diganti panel sesuai role, bukan halaman 403.
-    private function canOpen(User $user, string $url): bool
+    // Tujuan di dalam panel dipakai hanya kalau itu panel utama role-nya (admin selalu mulai di /admin); di luar panel (scan QR) selalu dipakai.
+    private function shouldReturnTo(User $user, string $url): bool
     {
         $path = '/'.trim((string) parse_url($url, PHP_URL_PATH), '/');
 
@@ -33,7 +33,7 @@ class LoginResponse implements LoginResponseContract
             $prefix = '/'.$panel->getPath();
 
             if ($panel->getPath() !== '' && ($path === $prefix || str_starts_with($path, $prefix.'/'))) {
-                return $user->canAccessPanel($panel);
+                return $panel->getId() === $user->homePanel()->getId();
             }
         }
 

@@ -38,6 +38,20 @@ test('after login, a user returns to the page they first asked for', function ()
     logInAs('budi')->assertRedirect('/a/TCM-LPT-2026-00001');
 });
 
+test('after login, an admin who first opened the karyawan panel still starts in the admin panel', function () {
+    userWithRole('super_admin', attributes: ['username' => 'budi', 'password' => 'Kantor2026aman']);
+    session(['url.intended' => url('/karyawan')]);
+
+    logInAs('budi')->assertRedirect('/admin');
+});
+
+test('after login, an admin returns to the admin page they first asked for', function () {
+    userWithRole('admin_it', attributes: ['username' => 'budi', 'password' => 'Kantor2026aman']);
+    session(['url.intended' => url('/admin/assets')]);
+
+    logInAs('budi')->assertRedirect('/admin/assets');
+});
+
 test('after login, a karyawan who first asked for an admin page lands on the karyawan panel', function () {
     userWithRole('karyawan', 'karyawan', ['username' => 'budi', 'password' => 'Kantor2026aman']);
     session(['url.intended' => url('/admin/assets')]);
