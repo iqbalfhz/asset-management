@@ -170,9 +170,9 @@ test('an employee cannot report an asset someone else holds', function () {
         ->and(Maintenance::withoutGlobalScopes()->count())->toBe(0);
 });
 
-test('the guide opens without logging in and is linked from the employee login page', function () {
+test('the guide opens without logging in and is linked from the login page', function () {
     $this->withoutVite();
 
     $this->get('/panduan')->assertOk()->assertSee('Panduan karyawan')->assertSee('Menerima aset dari admin');
-    $this->get('/karyawan/login')->assertSee(route('panduan'));
+    $this->get('/login')->assertSee(route('panduan'));
 });

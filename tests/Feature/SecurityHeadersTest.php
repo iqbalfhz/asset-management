@@ -11,15 +11,15 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
 test('every page carries the basic security headers', function () {
-    $this->get('/admin/login')
+    $this->get('/login')
         ->assertHeader('X-Content-Type-Options', 'nosniff')
         ->assertHeader('X-Frame-Options', 'SAMEORIGIN')
         ->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
 });
 
 test('HSTS is sent only over HTTPS', function () {
-    $this->get('https://localhost/admin/login')->assertHeader('Strict-Transport-Security', 'max-age=31536000');
-    $this->get('http://localhost/admin/login')->assertHeaderMissing('Strict-Transport-Security');
+    $this->get('https://localhost/login')->assertHeader('Strict-Transport-Security', 'max-age=31536000');
+    $this->get('http://localhost/login')->assertHeaderMissing('Strict-Transport-Security');
 });
 
 test('a damage photo is served in a sandbox so a planted script cannot run', function () {

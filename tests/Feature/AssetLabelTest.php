@@ -41,12 +41,10 @@ beforeEach(function () {
     ]);
 });
 
-test('a guest scanning a label is asked to sign in as admin or employee', function () {
+test('a guest scanning a label is sent to sign in and comes back to the label afterwards', function () {
     $this->get("/a/{$this->laptop->kode}")
-        ->assertOk()
-        ->assertSee('Masuk untuk melihat aset')
-        ->assertSee(route('filament.admin.assets.scan', $this->laptop->kode))
-        ->assertSee(MyAssetDetail::getUrl(['kode' => $this->laptop->kode], panel: 'karyawan'));
+        ->assertRedirect('/login')
+        ->assertSessionHas('url.intended', url("/a/{$this->laptop->kode}"));
 });
 
 test('an admin scanning a label lands on the asset page', function () {

@@ -20,8 +20,9 @@ Kerjakan per fase. Ikuti sub-tab fase yang sedang aktif. Jangan mengerjakan fitu
 ## Panel dan akses
 
 - Dua panel: `/admin` (pengelola aset) dan `/karyawan` (aset saya, lapor kerusakan, tombol Terima)
+- Satu halaman masuk untuk semua role di `/login` (panel `auth`, isinya hanya login dan lupa password). Setelah masuk, user kembali ke halaman yang tadinya dibuka kalau boleh, selain itu ke panel sesuai role. `/` mengarah ke login atau panel; tidak ada landing page
 - Hak akses memakai Filament Shield (Spatie Permission). Role disimpan di tabel `roles` + kolom `panel`
-- `User::canAccessPanel()` = `is_active` dan role punya `panel` yang sama dengan panel yang dibuka
+- `User::canAccessPanel()` = `is_active` dan: `/admin` hanya role ber-panel admin; `/karyawan` role admin dan karyawan (admin juga memegang aset)
 - Satu user = satu role. Role awal: super_admin, admin_it, admin_ga, karyawan
 - Setiap kategori menunjuk ke role pengelolanya; admin hanya melihat aset kategori yang dikelolanya (kecuali punya izin `view_all_assets`)
 - Tidak ada halaman registrasi. Login pakai username atau email. 2FA (aplikasi authenticator) opsional untuk semua akun, diaktifkan sendiri dari Profil; akun yang sudah mengaktifkannya wajib memasukkan kode setiap login

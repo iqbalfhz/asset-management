@@ -2,8 +2,6 @@
 
 namespace App\Providers\Filament;
 
-use App\Filament\Pages\Auth\Login;
-use App\Filament\Pages\Auth\RequestPasswordReset;
 use App\Http\Controllers\DownloadAttachmentController;
 use App\Http\Controllers\DownloadAuditReportController;
 use App\Http\Controllers\DownloadBastController;
@@ -25,6 +23,7 @@ use Filament\PanelProvider;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
@@ -41,8 +40,8 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->viteTheme('resources/css/filament/admin/theme.css')
-            ->login(Login::class)
-            ->passwordReset(RequestPasswordReset::class)
+            // Halaman masuk bersama ada di /login (panel auth).
+            ->login(fn (): RedirectResponse => redirect()->route('filament.auth.auth.login'))
             ->databaseNotifications()
             // Route di dalam panel ikut login, 2FA, dan akses panel.
             ->authenticatedRoutes(function (): void {

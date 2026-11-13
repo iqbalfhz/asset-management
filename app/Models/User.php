@@ -6,6 +6,7 @@ namespace App\Models;
 use App\Models\Concerns\LogsChanges;
 use App\Models\Scopes\CompanyScope;
 use Database\Factories\UserFactory;
+use Filament\Facades\Filament;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasAvatar;
 use Filament\Panel;
@@ -30,10 +31,34 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, HasRoles, LogsChanges, Notifiable, TwoFactorAuthenticatable;
 
+    // Admin juga karyawan yang memegang aset, jadi role admin ikut membuka panel karyawan; panel auth hanya halaman masuk.
     public function canAccessPanel(Panel $panel): bool
     {
-        return $this->is_active
-            && $this->roles->contains('panel', $panel->getId());
+        if (! $this->is_active) {
+            return false;
+        }
+
+        $panels = $this->roles->pluck('panel');
+
+        return match ($panel->getId()) {
+            'admin' => $panels->contains('admin'),
+            'karyawan', 'auth' => $panels->contains('admin') || $panels->contains('karyawan'),
+            default => false,
+        };
+    }
+
+    // Panel tujuan setelah masuk: admin kalau boleh, selain itu karyawan.
+    public function homePanel(): ?Panel
+    {
+        foreach (['admin', 'karyawan'] as $panelId) {
+            $panel = Filament::getPanel($panelId);
+
+            if ($this->canAccessPanel($panel)) {
+                return $panel;
+            }
+        }
+
+        return null;
     }
 
     /**

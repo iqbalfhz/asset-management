@@ -16,8 +16,11 @@ beforeEach(function () {
     Notification::fake();
 });
 
+// Lupa password ada di panel auth; user dibuat lebih dulu karena factory 2FA butuh plugin Breezy di panel aktif.
 function requestResetCode(string $email): Testable
 {
+    Filament::setCurrentPanel('auth');
+
     return livewire(RequestPasswordReset::class)
         ->fillForm(['email' => $email])
         ->call('request');
@@ -42,8 +45,7 @@ function setNewPassword(Testable $page, string $password = 'Gudang2026baru'): Te
         ->call('request');
 }
 
-test('a reset code is sent after the response to an account that can open the panel', function (string $role, string $panel) {
-    Filament::setCurrentPanel($panel);
+test('a reset code is sent after the response to an account that can open a panel', function (string $role, string $panel) {
     $user = userWithRole($role, $panel, ['email' => 'budi@tangcity.com']);
 
     requestResetCode('budi@tangcity.com')->assertHasNoFormErrors();
@@ -57,19 +59,17 @@ test('a reset code is sent after the response to an account that can open the pa
             && str_contains($html, e($user->name));
     });
 })->with([
-    'admin panel' => ['admin_it', 'admin'],
-    'karyawan panel' => ['karyawan', 'karyawan'],
+    'admin' => ['admin_it', 'admin'],
+    'karyawan' => ['karyawan', 'karyawan'],
 ]);
 
-test('no reset code is sent to an account that cannot open the panel', function (string $role, string $panel, array $attributes) {
-    $user = userWithRole($role, $panel, ['email' => 'budi@tangcity.com'] + $attributes);
-
+test('no reset code is sent to an account that cannot open any panel', function (User $user) {
     requestResetCode('budi@tangcity.com');
 
     Notification::assertNotSentTo($user, PasswordResetCode::class);
 })->with([
-    'karyawan on the admin panel' => ['karyawan', 'karyawan', []],
-    'inactive admin' => ['admin_it', 'admin', ['is_active' => false]],
+    'inactive admin' => fn () => userWithRole('admin_it', attributes: ['email' => 'budi@tangcity.com', 'is_active' => false]),
+    'account without a role' => fn () => User::factory()->create(['email' => 'budi@tangcity.com']),
 ]);
 
 test('every email gets the same code step', function (string $email) {

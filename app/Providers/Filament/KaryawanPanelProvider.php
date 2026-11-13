@@ -2,8 +2,6 @@
 
 namespace App\Providers\Filament;
 
-use App\Filament\Pages\Auth\Login;
-use App\Filament\Pages\Auth\RequestPasswordReset;
 use App\Http\Controllers\DownloadBastController;
 use App\Livewire\PersonalInfo;
 use Filament\FontProviders\LocalFontProvider;
@@ -14,11 +12,10 @@ use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Panel;
 use Filament\PanelProvider;
-use Filament\View\PanelsRenderHook;
-use Illuminate\Contracts\View\View;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
@@ -33,12 +30,11 @@ class KaryawanPanelProvider extends PanelProvider
             ->id('karyawan')
             ->path('karyawan')
             ->viteTheme('resources/css/filament/admin/theme.css')
-            ->login(Login::class)
-            ->passwordReset(RequestPasswordReset::class)
+            // Halaman masuk bersama ada di /login (panel auth).
+            ->login(fn (): RedirectResponse => redirect()->route('filament.auth.auth.login'))
             ->authenticatedRoutes(function (): void {
                 Route::get('bast/{assignment}', [DownloadBastController::class, 'employee'])->whereNumber('assignment')->name('bast.download');
             })
-            ->renderHook(PanelsRenderHook::AUTH_LOGIN_FORM_AFTER, fn (): View => view('filament.karyawan.login-guide-link'))
             ->plugins([
                 BreezyCore::make()
                     ->myProfile(hasAvatars: true, slug: 'profil')

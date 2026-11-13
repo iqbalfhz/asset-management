@@ -1,7 +1,8 @@
 <?php
 
 test('the application returns a successful response', function () {
-    $response = $this->get('/');
+    // Alamat utama mengarah ke halaman masuk; halaman akhirnya harus terbuka normal.
+    $response = $this->followingRedirects()->get('/');
 
     $response->assertStatus(200);
 });

@@ -6,7 +6,6 @@ use App\Filament\Karyawan\Pages\MyAssetDetail;
 use App\Filament\Resources\Assets\AssetResource;
 use App\Models\Asset;
 use Filament\Facades\Filament;
-use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 
 class ScanAssetController extends Controller
@@ -15,16 +14,13 @@ class ScanAssetController extends Controller
      * Tujuan QR di label: hanya mengarahkan ke panel yang sesuai, tanpa membaca data aset.
      * Detail selalu dibuka di dalam panel, jadi login, 2FA, dan hak lihat tetap berlaku.
      */
-    public function __invoke(string $kode): View|RedirectResponse
+    public function __invoke(string $kode): RedirectResponse
     {
         $user = auth()->user();
 
+        // Tamu masuk dulu, lalu kembali ke alamat ini dan diarahkan sesuai role.
         if ($user === null) {
-            return view('filament.scan', [
-                'kode' => $kode,
-                'adminUrl' => route('filament.admin.assets.scan', $kode),
-                'employeeUrl' => MyAssetDetail::getUrl(['kode' => $kode], panel: 'karyawan'),
-            ]);
+            return redirect()->guest(route('filament.auth.auth.login'));
         }
 
         if ($user->canAccessPanel(Filament::getPanel('admin'))) {
