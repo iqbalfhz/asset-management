@@ -79,13 +79,7 @@ class AssetTransactionActions
             ->schema([
                 Select::make('room_id')
                     ->label(__('Disimpan di'))
-                    ->options(fn (Asset $record): array => Room::query()
-                        ->with('floor.building')
-                        ->whereHas('floor.building', fn (Builder $query) => $query->where('company_id', $record->company_id))
-                        ->get()
-                        ->mapWithKeys(fn (Room $room): array => [$room->getKey() => Assignment::labelFor($room)])
-                        ->sort()
-                        ->all())
+                    ->options(fn (Asset $record): array => Room::pathOptions($record->company_id))
                     ->default(fn (Asset $record): ?int => $record->default_room_id ?? $record->room_id)
                     ->searchable()
                     ->required(),

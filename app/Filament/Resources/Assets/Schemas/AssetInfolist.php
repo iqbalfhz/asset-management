@@ -14,37 +14,43 @@ use Filament\Schemas\Schema;
 // Tampilan hanya-baca, juga tujuan scan QR dari HP.
 class AssetInfolist
 {
+    // Juga dipakai di detail aset panel karyawan.
+    public static function identity(): Section
+    {
+        return Section::make(__('Identitas'))
+            ->columns(2)
+            ->columnSpanFull()
+            ->schema([
+                TextEntry::make('kode')
+                    ->copyable(),
+                TextEntry::make('nama'),
+                TextEntry::make('category.nama')
+                    ->label(__('Kategori'))
+                    ->badge()
+                    ->color(fn (Asset $record): ?array => BadgeColor::fromHex($record->category->warna)),
+                TextEntry::make('status.nama')
+                    ->label(__('Status'))
+                    ->badge()
+                    ->color(fn (Asset $record): ?array => BadgeColor::fromHex($record->status->warna)),
+                TextEntry::make('model')
+                    ->label(__('Model'))
+                    ->state(fn (Asset $record): ?string => $record->assetModel?->fullName())
+                    ->placeholder('—'),
+                TextEntry::make('no_seri')
+                    ->label(__('Nomor seri'))
+                    ->copyable()
+                    ->placeholder('—'),
+                IconEntry::make('is_byod')
+                    ->label(__('Perangkat pribadi (BYOD)'))
+                    ->boolean(),
+            ]);
+    }
+
     public static function configure(Schema $schema): Schema
     {
         return $schema
             ->components([
-                Section::make(__('Identitas'))
-                    ->columns(2)
-                    ->columnSpanFull()
-                    ->schema([
-                        TextEntry::make('kode')
-                            ->copyable(),
-                        TextEntry::make('nama'),
-                        TextEntry::make('category.nama')
-                            ->label(__('Kategori'))
-                            ->badge()
-                            ->color(fn (Asset $record): ?array => BadgeColor::fromHex($record->category->warna)),
-                        TextEntry::make('status.nama')
-                            ->label(__('Status'))
-                            ->badge()
-                            ->color(fn (Asset $record): ?array => BadgeColor::fromHex($record->status->warna)),
-                        TextEntry::make('model')
-                            ->label(__('Model'))
-                            ->state(fn (Asset $record): ?string => $record->assetModel?->fullName())
-                            ->placeholder('—'),
-                        TextEntry::make('no_seri')
-                            ->label(__('Nomor seri'))
-                            ->copyable()
-                            ->placeholder('—'),
-                        IconEntry::make('is_byod')
-                            ->label(__('Perangkat pribadi (BYOD)'))
-                            ->boolean(),
-                    ]),
+                static::identity(),
                 Section::make(__('Pemegang dan lokasi'))
                     ->columns(2)
                     ->columnSpanFull()

@@ -16,9 +16,7 @@ class AuditForm
                 Select::make('room_id')
                     ->label(__('Ruang'))
                     ->helperText(__('Aset yang tercatat di ruang ini dan Anda kelola menjadi daftar yang diharapkan.'))
-                    ->options(fn (): array => Room::query()->with('floor.building')->get()
-                        ->mapWithKeys(fn (Room $room): array => [$room->id => $room->path()])
-                        ->all())
+                    ->options(fn (): array => Room::pathOptions())
                     ->searchable()
                     ->required(),
                 Textarea::make('catatan')

@@ -35,6 +35,22 @@ class Room extends Model
     }
 
     /**
+     * Pilihan ruang untuk select, urut abjad; bisa dibatasi ke satu perusahaan.
+     *
+     * @return array<int, string>
+     */
+    public static function pathOptions(?int $companyId = null): array
+    {
+        return static::query()
+            ->with('floor.building')
+            ->when($companyId, fn (Builder $query) => $query->whereHas('floor.building', fn (Builder $building) => $building->where('company_id', $companyId)))
+            ->get()
+            ->mapWithKeys(fn (Room $room): array => [$room->getKey() => $room->path()])
+            ->sort()
+            ->all();
+    }
+
+    /**
      * @return BelongsTo<Floor, $this>
      */
     public function floor(): BelongsTo

@@ -173,9 +173,7 @@ class AssetsTable
                         ->schema([
                             Select::make('room_id')
                                 ->label(__('Lokasi baru'))
-                                ->options(fn (): array => Room::query()->with('floor.building')->get()
-                                    ->mapWithKeys(fn (Room $room): array => [$room->id => $room->path()])
-                                    ->all())
+                                ->options(fn (): array => Room::pathOptions())
                                 ->searchable()
                                 ->required(),
                         ])

@@ -3,15 +3,13 @@
 namespace App\Filament\Karyawan\Pages;
 
 use App\Filament\Karyawan\Actions\ReportDamageAction;
-use App\Filament\Support\BadgeColor;
+use App\Filament\Resources\Assets\Schemas\AssetInfolist;
 use App\Models\Asset;
 use App\Models\Employee;
 use App\Models\Scopes\ManagedCategoryScope;
 use App\Models\Status;
 use Filament\Actions\Action;
-use Filament\Infolists\Components\TextEntry;
 use Filament\Pages\Page;
-use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Builder;
@@ -54,38 +52,19 @@ class MyAssetDetail extends Page
         return $schema
             ->record($this->asset())
             ->components([
-                Section::make()
-                    ->columns(2)
-                    ->schema([
-                        TextEntry::make('kode'),
-                        TextEntry::make('nama'),
-                        TextEntry::make('category.nama')
-                            ->label(__('Kategori')),
-                        TextEntry::make('status.nama')
-                            ->label(__('Status'))
-                            ->badge()
-                            ->color(fn (Asset $record): ?array => BadgeColor::fromHex($record->status->warna)),
-                        TextEntry::make('model')
-                            ->label(__('Model'))
-                            ->state(fn (Asset $record): ?string => $record->assetModel?->fullName())
-                            ->placeholder('—'),
-                        TextEntry::make('no_seri')
-                            ->label(__('Nomor seri'))
-                            ->placeholder('—'),
-                    ]),
+                AssetInfolist::identity(),
             ]);
     }
 
+    // Dibaca sekali per request: judul, tombol, dan isi halaman memakai aset yang sama.
     private function asset(): Asset
     {
-        $employee = auth()->user()->employee;
-
-        return Asset::withoutGlobalScope(ManagedCategoryScope::class)
+        return once(fn (): Asset => Asset::withoutGlobalScope(ManagedCategoryScope::class)
             ->with(['category', 'status', 'assetModel.manufacturer'])
             ->where('kode', $this->kode)
             ->where('assigned_type', (new Employee)->getMorphClass())
-            ->where('assigned_id', $employee?->getKey() ?? 0)
+            ->where('assigned_id', auth()->user()->employee?->getKey() ?? 0)
             ->whereHas('status', fn (Builder $query) => $query->whereIn('nama', [Status::DIPAKAI, Status::DALAM_PERBAIKAN]))
-            ->firstOrFail();
+            ->firstOrFail());
     }
 }
