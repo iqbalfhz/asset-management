@@ -3,19 +3,18 @@
 namespace App\Filament\Resources\Maintenances;
 
 use App\Enums\MaintenanceStatus;
+use App\Filament\Actions\DomainAction;
 use App\Filament\Resources\Maintenances\Pages\CreateMaintenance;
 use App\Filament\Resources\Maintenances\Pages\ListMaintenances;
 use App\Models\Asset;
 use App\Models\Maintenance;
 use App\Models\Status;
 use BackedEnum;
-use Closure;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -25,7 +24,6 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Component;
-use LogicException;
 
 class MaintenanceResource extends Resource
 {
@@ -142,7 +140,7 @@ class MaintenanceResource extends Resource
                 static::transition('process', __('Proses'), Heroicon::OutlinedPlay, MaintenanceStatus::Dilaporkan)
                     ->modalDescription(__('Aset menjadi Dalam Perbaikan sampai perbaikan selesai.'))
                     ->schema(static::processFields())
-                    ->action(fn (Maintenance $record, array $data, Action $action) => static::run($action, fn () => $record->process($data), __('Perbaikan diproses'))),
+                    ->action(fn (Maintenance $record, array $data, Action $action) => DomainAction::run($action, fn () => $record->process($data), __('Perbaikan diproses'))),
                 static::transition('reject', __('Tolak'), Heroicon::OutlinedXMark, MaintenanceStatus::Dilaporkan)
                     ->color('gray')
                     ->schema([
@@ -152,16 +150,16 @@ class MaintenanceResource extends Resource
                             ->required()
                             ->maxLength(2000),
                     ])
-                    ->action(fn (Maintenance $record, array $data, Action $action) => static::run($action, fn () => $record->reject($data['catatan_admin']), __('Laporan ditolak'))),
+                    ->action(fn (Maintenance $record, array $data, Action $action) => DomainAction::run($action, fn () => $record->reject($data['catatan_admin']), __('Laporan ditolak'))),
                 static::transition('finish', __('Selesai'), Heroicon::OutlinedCheck, MaintenanceStatus::Diproses)
                     ->modalDescription(__('Aset kembali ke status sebelum diperbaiki, dengan pemegang yang sama.'))
                     ->schema(static::closeFields())
-                    ->action(fn (Maintenance $record, array $data, Action $action) => static::run($action, fn () => $record->finish($data), __('Perbaikan selesai'))),
+                    ->action(fn (Maintenance $record, array $data, Action $action) => DomainAction::run($action, fn () => $record->finish($data), __('Perbaikan selesai'))),
                 static::transition('markBroken', __('Tidak bisa diperbaiki'), Heroicon::OutlinedExclamationTriangle, MaintenanceStatus::Diproses)
                     ->color('danger')
                     ->modalDescription(__('Aset menjadi Rusak dan bisa diajukan penghapusan.'))
                     ->schema(static::closeFields())
-                    ->action(fn (Maintenance $record, array $data, Action $action) => static::run($action, fn () => $record->markBroken($data), __('Aset ditandai Rusak'))),
+                    ->action(fn (Maintenance $record, array $data, Action $action) => DomainAction::run($action, fn () => $record->markBroken($data), __('Aset ditandai Rusak'))),
                 Action::make('photo')
                     ->label(__('Foto'))
                     ->icon(Heroicon::OutlinedPhoto)
@@ -201,18 +199,6 @@ class MaintenanceResource extends Resource
                 ->default(now())
                 ->required(),
         ];
-    }
-
-    private static function run(Action $action, Closure $transition, string $successTitle): void
-    {
-        try {
-            $transition();
-        } catch (LogicException $exception) {
-            Notification::make()->danger()->title(__('Aksi dibatalkan'))->body($exception->getMessage())->send();
-            $action->halt();
-        }
-
-        Notification::make()->success()->title($successTitle)->send();
     }
 
     public static function getPages(): array

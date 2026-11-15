@@ -2,6 +2,7 @@
 
 namespace App\Filament\Karyawan\Actions;
 
+use App\Filament\Actions\DomainAction;
 use App\Models\Asset;
 use App\Models\Employee;
 use App\Models\Maintenance;
@@ -86,21 +87,20 @@ class ReportDamageAction
     {
         $employee = auth()->user()->employee;
 
-        try {
+        DomainAction::attempt(function () use ($employee, $asset, $data): void {
             if ($employee === null || $asset === null) {
                 throw new LogicException(__('Hanya aset yang sedang Anda pegang yang bisa dilaporkan.'));
             }
 
             Maintenance::report($employee, $asset, $data['keluhan'], $data['foto'] ?? null);
-        } catch (LogicException $exception) {
+        }, __('Laporan belum terkirim'), function () use ($data, $action): void {
             // Foto sudah terunggah sebelum laporan ditolak; jangan ditinggal di disk.
             if (filled($data['foto'] ?? null)) {
                 Storage::disk(Maintenance::FOTO_DISK)->delete($data['foto']);
             }
 
-            Notification::make()->danger()->title(__('Laporan belum terkirim'))->body($exception->getMessage())->send();
             $action->halt();
-        }
+        });
 
         Notification::make()->success()->title(__('Laporan terkirim'))->body(__('Admin akan mengecek laporan Anda.'))->send();
     }

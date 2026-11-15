@@ -154,6 +154,18 @@ test('stock in and out from the list page, refused when the stock runs out', fun
         ->assertCanSeeTableRecords($this->toner->transactions()->get());
 });
 
+test('a stock action refused by a business rule shows the reason and stays open', function () {
+    $inactive = Employee::factory()->create(['company_id' => $this->tcm->id, 'is_active' => false]);
+    $this->toner->receive(5);
+
+    livewire(ListConsumables::class)
+        ->callAction(TestAction::make('issue')->table($this->toner), data: ['jumlah' => 1, 'employee_id' => $inactive->id, 'tanggal' => today()->toDateString()])
+        ->assertNotified('Aksi dibatalkan')
+        ->assertActionHalted(TestAction::make('issue')->table($this->toner));
+
+    expect($this->toner->refresh()->stok)->toBe(5);
+});
+
 test('an admin of another role does not see the item, and an employee cannot open the menu', function () {
     $this->actingAs(userWithRole('admin_ga', attributes: ['company_id' => $this->tcm->id]));
 

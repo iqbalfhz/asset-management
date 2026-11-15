@@ -3,12 +3,12 @@
 namespace App\Filament\Resources\Audits\RelationManagers;
 
 use App\Enums\AuditResult;
+use App\Filament\Actions\DomainAction;
 use App\Filament\Exports\AuditItemExporter;
 use App\Models\AuditItem;
 use App\Models\Status;
 use Filament\Actions\Action;
 use Filament\Actions\ExportAction;
-use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
@@ -16,7 +16,6 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use LogicException;
 
 class ItemsRelationManager extends RelationManager
 {
@@ -78,7 +77,7 @@ class ItemsRelationManager extends RelationManager
                     ->visible(fn (AuditItem $record): bool => $record->hasil === AuditResult::SalahTempat && $record->dipindahkan_pada === null && $canUpdate())
                     ->requiresConfirmation()
                     ->modalDescription(fn (): string => __('Lokasi aset dicatat di :ruang.', ['ruang' => $this->getOwnerRecord()->room->nama]))
-                    ->action(fn (AuditItem $record, Action $action) => static::run($action, fn () => $record->moveToAuditRoom(), __('Lokasi aset diperbarui'))),
+                    ->action(fn (AuditItem $record, Action $action) => DomainAction::run($action, fn () => $record->moveToAuditRoom(), __('Lokasi aset diperbarui'))),
                 Action::make('markLost')
                     ->label(__('Tandai hilang'))
                     ->icon(Heroicon::OutlinedExclamationTriangle)
@@ -88,19 +87,7 @@ class ItemsRelationManager extends RelationManager
                         && $canUpdate())
                     ->requiresConfirmation()
                     ->modalDescription(__('Status aset menjadi Hilang, lalu aset bisa diajukan untuk penghapusan.'))
-                    ->action(fn (AuditItem $record, Action $action) => static::run($action, fn () => $record->markLost(), __('Aset ditandai hilang'))),
+                    ->action(fn (AuditItem $record, Action $action) => DomainAction::run($action, fn () => $record->markLost(), __('Aset ditandai hilang'))),
             ]);
-    }
-
-    private static function run(Action $action, callable $transaction, string $successTitle): void
-    {
-        try {
-            $transaction();
-        } catch (LogicException $exception) {
-            Notification::make()->danger()->title(__('Aksi dibatalkan'))->body($exception->getMessage())->send();
-            $action->halt();
-        }
-
-        Notification::make()->success()->title($successTitle)->send();
     }
 }

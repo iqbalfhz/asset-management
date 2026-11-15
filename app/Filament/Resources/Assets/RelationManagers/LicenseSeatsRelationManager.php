@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\Assets\RelationManagers;
 
+use App\Filament\Actions\DomainAction;
 use App\Filament\Resources\Licenses\LicenseResource;
-use App\Filament\Resources\Licenses\RelationManagers\SeatsRelationManager;
 use App\Models\LicenseSeat;
 use Filament\Actions\Action;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -60,7 +60,7 @@ class LicenseSeatsRelationManager extends RelationManager
                     ->visible(fn (LicenseSeat $record): bool => $record->dilepas_pada === null && (auth()->user()?->can('update', $record->license) ?? false))
                     ->requiresConfirmation()
                     ->modalDescription(__('Seat dilepas dan bisa dipakai lagi. Hapus juga instalasinya di aset ini.'))
-                    ->action(fn (LicenseSeat $record, Action $action) => SeatsRelationManager::run($action, fn () => $record->release(), __('Seat dilepas'))),
+                    ->action(fn (LicenseSeat $record, Action $action) => DomainAction::run($action, fn () => $record->release(), __('Seat dilepas'))),
             ]);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Assets\Actions;
 
+use App\Filament\Actions\DomainAction;
 use App\Models\Asset;
 use App\Models\Assignment;
 use App\Models\Department;
@@ -95,16 +96,11 @@ class AssetTransactionActions
                     ->required()
                     ->maxLength(1000),
             ])
-            ->action(function (Asset $record, array $data, Action $action): void {
-                try {
-                    $record->recover(Room::query()->findOrFail($data['room_id']), $data['alasan']);
-                } catch (LogicException $exception) {
-                    Notification::make()->danger()->title(__('Aksi dibatalkan'))->body($exception->getMessage())->send();
-                    $action->halt();
-                }
-
-                Notification::make()->success()->title(__('Aset kembali Tersedia'))->send();
-            })
+            ->action(fn (Asset $record, array $data, Action $action) => DomainAction::run(
+                $action,
+                fn () => $record->recover(Room::query()->findOrFail($data['room_id']), $data['alasan']),
+                __('Aset kembali Tersedia'),
+            ))
             ->after(fn (Component $livewire) => static::refreshEditPage($livewire));
     }
 
@@ -145,11 +141,7 @@ class AssetTransactionActions
                         return $target ? Assignment::labelFor($target) : null;
                     })
                     ->required(),
-                DatePicker::make('tanggal')
-                    ->label(__('Tanggal'))
-                    ->default(now())
-                    ->maxDate(now())
-                    ->required(),
+                static::dateInput(),
                 static::conditionInput(),
                 DatePicker::make('expected_return_at')
                     ->label(__('Tanggal kembali'))
@@ -177,17 +169,22 @@ class AssetTransactionActions
             ->modalDescription(__('Aset kembali ke lokasi default. Aset yang menempel ikut kembali.'))
             ->modalSubmitActionLabel(__('Kembalikan'))
             ->schema([
-                DatePicker::make('tanggal')
-                    ->label(__('Tanggal'))
-                    ->default(now())
-                    ->maxDate(now())
-                    ->required(),
+                static::dateInput(),
                 static::conditionInput(),
                 Textarea::make('catatan')
                     ->label(__('Catatan'))
                     ->rows(2)
                     ->maxLength(1000),
             ]);
+    }
+
+    private static function dateInput(): DatePicker
+    {
+        return DatePicker::make('tanggal')
+            ->label(__('Tanggal'))
+            ->default(now())
+            ->maxDate(now())
+            ->required();
     }
 
     private static function conditionInput(): TextInput
@@ -208,16 +205,13 @@ class AssetTransactionActions
     {
         $target = static::targetQuery($data['target_type'])?->find($data['target_id']);
 
-        try {
+        $noBast = DomainAction::attempt(function () use ($assets, $target, $data): string {
             if ($target === null) {
                 throw new LogicException(__('Tujuan serah-terima tidak ditemukan.'));
             }
 
-            $noBast = Assignment::handOver($assets, $target, $data);
-        } catch (LogicException $exception) {
-            Notification::make()->danger()->title(__('Serah-terima dibatalkan'))->body($exception->getMessage())->send();
-            $action->halt();
-        }
+            return Assignment::handOver($assets, $target, $data);
+        }, __('Serah-terima dibatalkan'), fn () => $action->halt());
 
         static::notifySaved(__('Serah-terima tersimpan'), $noBast);
     }
@@ -228,12 +222,7 @@ class AssetTransactionActions
      */
     private static function runTakeBack(Collection $assets, array $data, Action $action): void
     {
-        try {
-            $noBast = Assignment::takeBack($assets, $data);
-        } catch (LogicException $exception) {
-            Notification::make()->danger()->title(__('Pengembalian dibatalkan'))->body($exception->getMessage())->send();
-            $action->halt();
-        }
+        $noBast = DomainAction::attempt(fn (): string => Assignment::takeBack($assets, $data), __('Pengembalian dibatalkan'), fn () => $action->halt());
 
         static::notifySaved(__('Pengembalian tersimpan'), $noBast);
     }

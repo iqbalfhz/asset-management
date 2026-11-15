@@ -2,13 +2,12 @@
 
 namespace App\Filament\Resources\Audits\Pages;
 
+use App\Filament\Actions\DomainAction;
 use App\Filament\Resources\Audits\AuditResource;
 use App\Models\Audit;
 use App\Models\Room;
-use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
-use LogicException;
 
 class CreateAudit extends CreateRecord
 {
@@ -19,12 +18,11 @@ class CreateAudit extends CreateRecord
      */
     protected function handleRecordCreation(array $data): Model
     {
-        try {
-            return Audit::start(Room::query()->findOrFail($data['room_id']), $data['catatan'] ?? null);
-        } catch (LogicException $exception) {
-            Notification::make()->danger()->title(__('Sesi belum dibuat'))->body($exception->getMessage())->send();
-            $this->halt();
-        }
+        return DomainAction::attempt(
+            fn (): Audit => Audit::start(Room::query()->findOrFail($data['room_id']), $data['catatan'] ?? null),
+            __('Sesi belum dibuat'),
+            fn () => $this->halt(),
+        );
     }
 
     // Petugas biasanya langsung berkeliling, jadi setelah dibuat langsung ke halaman scan.

@@ -2,13 +2,12 @@
 
 namespace App\Filament\Resources\Maintenances\Pages;
 
+use App\Filament\Actions\DomainAction;
 use App\Filament\Resources\Maintenances\MaintenanceResource;
 use App\Models\Asset;
 use App\Models\Maintenance;
-use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
-use LogicException;
 
 class CreateMaintenance extends CreateRecord
 {
@@ -19,12 +18,11 @@ class CreateMaintenance extends CreateRecord
      */
     protected function handleRecordCreation(array $data): Model
     {
-        try {
-            return Maintenance::startDirect(Asset::query()->findOrFail($data['asset_id']), $data);
-        } catch (LogicException $exception) {
-            Notification::make()->danger()->title(__('Perbaikan belum dibuat'))->body($exception->getMessage())->send();
-            $this->halt();
-        }
+        return DomainAction::attempt(
+            fn (): Maintenance => Maintenance::startDirect(Asset::query()->findOrFail($data['asset_id']), $data),
+            __('Perbaikan belum dibuat'),
+            fn () => $this->halt(),
+        );
     }
 
     protected function getRedirectUrl(): string

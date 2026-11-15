@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Employees;
 
+use App\Filament\Actions\DomainAction;
 use App\Filament\Resources\Employees\Pages\ManageEmployees;
 use App\Filament\Resources\Employees\Pages\ViewEmployee;
 use App\Filament\Resources\Employees\RelationManagers\AssetsRelationManager;
@@ -24,7 +25,6 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
-use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
@@ -36,7 +36,6 @@ use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Validation\Rules\Unique;
-use LogicException;
 
 class EmployeeResource extends Resource
 {
@@ -208,16 +207,12 @@ class EmployeeResource extends Resource
                 ]
                 : [])
             ->modalSubmitAction(fn (Action $action, Employee $record): Action => $action->disabled(! $isSuperAdmin() && $holdsSomething($record)))
-            ->action(function (Employee $record, array $data, Action $action) use ($isSuperAdmin): void {
-                try {
-                    $record->deactivate($isSuperAdmin() ? ($data['alasan'] ?? null) : null);
-                } catch (LogicException $exception) {
-                    Notification::make()->danger()->title(__('Karyawan belum bisa dinonaktifkan'))->body($exception->getMessage())->send();
-                    $action->halt();
-                }
-
-                Notification::make()->success()->title(__('Karyawan dinonaktifkan'))->send();
-            });
+            ->action(fn (Employee $record, array $data, Action $action) => DomainAction::run(
+                $action,
+                fn () => $record->deactivate($isSuperAdmin() ? ($data['alasan'] ?? null) : null),
+                __('Karyawan dinonaktifkan'),
+                __('Karyawan belum bisa dinonaktifkan'),
+            ));
     }
 
     public static function getRelations(): array

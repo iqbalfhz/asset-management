@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Consumables\Actions;
 
+use App\Filament\Actions\DomainAction;
 use App\Models\Consumable;
 use App\Models\Employee;
 use App\Models\Supplier;
@@ -10,11 +11,9 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Arr;
-use LogicException;
 
 class StockActions
 {
@@ -36,10 +35,7 @@ class StockActions
                     ->label(__('Supplier'))
                     ->options(fn (): array => Supplier::query()->orderBy('nama')->pluck('nama', 'id')->all())
                     ->searchable(),
-                DatePicker::make('tanggal')
-                    ->default(today())
-                    ->maxDate(today())
-                    ->required(),
+                static::dateInput(),
                 Textarea::make('catatan')
                     ->maxLength(1000),
             ])
@@ -81,10 +77,7 @@ class StockActions
                         ->all())
                     ->getOptionLabelUsing(fn (int|string $value): ?string => Employee::query()->whereKey($value)->value('nama'))
                     ->required(),
-                DatePicker::make('tanggal')
-                    ->default(today())
-                    ->maxDate(today())
-                    ->required(),
+                static::dateInput(),
                 Textarea::make('catatan')
                     ->maxLength(1000),
             ])
@@ -114,10 +107,7 @@ class StockActions
                     ->suffix(fn (Consumable $record): string => $record->satuan)
                     ->helperText(fn (Consumable $record): string => __('Stok tercatat sekarang :stok :satuan.', ['stok' => $record->stok, 'satuan' => $record->satuan]))
                     ->required(),
-                DatePicker::make('tanggal')
-                    ->default(today())
-                    ->maxDate(today())
-                    ->required(),
+                static::dateInput(),
                 Textarea::make('alasan')
                     ->label(__('Alasan'))
                     ->required()
@@ -130,16 +120,17 @@ class StockActions
             ));
     }
 
+    private static function dateInput(): DatePicker
+    {
+        return DatePicker::make('tanggal')
+            ->default(today())
+            ->maxDate(today())
+            ->required();
+    }
+
     private static function run(Action $action, callable $transaction, string $successTitle): void
     {
-        try {
-            $transaction();
-        } catch (LogicException $exception) {
-            Notification::make()->danger()->title(__('Aksi dibatalkan'))->body($exception->getMessage())->send();
-            $action->halt();
-        }
-
-        Notification::make()->success()->title($successTitle)->send();
+        DomainAction::run($action, $transaction, $successTitle);
         // Riwayat transaksi di halaman detail ikut dimuat ulang.
         $action->getLivewire()->dispatch('stock-moved');
     }

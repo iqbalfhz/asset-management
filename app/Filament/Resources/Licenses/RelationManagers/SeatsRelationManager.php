@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Licenses\RelationManagers;
 
+use App\Filament\Actions\DomainAction;
 use App\Models\Asset;
 use App\Models\Employee;
 use App\Models\License;
@@ -10,7 +11,6 @@ use App\Models\Status;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\ToggleButtons;
-use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Support\Icons\Heroicon;
@@ -19,7 +19,6 @@ use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use LogicException;
 
 class SeatsRelationManager extends RelationManager
 {
@@ -117,7 +116,7 @@ class SeatsRelationManager extends RelationManager
                             ? Employee::query()->findOrFail($data['employee_id'])
                             : Asset::query()->with('status')->findOrFail($data['asset_id']);
 
-                        static::run($action, fn () => $license->assignSeat($holder), __('Seat dipasang'));
+                        DomainAction::run($action, fn () => $license->assignSeat($holder), __('Seat dipasang'));
                     }),
             ])
             ->recordActions([
@@ -128,19 +127,7 @@ class SeatsRelationManager extends RelationManager
                     ->visible(fn (LicenseSeat $record): bool => $record->dilepas_pada === null && $canUpdate())
                     ->requiresConfirmation()
                     ->modalDescription(fn (LicenseSeat $record): string => __('Seat milik :pemakai dilepas dan bisa dipakai lagi. Hapus juga instalasi atau akunnya di sisi software.', ['pemakai' => $record->holderLabel()]))
-                    ->action(fn (LicenseSeat $record, Action $action) => static::run($action, fn () => $record->release(), __('Seat dilepas'))),
+                    ->action(fn (LicenseSeat $record, Action $action) => DomainAction::run($action, fn () => $record->release(), __('Seat dilepas'))),
             ]);
-    }
-
-    public static function run(Action $action, callable $transaction, string $successTitle): void
-    {
-        try {
-            $transaction();
-        } catch (LogicException $exception) {
-            Notification::make()->danger()->title(__('Aksi dibatalkan'))->body($exception->getMessage())->send();
-            $action->halt();
-        }
-
-        Notification::make()->success()->title($successTitle)->send();
     }
 }

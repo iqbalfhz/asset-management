@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Disposals;
 
 use App\Enums\DisposalMethod;
 use App\Enums\DisposalStatus;
+use App\Filament\Actions\DomainAction;
 use App\Filament\Resources\Disposals\Pages\CreateDisposal;
 use App\Filament\Resources\Disposals\Pages\ListDisposals;
 use App\Models\Asset;
@@ -14,7 +15,6 @@ use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
@@ -23,7 +23,6 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use LogicException;
 
 class DisposalResource extends Resource
 {
@@ -124,7 +123,7 @@ class DisposalResource extends Resource
                             ->maxLength(2000),
                     ])
                     ->modalSubmitActionLabel(__('Setujui'))
-                    ->action(fn (Disposal $record, array $data, Action $action) => static::decide($action, fn () => $record->approve($data['catatan'] ?? null), __('Penghapusan disetujui'))),
+                    ->action(fn (Disposal $record, array $data, Action $action) => DomainAction::run($action, fn () => $record->approve($data['catatan'] ?? null), __('Penghapusan disetujui'))),
                 Action::make('reject')
                     ->label(__('Tolak'))
                     ->icon(Heroicon::OutlinedXMark)
@@ -137,7 +136,7 @@ class DisposalResource extends Resource
                             ->maxLength(2000),
                     ])
                     ->modalSubmitActionLabel(__('Tolak'))
-                    ->action(fn (Disposal $record, array $data, Action $action) => static::decide($action, fn () => $record->reject($data['catatan']), __('Penghapusan ditolak'))),
+                    ->action(fn (Disposal $record, array $data, Action $action) => DomainAction::run($action, fn () => $record->reject($data['catatan']), __('Penghapusan ditolak'))),
                 Action::make('report')
                     ->label(__('Berita acara'))
                     ->icon(Heroicon::OutlinedDocumentArrowDown)
@@ -145,18 +144,6 @@ class DisposalResource extends Resource
                     ->url(fn (Disposal $record): string => route('filament.admin.disposals.report', $record))
                     ->openUrlInNewTab(),
             ]);
-    }
-
-    private static function decide(Action $action, callable $decision, string $successTitle): void
-    {
-        try {
-            $decision();
-        } catch (LogicException $exception) {
-            Notification::make()->danger()->title(__('Aksi dibatalkan'))->body($exception->getMessage())->send();
-            $action->halt();
-        }
-
-        Notification::make()->success()->title($successTitle)->send();
     }
 
     public static function getPages(): array
