@@ -69,8 +69,8 @@ class License extends Model
                 throw new LogicException(__(':pemegang berada di perusahaan lain.', ['pemegang' => $label]));
             }
 
-            if ($holder instanceof Employee && ! $holder->is_active) {
-                throw new LogicException(__('Karyawan :nama sudah nonaktif.', ['nama' => $holder->nama]));
+            if ($holder instanceof Employee) {
+                $holder->ensureActive();
             }
 
             if ($holder instanceof Asset && $holder->status->nama === Status::DIHAPUSKAN) {

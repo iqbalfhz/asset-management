@@ -51,8 +51,8 @@ class Assignment extends Model
                 throw new LogicException(__('Tujuan serah-terima berada di perusahaan lain.'));
             }
 
-            if ($target instanceof Employee && ! $target->is_active) {
-                throw new LogicException(__('Karyawan :nama sudah nonaktif.', ['nama' => $target->nama]));
+            if ($target instanceof Employee) {
+                $target->ensureActive();
             }
 
             if ($target instanceof Asset && array_intersect([$target->getKey(), ...$target->parentIds()], $assets->modelKeys()) !== []) {

@@ -20,8 +20,10 @@ use Filament\Actions\ReplicateAction;
 use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\Column;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\BaseFilter;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
@@ -36,100 +38,14 @@ class AssetsTable
     {
         return $table
             ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['category', 'status', 'room.floor.building', 'assetModel.manufacturer', 'assigned', 'depreciation']))
-            ->columns([
-                TextColumn::make('kode')
-                    ->searchable()
-                    ->sortable()
-                    ->copyable(),
-                TextColumn::make('nama')
-                    ->searchable(),
-                TextColumn::make('category.nama')
-                    ->label(__('Kategori'))
-                    ->badge()
-                    ->color(fn (Asset $record): ?array => BadgeColor::fromHex($record->category->warna)),
-                TextColumn::make('status.nama')
-                    ->label(__('Status'))
-                    ->badge()
-                    ->color(fn (Asset $record): ?array => BadgeColor::fromHex($record->status->warna)),
-                TextColumn::make('pemegang')
-                    ->label(__('Pemegang'))
-                    ->state(fn (Asset $record): ?string => $record->assigned ? Assignment::labelFor($record->assigned) : null)
-                    ->placeholder('—'),
-                TextColumn::make('room.nama')
-                    ->label(__('Lokasi'))
-                    ->description(fn (Asset $record): ?string => $record->room?->floor->path()),
-                TextColumn::make('assetModel.nama')
-                    ->label(__('Model'))
-                    ->formatStateUsing(fn (Asset $record): string => $record->assetModel->fullName())
-                    ->toggleable(),
-                TextColumn::make('no_seri')
-                    ->label(__('Nomor seri'))
-                    ->searchable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('order_number')
-                    ->label(__('Nomor PO'))
-                    ->searchable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('harga_beli')
-                    ->label(__('Harga beli'))
-                    ->money('IDR', locale: 'id')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('nilai_buku')
-                    ->label(__('Nilai buku'))
-                    ->state(fn (Asset $record): ?int => $record->bookValue())
-                    ->money('IDR', locale: 'id')
-                    ->placeholder('—')
-                    ->toggleable(isToggledHiddenByDefault: true),
-                IconColumn::make('is_byod')
-                    ->label(__('BYOD'))
-                    ->boolean()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('next_audit_date')
-                    ->label(__('Audit berikutnya'))
-                    ->date('j M Y')
-                    ->placeholder(__('Belum dijadwalkan'))
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-            ])
-            ->filters([
-                SelectFilter::make('category_id')
-                    ->label(__('Kategori'))
-                    ->relationship('category', 'nama', fn (Builder $query): Builder => $query->managedByCurrentUser()),
-                SelectFilter::make('status_id')
-                    ->label(__('Status'))
-                    ->relationship('status', 'nama'),
-                SelectFilter::make('room_id')
-                    ->label(__('Lokasi'))
-                    ->relationship('room', 'nama'),
-                SelectFilter::make('karyawan')
-                    ->label(__('Pemegang (karyawan)'))
-                    ->options(fn (): array => Employee::query()->orderBy('nama')->pluck('nama', 'id')->all())
-                    ->searchable()
-                    ->query(fn (Builder $query, array $data): Builder => blank($data['value'] ?? null)
-                        ? $query
-                        : $query->where('assigned_type', (new Employee)->getMorphClass())->where('assigned_id', $data['value'])),
-                TernaryFilter::make('is_byod')
-                    ->label(__('BYOD')),
-                Filter::make('perlu_audit')
-                    ->label(__('Perlu diaudit'))
-                    ->toggle()
-                    ->query(fn (Builder $query): Builder => $query
-                        ->whereDoesntHave('status', fn (Builder $query) => $query->whereIn('nama', [Status::HILANG, Status::DIHAPUSKAN]))
-                        ->where(fn (Builder $query) => $query->whereNull('next_audit_date')->orWhereDate('next_audit_date', '<=', today()))),
-            ])
+            ->columns(static::columns())
+            ->filters(static::filters())
             ->recordActions([
                 AssetTransactionActions::handOver(),
                 AssetTransactionActions::takeBack(),
                 PrintLabelActions::single(),
                 EditAction::make(),
-                ReplicateAction::make()
-                    ->label(__('Clone'))
-                    ->excludeAttributes(['kode', 'no_seri', 'status_id', 'assigned_type', 'assigned_id'])
-                    ->beforeReplicaSaved(function (Asset $replica): void {
-                        $replica->status_id = Status::named(Status::DISIAPKAN)->getKey();
-                    })
-                    ->successRedirectUrl(fn (Asset $replica): string => AssetResource::getUrl('edit', ['record' => $replica])),
+                static::cloneAction(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
@@ -138,62 +54,186 @@ class AssetsTable
                     PrintLabelActions::bulk(),
                     AssetTransactionActions::handOverBulk(),
                     AssetTransactionActions::takeBackBulk(),
-                    BulkAction::make('markAs')
-                        ->label(__('Ubah status'))
-                        ->icon(Heroicon::OutlinedCheckBadge)
-                        ->schema([
-                            Select::make('status_id')
-                                ->label(__('Status'))
-                                ->options(fn (): array => Status::query()->whereIn('nama', [Status::DISIAPKAN, Status::TERSEDIA])->pluck('nama', 'id')->all())
-                                ->required(),
-                        ])
-                        ->authorizeIndividualRecords('update')
-                        ->action(function (Collection $records, array $data): void {
-                            $target = Status::query()->findOrFail($data['status_id']);
-                            $skipped = 0;
-
-                            foreach ($records as $asset) {
-                                try {
-                                    $asset->markAs($target);
-                                } catch (LogicException) {
-                                    $skipped++;
-                                }
-                            }
-
-                            Notification::make()
-                                ->title(__(':count aset diubah ke :status.', ['count' => $records->count() - $skipped, 'status' => $target->nama]))
-                                ->body($skipped ? __(':count aset dilewati karena statusnya bukan Disiapkan atau Tersedia.', ['count' => $skipped]) : null)
-                                ->success()
-                                ->send();
-                        })
-                        ->deselectRecordsAfterCompletion(),
-                    BulkAction::make('moveRoom')
-                        ->label(__('Pindah lokasi'))
-                        ->icon(Heroicon::OutlinedMapPin)
-                        ->schema([
-                            Select::make('room_id')
-                                ->label(__('Lokasi baru'))
-                                ->options(fn (): array => Room::pathOptions())
-                                ->searchable()
-                                ->required(),
-                        ])
-                        ->authorizeIndividualRecords('update')
-                        ->action(fn (Collection $records, array $data) => $records->each->update(['room_id' => $data['room_id']]))
-                        ->deselectRecordsAfterCompletion(),
-                    BulkAction::make('changeCategory')
-                        ->label(__('Ubah kategori'))
-                        ->icon(Heroicon::OutlinedTag)
-                        ->modalDescription(__('Kode aset tidak berubah walaupun kategorinya diganti.'))
-                        ->schema([
-                            Select::make('category_id')
-                                ->label(__('Kategori baru'))
-                                ->relationship('category', 'nama', modifyQueryUsing: fn (Builder $query): Builder => $query->managedByCurrentUser())
-                                ->required(),
-                        ])
-                        ->authorizeIndividualRecords('update')
-                        ->action(fn (Collection $records, array $data) => $records->each->update(['category_id' => $data['category_id']]))
-                        ->deselectRecordsAfterCompletion(),
+                    static::markAsBulkAction(),
+                    static::moveRoomBulkAction(),
+                    static::changeCategoryBulkAction(),
                 ]),
             ]);
+    }
+
+    /**
+     * @return array<Column>
+     */
+    private static function columns(): array
+    {
+        return [
+            TextColumn::make('kode')
+                ->searchable()
+                ->sortable()
+                ->copyable(),
+            TextColumn::make('nama')
+                ->searchable(),
+            TextColumn::make('category.nama')
+                ->label(__('Kategori'))
+                ->badge()
+                ->color(fn (Asset $record): ?array => BadgeColor::fromHex($record->category->warna)),
+            TextColumn::make('status.nama')
+                ->label(__('Status'))
+                ->badge()
+                ->color(fn (Asset $record): ?array => BadgeColor::fromHex($record->status->warna)),
+            TextColumn::make('pemegang')
+                ->label(__('Pemegang'))
+                ->state(fn (Asset $record): ?string => $record->assigned ? Assignment::labelFor($record->assigned) : null)
+                ->placeholder('—'),
+            TextColumn::make('room.nama')
+                ->label(__('Lokasi'))
+                ->description(fn (Asset $record): ?string => $record->room?->floor->path()),
+            TextColumn::make('assetModel.nama')
+                ->label(__('Model'))
+                ->formatStateUsing(fn (Asset $record): string => $record->assetModel->fullName())
+                ->toggleable(),
+            TextColumn::make('no_seri')
+                ->label(__('Nomor seri'))
+                ->searchable()
+                ->toggleable(isToggledHiddenByDefault: true),
+            TextColumn::make('order_number')
+                ->label(__('Nomor PO'))
+                ->searchable()
+                ->toggleable(isToggledHiddenByDefault: true),
+            TextColumn::make('harga_beli')
+                ->label(__('Harga beli'))
+                ->money('IDR', locale: 'id')
+                ->sortable()
+                ->toggleable(isToggledHiddenByDefault: true),
+            TextColumn::make('nilai_buku')
+                ->label(__('Nilai buku'))
+                ->state(fn (Asset $record): ?int => $record->bookValue())
+                ->money('IDR', locale: 'id')
+                ->placeholder('—')
+                ->toggleable(isToggledHiddenByDefault: true),
+            IconColumn::make('is_byod')
+                ->label(__('BYOD'))
+                ->boolean()
+                ->toggleable(isToggledHiddenByDefault: true),
+            TextColumn::make('next_audit_date')
+                ->label(__('Audit berikutnya'))
+                ->date('j M Y')
+                ->placeholder(__('Belum dijadwalkan'))
+                ->sortable()
+                ->toggleable(isToggledHiddenByDefault: true),
+        ];
+    }
+
+    /**
+     * @return array<BaseFilter>
+     */
+    private static function filters(): array
+    {
+        return [
+            SelectFilter::make('category_id')
+                ->label(__('Kategori'))
+                ->relationship('category', 'nama', fn (Builder $query): Builder => $query->managedByCurrentUser()),
+            SelectFilter::make('status_id')
+                ->label(__('Status'))
+                ->relationship('status', 'nama'),
+            SelectFilter::make('room_id')
+                ->label(__('Lokasi'))
+                ->relationship('room', 'nama'),
+            SelectFilter::make('karyawan')
+                ->label(__('Pemegang (karyawan)'))
+                ->options(fn (): array => Employee::query()->orderBy('nama')->pluck('nama', 'id')->all())
+                ->searchable()
+                ->query(fn (Builder $query, array $data): Builder => blank($data['value'] ?? null)
+                    ? $query
+                    : $query->where('assigned_type', (new Employee)->getMorphClass())->where('assigned_id', $data['value'])),
+            TernaryFilter::make('is_byod')
+                ->label(__('BYOD')),
+            Filter::make('perlu_audit')
+                ->label(__('Perlu diaudit'))
+                ->toggle()
+                ->query(fn (Builder $query): Builder => $query
+                    ->whereDoesntHave('status', fn (Builder $query) => $query->whereIn('nama', [Status::HILANG, Status::DIHAPUSKAN]))
+                    ->where(fn (Builder $query) => $query->whereNull('next_audit_date')->orWhereDate('next_audit_date', '<=', today()))),
+        ];
+    }
+
+    // Salinan aset baru tanpa identitas unik (kode, nomor seri) dan tanpa pemegang, mulai dari Disiapkan.
+    private static function cloneAction(): ReplicateAction
+    {
+        return ReplicateAction::make()
+            ->label(__('Clone'))
+            ->excludeAttributes(['kode', 'no_seri', 'status_id', 'assigned_type', 'assigned_id'])
+            ->beforeReplicaSaved(function (Asset $replica): void {
+                $replica->status_id = Status::named(Status::DISIAPKAN)->getKey();
+            })
+            ->successRedirectUrl(fn (Asset $replica): string => AssetResource::getUrl('edit', ['record' => $replica]));
+    }
+
+    // Aset yang statusnya bukan Disiapkan atau Tersedia dilewati, bukan menggagalkan semuanya.
+    private static function markAsBulkAction(): BulkAction
+    {
+        return BulkAction::make('markAs')
+            ->label(__('Ubah status'))
+            ->icon(Heroicon::OutlinedCheckBadge)
+            ->schema([
+                Select::make('status_id')
+                    ->label(__('Status'))
+                    ->options(fn (): array => Status::query()->whereIn('nama', [Status::DISIAPKAN, Status::TERSEDIA])->pluck('nama', 'id')->all())
+                    ->required(),
+            ])
+            ->authorizeIndividualRecords('update')
+            ->action(function (Collection $records, array $data): void {
+                $target = Status::query()->findOrFail($data['status_id']);
+                $skipped = 0;
+
+                foreach ($records as $asset) {
+                    try {
+                        $asset->markAs($target);
+                    } catch (LogicException) {
+                        $skipped++;
+                    }
+                }
+
+                Notification::make()
+                    ->title(__(':count aset diubah ke :status.', ['count' => $records->count() - $skipped, 'status' => $target->nama]))
+                    ->body($skipped ? __(':count aset dilewati karena statusnya bukan Disiapkan atau Tersedia.', ['count' => $skipped]) : null)
+                    ->success()
+                    ->send();
+            })
+            ->deselectRecordsAfterCompletion();
+    }
+
+    private static function moveRoomBulkAction(): BulkAction
+    {
+        return BulkAction::make('moveRoom')
+            ->label(__('Pindah lokasi'))
+            ->icon(Heroicon::OutlinedMapPin)
+            ->schema([
+                Select::make('room_id')
+                    ->label(__('Lokasi baru'))
+                    ->options(fn (): array => Room::pathOptions())
+                    ->searchable()
+                    ->required(),
+            ])
+            ->authorizeIndividualRecords('update')
+            ->action(fn (Collection $records, array $data) => $records->each->update(['room_id' => $data['room_id']]))
+            ->deselectRecordsAfterCompletion();
+    }
+
+    private static function changeCategoryBulkAction(): BulkAction
+    {
+        return BulkAction::make('changeCategory')
+            ->label(__('Ubah kategori'))
+            ->icon(Heroicon::OutlinedTag)
+            ->modalDescription(__('Kode aset tidak berubah walaupun kategorinya diganti.'))
+            ->schema([
+                Select::make('category_id')
+                    ->label(__('Kategori baru'))
+                    ->relationship('category', 'nama', modifyQueryUsing: fn (Builder $query): Builder => $query->managedByCurrentUser())
+                    ->required(),
+            ])
+            ->authorizeIndividualRecords('update')
+            ->action(fn (Collection $records, array $data) => $records->each->update(['category_id' => $data['category_id']]))
+            ->deselectRecordsAfterCompletion();
     }
 }

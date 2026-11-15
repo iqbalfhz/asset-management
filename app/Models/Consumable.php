@@ -61,9 +61,7 @@ class Consumable extends Model
      */
     public function issue(int $jumlah, Employee $penerima, array $data = []): ConsumableTransaction
     {
-        if (! $penerima->is_active) {
-            throw new LogicException(__('Karyawan :nama sudah nonaktif.', ['nama' => $penerima->nama]));
-        }
+        $penerima->ensureActive();
 
         if ((int) $penerima->company_id !== (int) $this->company_id) {
             throw new LogicException(__(':nama berada di perusahaan lain.', ['nama' => $penerima->nama]));

@@ -28,6 +28,14 @@ class Employee extends Model
         'is_active' => true,
     ];
 
+    // Karyawan nonaktif tidak menerima apa pun lagi: aset, barang habis pakai, atau seat lisensi.
+    public function ensureActive(): void
+    {
+        if (! $this->is_active) {
+            throw new LogicException(__('Karyawan :nama sudah nonaktif.', ['nama' => $this->nama]));
+        }
+    }
+
     /**
      * Nonaktifkan karyawan yang resign. Ditolak selama masih memegang aset, kecuali dipaksa dengan alasan.
      */
