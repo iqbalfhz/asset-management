@@ -3,6 +3,7 @@
 namespace App\Filament\Imports;
 
 use App\Filament\Imports\Concerns\CastsIndonesianFormats;
+use App\Filament\Imports\Concerns\DescribesImportResult;
 use App\Filament\Imports\Concerns\HasCompanyColumn;
 use App\Models\Asset;
 use App\Models\AssetModel;
@@ -14,11 +15,10 @@ use Filament\Actions\Imports\ImportColumn;
 use Filament\Actions\Imports\Importer;
 use Filament\Actions\Imports\Models\Import;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Number;
 
 class AssetImporter extends Importer
 {
-    use CastsIndonesianFormats, HasCompanyColumn;
+    use CastsIndonesianFormats, DescribesImportResult, HasCompanyColumn;
 
     protected static ?string $model = Asset::class;
 
@@ -169,13 +169,7 @@ class AssetImporter extends Importer
 
     public static function getCompletedNotificationBody(Import $import): string
     {
-        $body = __(':count aset berhasil diimport.', ['count' => Number::format($import->successful_rows, locale: 'id')]);
-
-        if ($failedRowsCount = $import->getFailedRowsCount()) {
-            $body .= ' '.__(':count baris gagal; unduh daftarnya untuk melihat alasannya.', ['count' => Number::format($failedRowsCount, locale: 'id')]);
-        }
-
-        return $body;
+        return static::importResult($import, __('aset'));
     }
 
     private function room(): ?Room

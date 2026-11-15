@@ -2,6 +2,7 @@
 
 namespace App\Filament\Imports;
 
+use App\Filament\Imports\Concerns\DescribesImportResult;
 use App\Filament\Imports\Concerns\HasCompanyColumn;
 use App\Filament\Imports\Concerns\HasManagingRoleColumn;
 use App\Models\Consumable;
@@ -9,11 +10,10 @@ use Filament\Actions\Imports\Exceptions\RowImportFailedException;
 use Filament\Actions\Imports\ImportColumn;
 use Filament\Actions\Imports\Importer;
 use Filament\Actions\Imports\Models\Import;
-use Illuminate\Support\Number;
 
 class ConsumableImporter extends Importer
 {
-    use HasCompanyColumn, HasManagingRoleColumn;
+    use DescribesImportResult, HasCompanyColumn, HasManagingRoleColumn;
 
     protected static ?string $model = Consumable::class;
 
@@ -90,12 +90,6 @@ class ConsumableImporter extends Importer
 
     public static function getCompletedNotificationBody(Import $import): string
     {
-        $body = __(':count barang berhasil diimport.', ['count' => Number::format($import->successful_rows, locale: 'id')]);
-
-        if ($failedRowsCount = $import->getFailedRowsCount()) {
-            $body .= ' '.__(':count baris gagal; unduh daftarnya untuk melihat alasannya.', ['count' => Number::format($failedRowsCount, locale: 'id')]);
-        }
-
-        return $body;
+        return static::importResult($import, __('barang'));
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Filament\Imports;
 
 use App\Filament\Imports\Concerns\CastsIndonesianFormats;
+use App\Filament\Imports\Concerns\DescribesImportResult;
 use App\Filament\Imports\Concerns\HasCompanyColumn;
 use App\Filament\Imports\Concerns\HasManagingRoleColumn;
 use App\Models\License;
@@ -10,12 +11,11 @@ use Filament\Actions\Imports\Exceptions\RowImportFailedException;
 use Filament\Actions\Imports\ImportColumn;
 use Filament\Actions\Imports\Importer;
 use Filament\Actions\Imports\Models\Import;
-use Illuminate\Support\Number;
 
 // Product key sengaja tidak ada: baris gagal disimpan Filament sebagai teks biasa, padahal product key wajib terenkripsi.
 class LicenseImporter extends Importer
 {
-    use CastsIndonesianFormats, HasCompanyColumn, HasManagingRoleColumn;
+    use CastsIndonesianFormats, DescribesImportResult, HasCompanyColumn, HasManagingRoleColumn;
 
     protected static ?string $model = License::class;
 
@@ -85,12 +85,6 @@ class LicenseImporter extends Importer
 
     public static function getCompletedNotificationBody(Import $import): string
     {
-        $body = __(':count lisensi berhasil diimport.', ['count' => Number::format($import->successful_rows, locale: 'id')]);
-
-        if ($failedRowsCount = $import->getFailedRowsCount()) {
-            $body .= ' '.__(':count baris gagal; unduh daftarnya untuk melihat alasannya.', ['count' => Number::format($failedRowsCount, locale: 'id')]);
-        }
-
-        return $body;
+        return static::importResult($import, __('lisensi'));
     }
 }

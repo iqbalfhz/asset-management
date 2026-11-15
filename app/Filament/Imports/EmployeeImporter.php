@@ -2,6 +2,7 @@
 
 namespace App\Filament\Imports;
 
+use App\Filament\Imports\Concerns\DescribesImportResult;
 use App\Filament\Imports\Concerns\HasCompanyColumn;
 use App\Models\Department;
 use App\Models\Employee;
@@ -10,11 +11,10 @@ use Filament\Actions\Imports\ImportColumn;
 use Filament\Actions\Imports\Importer;
 use Filament\Actions\Imports\Models\Import;
 use Filament\Forms\Components\Checkbox;
-use Illuminate\Support\Number;
 
 class EmployeeImporter extends Importer
 {
-    use HasCompanyColumn;
+    use DescribesImportResult, HasCompanyColumn;
 
     protected static ?string $model = Employee::class;
 
@@ -91,12 +91,6 @@ class EmployeeImporter extends Importer
 
     public static function getCompletedNotificationBody(Import $import): string
     {
-        $body = __(':count karyawan berhasil diimport.', ['count' => Number::format($import->successful_rows, locale: 'id')]);
-
-        if ($failedRowsCount = $import->getFailedRowsCount()) {
-            $body .= ' '.__(':count baris gagal; unduh daftarnya untuk melihat alasannya.', ['count' => Number::format($failedRowsCount, locale: 'id')]);
-        }
-
-        return $body;
+        return static::importResult($import, __('karyawan'));
     }
 }

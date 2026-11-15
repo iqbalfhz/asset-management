@@ -1,6 +1,7 @@
 <?php
 
 use App\Filament\Imports\AssetImporter;
+use App\Filament\Imports\LocationImporter;
 use App\Filament\Resources\Assets\Pages\ListAssets;
 use App\Filament\Resources\Consumables\Pages\ListConsumables;
 use App\Filament\Resources\Employees\Pages\ManageEmployees;
@@ -84,4 +85,11 @@ test('the location import also needs permission to create buildings', function (
     $this->actingAs($auditor->refresh());
 
     livewire(ManageRooms::class)->assertActionVisible('import');
+});
+
+test('the import result tells how many rows were imported and how many failed', function () {
+    expect(AssetImporter::getCompletedNotificationBody(new Import(['total_rows' => 1203, 'successful_rows' => 1200])))
+        ->toBe('1.200 aset berhasil diimport. 3 baris gagal; unduh daftarnya untuk melihat alasannya.')
+        ->and(LocationImporter::getCompletedNotificationBody(new Import(['total_rows' => 4, 'successful_rows' => 4])))
+        ->toBe('4 ruang berhasil diimport.');
 });

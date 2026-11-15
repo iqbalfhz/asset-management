@@ -2,17 +2,19 @@
 
 namespace App\Filament\Exports;
 
+use App\Filament\Exports\Concerns\DescribesExportResult;
 use App\Models\License;
 use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;
 use Filament\Actions\Exports\Models\Export;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Number;
 use Illuminate\Support\Str;
 
 // Product key sengaja tidak ikut diexport.
 class LicenseExporter extends Exporter
 {
+    use DescribesExportResult;
+
     protected static ?string $model = License::class;
 
     public static function getColumns(): array
@@ -54,12 +56,6 @@ class LicenseExporter extends Exporter
 
     public static function getCompletedNotificationBody(Export $export): string
     {
-        $body = __(':count lisensi berhasil diexport.', ['count' => Number::format($export->successful_rows, locale: 'id')]);
-
-        if ($failedRowsCount = $export->getFailedRowsCount()) {
-            $body .= ' '.__(':count baris gagal diexport.', ['count' => Number::format($failedRowsCount, locale: 'id')]);
-        }
-
-        return $body;
+        return static::exportResult($export, __('lisensi'));
     }
 }
