@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Statuses;
 
 use App\Enums\StatusType;
 use App\Filament\Resources\Statuses\Pages\ManageStatuses;
+use App\Filament\Support\BadgeColor;
 use App\Models\Status;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
@@ -15,7 +16,6 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Colors\Color;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -69,7 +69,7 @@ class StatusResource extends Resource
             ->columns([
                 TextColumn::make('nama')
                     ->badge()
-                    ->color(fn (Status $record): ?array => $record->warna ? Color::hex($record->warna) : null)
+                    ->color(fn (Status $record): ?array => BadgeColor::fromHex($record->warna))
                     ->searchable(),
                 TextColumn::make('tipe')
                     ->badge()

@@ -3,9 +3,9 @@
 namespace App\Filament\Resources\Employees\RelationManagers;
 
 use App\Filament\Resources\Assets\AssetResource;
+use App\Filament\Support\BadgeColor;
 use App\Models\Asset;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Support\Colors\Color;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -42,7 +42,7 @@ class AssetsRelationManager extends RelationManager
                 TextColumn::make('status.nama')
                     ->label(__('Status'))
                     ->badge()
-                    ->color(fn (Asset $record): ?array => $record->status->warna ? Color::hex($record->status->warna) : null),
+                    ->color(fn (Asset $record): ?array => BadgeColor::fromHex($record->status->warna)),
             ]);
     }
 }

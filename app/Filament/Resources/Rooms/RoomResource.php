@@ -51,7 +51,7 @@ class RoomResource extends Resource
                 Select::make('floor_id')
                     ->label(__('Lantai'))
                     ->relationship('floor', 'nama', modifyQueryUsing: fn (Builder $query): Builder => $query->with('building'))
-                    ->getOptionLabelFromRecordUsing(fn (Floor $record): string => "{$record->building->nama} — {$record->nama}")
+                    ->getOptionLabelFromRecordUsing(fn (Floor $record): string => $record->path())
                     ->preload()
                     ->required()
                     ->live(),

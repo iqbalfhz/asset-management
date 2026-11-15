@@ -30,7 +30,7 @@ class AssetExporter extends Exporter
             ExportColumn::make('lokasi')
                 ->label(__('Lokasi'))
                 ->state(fn (Asset $record): ?string => $record->room
-                    ? "{$record->room->floor->building->nama} — {$record->room->floor->nama} — {$record->room->nama}"
+                    ? $record->room->path()
                     : null),
             ExportColumn::make('pemegang')
                 ->label(__('Pemegang'))

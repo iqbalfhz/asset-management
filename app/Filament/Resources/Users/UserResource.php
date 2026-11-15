@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Users;
 
 use App\Filament\Resources\Users\Pages\ManageUsers;
 use App\Filament\Schemas\Components\CompanySelect;
+use App\Filament\Tables\Columns\CompanyColumn;
 use App\Models\Role;
 use App\Models\User;
 use BackedEnum;
@@ -108,9 +109,7 @@ class UserResource extends Resource
                     ->label(__('Role'))
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => Str::headline($state)),
-                TextColumn::make('company.kode')
-                    ->label(__('Perusahaan'))
-                    ->toggleable(isToggledHiddenByDefault: true),
+                CompanyColumn::make(),
                 IconColumn::make('is_active')
                     ->label(__('Aktif'))
                     ->boolean(),

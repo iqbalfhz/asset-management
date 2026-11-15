@@ -2,15 +2,14 @@
 
 namespace App\Filament\Resources\Assets\Schemas;
 
+use App\Filament\Support\BadgeColor;
 use App\Models\Asset;
 use App\Models\Assignment;
-use App\Models\Room;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\KeyValueEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
-use Filament\Support\Colors\Color;
 
 // Tampilan hanya-baca, juga tujuan scan QR dari HP.
 class AssetInfolist
@@ -29,14 +28,14 @@ class AssetInfolist
                         TextEntry::make('category.nama')
                             ->label(__('Kategori'))
                             ->badge()
-                            ->color(fn (Asset $record): ?array => $record->category->warna ? Color::hex($record->category->warna) : null),
+                            ->color(fn (Asset $record): ?array => BadgeColor::fromHex($record->category->warna)),
                         TextEntry::make('status.nama')
                             ->label(__('Status'))
                             ->badge()
-                            ->color(fn (Asset $record): ?array => $record->status->warna ? Color::hex($record->status->warna) : null),
+                            ->color(fn (Asset $record): ?array => BadgeColor::fromHex($record->status->warna)),
                         TextEntry::make('model')
                             ->label(__('Model'))
-                            ->state(fn (Asset $record): ?string => $record->assetModel ? "{$record->assetModel->manufacturer->nama} {$record->assetModel->nama}" : null)
+                            ->state(fn (Asset $record): ?string => $record->assetModel?->fullName())
                             ->placeholder('—'),
                         TextEntry::make('no_seri')
                             ->label(__('Nomor seri'))
@@ -56,11 +55,11 @@ class AssetInfolist
                             ->placeholder('—'),
                         TextEntry::make('lokasi')
                             ->label(__('Lokasi sekarang'))
-                            ->state(fn (Asset $record): ?string => static::roomLabel($record->room))
+                            ->state(fn (Asset $record): ?string => $record->room?->path())
                             ->placeholder('—'),
                         TextEntry::make('lokasi_default')
                             ->label(__('Lokasi default'))
-                            ->state(fn (Asset $record): ?string => static::roomLabel($record->defaultRoom))
+                            ->state(fn (Asset $record): ?string => $record->defaultRoom?->path())
                             ->placeholder('—'),
                         TextEntry::make('next_audit_date')
                             ->label(__('Audit berikutnya'))
@@ -117,10 +116,5 @@ class AssetInfolist
                             ->placeholder('—'),
                     ]),
             ]);
-    }
-
-    private static function roomLabel(?Room $room): ?string
-    {
-        return $room ? "{$room->floor->building->nama} — {$room->floor->nama} — {$room->nama}" : null;
     }
 }

@@ -17,7 +17,7 @@ class AuditForm
                     ->label(__('Ruang'))
                     ->helperText(__('Aset yang tercatat di ruang ini dan Anda kelola menjadi daftar yang diharapkan.'))
                     ->options(fn (): array => Room::query()->with('floor.building')->get()
-                        ->mapWithKeys(fn (Room $room): array => [$room->id => "{$room->floor->building->nama} — {$room->floor->nama} — {$room->nama}"])
+                        ->mapWithKeys(fn (Room $room): array => [$room->id => $room->path()])
                         ->all())
                     ->searchable()
                     ->required(),

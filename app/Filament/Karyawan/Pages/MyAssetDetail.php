@@ -3,6 +3,7 @@
 namespace App\Filament\Karyawan\Pages;
 
 use App\Filament\Karyawan\Actions\ReportDamageAction;
+use App\Filament\Support\BadgeColor;
 use App\Models\Asset;
 use App\Models\Employee;
 use App\Models\Scopes\ManagedCategoryScope;
@@ -12,7 +13,6 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
-use Filament\Support\Colors\Color;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -64,10 +64,10 @@ class MyAssetDetail extends Page
                         TextEntry::make('status.nama')
                             ->label(__('Status'))
                             ->badge()
-                            ->color(fn (Asset $record): ?array => $record->status->warna ? Color::hex($record->status->warna) : null),
+                            ->color(fn (Asset $record): ?array => BadgeColor::fromHex($record->status->warna)),
                         TextEntry::make('model')
                             ->label(__('Model'))
-                            ->state(fn (Asset $record): ?string => $record->assetModel ? "{$record->assetModel->manufacturer->nama} {$record->assetModel->nama}" : null)
+                            ->state(fn (Asset $record): ?string => $record->assetModel?->fullName())
                             ->placeholder('—'),
                         TextEntry::make('no_seri')
                             ->label(__('Nomor seri'))

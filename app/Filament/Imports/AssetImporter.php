@@ -210,7 +210,7 @@ class AssetImporter extends Importer
             ->where('category_id', $categoryId)
             ->get()
             ->filter(fn (AssetModel $model): bool => strcasecmp($model->nama, $name) === 0
-                || strcasecmp("{$model->manufacturer->nama} {$model->nama}", $name) === 0);
+                || strcasecmp($model->fullName(), $name) === 0);
 
         // Nama model yang sama dari dua produsen harus ditulis lengkap dengan produsennya.
         return $matches->count() === 1 ? $matches->first() : null;

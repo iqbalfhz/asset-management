@@ -6,6 +6,7 @@ use App\Filament\Exports\AssetExporter;
 use App\Filament\Resources\Assets\Actions\AssetTransactionActions;
 use App\Filament\Resources\Assets\Actions\PrintLabelActions;
 use App\Filament\Resources\Assets\AssetResource;
+use App\Filament\Support\BadgeColor;
 use App\Models\Asset;
 use App\Models\Assignment;
 use App\Models\Employee;
@@ -18,7 +19,6 @@ use Filament\Actions\ExportBulkAction;
 use Filament\Actions\ReplicateAction;
 use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
-use Filament\Support\Colors\Color;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -46,21 +46,21 @@ class AssetsTable
                 TextColumn::make('category.nama')
                     ->label(__('Kategori'))
                     ->badge()
-                    ->color(fn (Asset $record): ?array => $record->category->warna ? Color::hex($record->category->warna) : null),
+                    ->color(fn (Asset $record): ?array => BadgeColor::fromHex($record->category->warna)),
                 TextColumn::make('status.nama')
                     ->label(__('Status'))
                     ->badge()
-                    ->color(fn (Asset $record): ?array => $record->status->warna ? Color::hex($record->status->warna) : null),
+                    ->color(fn (Asset $record): ?array => BadgeColor::fromHex($record->status->warna)),
                 TextColumn::make('pemegang')
                     ->label(__('Pemegang'))
                     ->state(fn (Asset $record): ?string => $record->assigned ? Assignment::labelFor($record->assigned) : null)
                     ->placeholder('—'),
                 TextColumn::make('room.nama')
                     ->label(__('Lokasi'))
-                    ->description(fn (Asset $record): ?string => $record->room ? "{$record->room->floor->building->nama} — {$record->room->floor->nama}" : null),
+                    ->description(fn (Asset $record): ?string => $record->room?->floor->path()),
                 TextColumn::make('assetModel.nama')
                     ->label(__('Model'))
-                    ->formatStateUsing(fn (Asset $record): string => "{$record->assetModel->manufacturer->nama} {$record->assetModel->nama}")
+                    ->formatStateUsing(fn (Asset $record): string => $record->assetModel->fullName())
                     ->toggleable(),
                 TextColumn::make('no_seri')
                     ->label(__('Nomor seri'))
@@ -174,7 +174,7 @@ class AssetsTable
                             Select::make('room_id')
                                 ->label(__('Lokasi baru'))
                                 ->options(fn (): array => Room::query()->with('floor.building')->get()
-                                    ->mapWithKeys(fn (Room $room): array => [$room->id => "{$room->floor->building->nama} — {$room->floor->nama} — {$room->nama}"])
+                                    ->mapWithKeys(fn (Room $room): array => [$room->id => $room->path()])
                                     ->all())
                                 ->searchable()
                                 ->required(),

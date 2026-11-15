@@ -6,6 +6,7 @@ use App\Enums\AssignmentStatus;
 use App\Enums\AssignmentType;
 use App\Filament\Karyawan\Actions\ReportDamageAction;
 use App\Filament\Karyawan\EmployeeTablePage;
+use App\Filament\Support\BadgeColor;
 use App\Models\Asset;
 use App\Models\Assignment;
 use App\Models\Employee;
@@ -17,7 +18,6 @@ use Filament\Forms\Components\Checkbox;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Text;
-use Filament\Support\Colors\Color;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -70,7 +70,7 @@ class MyAssets extends EmployeeTablePage
             ->columns([
                 TextColumn::make('kode'),
                 TextColumn::make('nama')
-                    ->description(fn (Asset $record): ?string => $record->assetModel ? "{$record->assetModel->manufacturer->nama} {$record->assetModel->nama}" : null),
+                    ->description(fn (Asset $record): ?string => $record->assetModel?->fullName()),
                 TextColumn::make('category.nama')
                     ->label(__('Kategori')),
                 TextColumn::make('no_seri')
@@ -79,7 +79,7 @@ class MyAssets extends EmployeeTablePage
                 TextColumn::make('status.nama')
                     ->label(__('Status'))
                     ->badge()
-                    ->color(fn (Asset $record): ?array => $record->status->warna ? Color::hex($record->status->warna) : null),
+                    ->color(fn (Asset $record): ?array => BadgeColor::fromHex($record->status->warna)),
                 TextColumn::make('penerimaan')
                     ->label(__('Penerimaan'))
                     ->badge()

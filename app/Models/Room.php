@@ -28,6 +28,12 @@ class Room extends Model
         });
     }
 
+    // Lokasi lengkap untuk tampilan: "Gedung — Lantai — Ruang".
+    public function path(): string
+    {
+        return $this->floor->path().' — '.$this->nama;
+    }
+
     /**
      * @return BelongsTo<Floor, $this>
      */

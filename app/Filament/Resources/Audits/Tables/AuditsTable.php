@@ -34,7 +34,7 @@ class AuditsTable
                     ->sortable(),
                 TextColumn::make('room.nama')
                     ->label(__('Ruang'))
-                    ->description(fn (Audit $record): string => "{$record->room->floor->building->nama} — {$record->room->floor->nama}")
+                    ->description(fn (Audit $record): string => $record->room->floor->path())
                     ->searchable(),
                 TextColumn::make('status')
                     ->badge(),

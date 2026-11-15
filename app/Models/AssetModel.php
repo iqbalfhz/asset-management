@@ -15,6 +15,12 @@ class AssetModel extends Model
     /** @use HasFactory<AssetModelFactory> */
     use HasFactory, LogsChanges;
 
+    // Nama lengkap untuk tampilan dan pencocokan import: "Produsen Model".
+    public function fullName(): string
+    {
+        return "{$this->manufacturer->nama} {$this->nama}";
+    }
+
     /**
      * @return BelongsTo<Manufacturer, $this>
      */

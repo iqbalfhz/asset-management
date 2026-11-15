@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Buildings\Tables;
 
+use App\Filament\Tables\Columns\CompanyColumn;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -21,9 +22,7 @@ class BuildingsTable
                     ->counts('floors'),
                 TextColumn::make('manager.nama')
                     ->label(__('Penanggung jawab')),
-                TextColumn::make('company.kode')
-                    ->label(__('Perusahaan'))
-                    ->toggleable(isToggledHiddenByDefault: true),
+                CompanyColumn::make(),
             ])
             ->recordActions([
                 EditAction::make(),

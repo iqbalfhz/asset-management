@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Departments;
 
 use App\Filament\Resources\Departments\Pages\ManageDepartments;
 use App\Filament\Schemas\Components\CompanySelect;
+use App\Filament\Tables\Columns\CompanyColumn;
 use App\Models\Department;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
@@ -70,9 +71,7 @@ class DepartmentResource extends Resource
                     ->searchable(),
                 TextColumn::make('manager.nama')
                     ->label(__('Manajer')),
-                TextColumn::make('company.kode')
-                    ->label(__('Perusahaan'))
-                    ->toggleable(isToggledHiddenByDefault: true),
+                CompanyColumn::make(),
             ])
             ->recordActions([
                 EditAction::make(),

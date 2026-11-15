@@ -260,7 +260,7 @@ class Assignment extends Model
     {
         return match (true) {
             $target instanceof Employee => "{$target->nama} ({$target->nik})",
-            $target instanceof Room => $target->loadMissing('floor.building')->floor->building->nama.' — '.$target->floor->nama.' — '.$target->nama,
+            $target instanceof Room => $target->loadMissing('floor.building')->path(),
             $target instanceof Asset => "{$target->kode} — {$target->nama}",
             $target instanceof Department => $target->nama,
             default => '—',

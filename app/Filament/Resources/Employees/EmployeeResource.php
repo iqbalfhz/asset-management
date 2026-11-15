@@ -9,6 +9,7 @@ use App\Filament\Resources\Employees\RelationManagers\AssetsRelationManager;
 use App\Filament\Resources\Employees\RelationManagers\ConsumableTransactionsRelationManager;
 use App\Filament\Resources\Employees\RelationManagers\LicenseSeatsRelationManager;
 use App\Filament\Schemas\Components\CompanySelect;
+use App\Filament\Tables\Columns\CompanyColumn;
 use App\Models\Asset;
 use App\Models\Employee;
 use App\Models\LicenseSeat;
@@ -134,9 +135,7 @@ class EmployeeResource extends Resource
                     ->label(__('Departemen')),
                 TextColumn::make('user.username')
                     ->label(__('Akun login')),
-                TextColumn::make('company.kode')
-                    ->label(__('Perusahaan'))
-                    ->toggleable(isToggledHiddenByDefault: true),
+                CompanyColumn::make(),
                 IconColumn::make('is_active')
                     ->label(__('Aktif'))
                     ->boolean(),

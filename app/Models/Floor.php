@@ -28,6 +28,12 @@ class Floor extends Model
         });
     }
 
+    // Untuk tampilan: "Gedung — Lantai".
+    public function path(): string
+    {
+        return $this->building->nama.' — '.$this->nama;
+    }
+
     /**
      * @return BelongsTo<Building, $this>
      */

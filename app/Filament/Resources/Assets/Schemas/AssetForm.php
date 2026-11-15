@@ -49,7 +49,7 @@ class AssetForm
                             ->label(__('Model aset'))
                             ->helperText(__('Boleh kosong untuk barang tanpa model, misalnya meja.'))
                             ->relationship('assetModel', 'nama', modifyQueryUsing: fn (Builder $query, Get $get): Builder => $query->with('manufacturer')->where('category_id', $get('category_id')))
-                            ->getOptionLabelFromRecordUsing(fn (AssetModel $record): string => "{$record->manufacturer->nama} {$record->nama}")
+                            ->getOptionLabelFromRecordUsing(fn (AssetModel $record): string => $record->fullName())
                             ->searchable()
                             ->preload()
                             ->live(),
@@ -171,7 +171,7 @@ class AssetForm
         return Select::make($name)
             ->label($label)
             ->relationship($relationship, 'nama', modifyQueryUsing: fn (Builder $query): Builder => $query->with('floor.building'))
-            ->getOptionLabelFromRecordUsing(fn (Room $record): string => "{$record->floor->building->nama} — {$record->floor->nama} — {$record->nama}")
+            ->getOptionLabelFromRecordUsing(fn (Room $record): string => $record->path())
             ->searchable()
             ->preload();
     }

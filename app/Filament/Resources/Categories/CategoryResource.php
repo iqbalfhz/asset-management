@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Categories;
 
 use App\Filament\Resources\Categories\Pages\ManageCategories;
+use App\Filament\Support\BadgeColor;
 use App\Models\Category;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
@@ -16,7 +17,6 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Colors\Color;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -90,7 +90,7 @@ class CategoryResource extends Resource
             ->columns([
                 TextColumn::make('nama')
                     ->badge()
-                    ->color(fn (Category $record): ?array => $record->warna ? Color::hex($record->warna) : null)
+                    ->color(fn (Category $record): ?array => BadgeColor::fromHex($record->warna))
                     ->searchable(),
                 TextColumn::make('kode')
                     ->searchable(),

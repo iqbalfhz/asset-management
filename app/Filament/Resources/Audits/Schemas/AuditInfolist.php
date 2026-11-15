@@ -19,7 +19,7 @@ class AuditInfolist
                     ->schema([
                         TextEntry::make('room.nama')
                             ->label(__('Ruang'))
-                            ->formatStateUsing(fn (Audit $record): string => "{$record->room->floor->building->nama} — {$record->room->floor->nama} — {$record->room->nama}"),
+                            ->formatStateUsing(fn (Audit $record): string => $record->room->path()),
                         TextEntry::make('status')
                             ->badge(),
                         TextEntry::make('creator.name')
