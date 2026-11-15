@@ -116,7 +116,7 @@ test('an admin starts a repair directly for an available asset', function () {
     $repair = Maintenance::query()->where('asset_id', $printer->id)->sole();
 
     expect($repair->status)->toBe(MaintenanceStatus::Diproses)
-        ->and($repair->previousStatus->nama)->toBe(Status::TERSEDIA)
+        ->and($repair->status_sebelum_id)->toBe(Status::named(Status::TERSEDIA)->id)
         ->and($printer->refresh()->status->nama)->toBe(Status::DALAM_PERBAIKAN);
 });
 

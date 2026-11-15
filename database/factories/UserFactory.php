@@ -39,16 +39,6 @@ class UserFactory extends Factory
     }
 
     /**
-     * Indicate that the model's email address should be unverified.
-     */
-    public function unverified(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'email_verified_at' => null,
-        ]);
-    }
-
-    /**
      * Indicate that the user has set up and confirmed an authenticator app (Breezy 2FA).
      */
     public function withTwoFactor(): static
@@ -60,15 +50,5 @@ class UserFactory extends Factory
                 'two_factor_confirmed_at' => now(),
             ]);
         });
-    }
-
-    /**
-     * Indicate that the user account is deactivated.
-     */
-    public function inactive(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'is_active' => false,
-        ]);
     }
 }

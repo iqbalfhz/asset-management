@@ -308,16 +308,6 @@ class Asset extends Model
     }
 
     /**
-     * Aset lain yang menempel pada aset ini (contoh: monitor pada PC).
-     *
-     * @return MorphMany<Asset, $this>
-     */
-    public function attachedAssets(): MorphMany
-    {
-        return $this->morphMany(Asset::class, 'assigned');
-    }
-
-    /**
      * @return HasMany<Assignment, $this>
      */
     public function assignments(): HasMany

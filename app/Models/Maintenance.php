@@ -226,16 +226,6 @@ class Maintenance extends Model
     }
 
     /**
-     * Status aset sebelum diperbaiki, untuk dipulihkan saat selesai.
-     *
-     * @return BelongsTo<Status, $this>
-     */
-    public function previousStatus(): BelongsTo
-    {
-        return $this->belongsTo(Status::class, 'status_sebelum_id');
-    }
-
-    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>

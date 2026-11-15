@@ -30,7 +30,8 @@ class AuthPanelProvider extends PanelProvider
             ->path('')
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->login(Login::class)
-            ->passwordReset(RequestPasswordReset::class)
+            // Reset memakai kode OTP di halaman permintaan; halaman reset lewat tautan bawaan Filament tidak dipakai.
+            ->passwordReset(RequestPasswordReset::class, resetAction: null)
             ->renderHook(PanelsRenderHook::AUTH_LOGIN_FORM_AFTER, fn (): View => view('filament.karyawan.login-guide-link'))
             ->colors([
                 // Abu-abu hangat (sedikit hijau zaitun), dipakai untuk latar, teks, garis.
