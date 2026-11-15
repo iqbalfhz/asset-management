@@ -3,23 +3,17 @@
 namespace App\Filament\Karyawan\Pages;
 
 use App\Filament\Karyawan\Actions\ReportDamageAction;
+use App\Filament\Karyawan\EmployeeTablePage;
 use App\Models\Maintenance;
 use BackedEnum;
-use Filament\Pages\Page;
-use Filament\Schemas\Components\EmbeddedTable;
-use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Concerns\InteractsWithTable;
-use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class MyDamageReports extends Page implements HasTable
+class MyDamageReports extends EmployeeTablePage
 {
-    use InteractsWithTable;
-
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedWrenchScrewdriver;
 
     protected static ?int $navigationSort = 5;
@@ -43,21 +37,15 @@ class MyDamageReports extends Page implements HasTable
         ];
     }
 
-    public function content(Schema $schema): Schema
-    {
-        return $schema->components([EmbeddedTable::make()]);
-    }
-
     public function table(Table $table): Table
     {
         $employee = auth()->user()->employee;
 
-        return $table
+        return $this->emptyState($table, __('Belum ada laporan kerusakan'))
             ->query(fn (): Builder => Maintenance::withoutGlobalScopes()
                 ->with(['asset' => fn (BelongsTo $query) => $query->withoutGlobalScopes()])
                 ->where('dilapor_oleh', $employee?->getKey() ?? 0))
             ->defaultSort('id', 'desc')
-            ->emptyStateHeading(__('Belum ada laporan kerusakan'))
             ->columns([
                 TextColumn::make('created_at')
                     ->label(__('Dilaporkan'))

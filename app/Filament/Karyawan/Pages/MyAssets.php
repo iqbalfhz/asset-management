@@ -5,6 +5,7 @@ namespace App\Filament\Karyawan\Pages;
 use App\Enums\AssignmentStatus;
 use App\Enums\AssignmentType;
 use App\Filament\Karyawan\Actions\ReportDamageAction;
+use App\Filament\Karyawan\EmployeeTablePage;
 use App\Models\Asset;
 use App\Models\Assignment;
 use App\Models\Employee;
@@ -14,26 +15,19 @@ use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Checkbox;
 use Filament\Notifications\Notification;
-use Filament\Pages\Page;
-use Filament\Schemas\Components\EmbeddedTable;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Text;
-use Filament\Schemas\Schema;
 use Filament\Support\Colors\Color;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Concerns\InteractsWithTable;
-use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\HtmlString;
 
-class MyAssets extends Page implements HasTable
+class MyAssets extends EmployeeTablePage
 {
-    use InteractsWithTable;
-
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedComputerDesktop;
 
     protected static ?int $navigationSort = 1;
@@ -41,11 +35,6 @@ class MyAssets extends Page implements HasTable
     protected static ?string $slug = 'aset-saya';
 
     public static function getNavigationLabel(): string
-    {
-        return __('Aset saya');
-    }
-
-    public function getTitle(): string
     {
         return __('Aset saya');
     }
@@ -67,24 +56,17 @@ class MyAssets extends Page implements HasTable
         return __('Serah-terima yang menunggu Anda terima');
     }
 
-    public function content(Schema $schema): Schema
-    {
-        return $schema->components([EmbeddedTable::make()]);
-    }
-
     public function table(Table $table): Table
     {
         $employee = auth()->user()->employee;
 
-        return $table
+        return $this->emptyState($table, __('Belum ada aset yang Anda pegang'))
             ->query(fn (): Builder => Asset::query()
                 ->withoutGlobalScope(ManagedCategoryScope::class)
                 ->with(['category', 'status', 'assetModel.manufacturer'])
                 ->where('assigned_type', (new Employee)->getMorphClass())
                 ->where('assigned_id', $employee?->getKey() ?? 0)
                 ->whereHas('status', fn (Builder $query) => $query->whereIn('nama', [Status::DIPAKAI, Status::DALAM_PERBAIKAN])))
-            ->emptyStateHeading(__('Belum ada aset yang Anda pegang'))
-            ->emptyStateDescription($employee === null ? __('Akun Anda belum terhubung ke data karyawan. Hubungi admin.') : null)
             ->columns([
                 TextColumn::make('kode'),
                 TextColumn::make('nama')

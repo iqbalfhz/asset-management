@@ -215,3 +215,9 @@ test('an employee sees only the consumables issued to them', function () {
         ->assertCanNotSeeTableRecords([$forBudi, $received])
         ->assertSee('2 rim');
 });
+
+test('an account not linked to an employee record is told why every employee page is empty', function (string $path) {
+    $this->actingAs(userWithRole('karyawan', 'karyawan', ['company_id' => $this->tcm->id]));
+
+    $this->get("/karyawan/{$path}")->assertOk()->assertSee('Akun Anda belum terhubung ke data karyawan');
+})->with(['aset-saya', 'lisensi-saya', 'barang-diterima', 'riwayat', 'lapor-kerusakan']);

@@ -2,25 +2,19 @@
 
 namespace App\Filament\Karyawan\Pages;
 
+use App\Filament\Karyawan\EmployeeTablePage;
 use App\Models\Assignment;
 use App\Models\Employee;
 use BackedEnum;
 use Filament\Actions\Action;
-use Filament\Pages\Page;
-use Filament\Schemas\Components\EmbeddedTable;
-use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Concerns\InteractsWithTable;
-use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class MyHistory extends Page implements HasTable
+class MyHistory extends EmployeeTablePage
 {
-    use InteractsWithTable;
-
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClock;
 
     protected static ?int $navigationSort = 4;
@@ -37,22 +31,16 @@ class MyHistory extends Page implements HasTable
         return __('Riwayat serah-terima');
     }
 
-    public function content(Schema $schema): Schema
-    {
-        return $schema->components([EmbeddedTable::make()]);
-    }
-
     public function table(Table $table): Table
     {
         $employee = auth()->user()->employee;
 
-        return $table
+        return $this->emptyState($table, __('Belum ada riwayat serah-terima'))
             ->query(fn (): Builder => Assignment::withoutGlobalScope('asset')
                 ->with(['asset' => fn (BelongsTo $query) => $query->withoutGlobalScopes()])
                 ->where('target_type', (new Employee)->getMorphClass())
                 ->where('target_id', $employee?->getKey() ?? 0))
             ->defaultSort('id', 'desc')
-            ->emptyStateHeading(__('Belum ada riwayat serah-terima'))
             ->columns([
                 TextColumn::make('tanggal')
                     ->date('j M Y'),
