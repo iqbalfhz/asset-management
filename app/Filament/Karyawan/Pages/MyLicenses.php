@@ -2,13 +2,13 @@
 
 namespace App\Filament\Karyawan\Pages;
 
+use App\Filament\Tables\LicenseSeatTable;
 use App\Models\LicenseSeat;
 use BackedEnum;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\EmbeddedTable;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
@@ -54,16 +54,9 @@ class MyLicenses extends Page implements HasTable
             ->emptyStateHeading(__('Belum ada lisensi yang dipasang untuk Anda'))
             ->emptyStateDescription($employee === null ? __('Akun Anda belum terhubung ke data karyawan. Hubungi admin.') : null)
             ->columns([
-                TextColumn::make('license.nama_software')
-                    ->label(__('Software')),
-                TextColumn::make('dipasang_pada')
-                    ->label(__('Dipasang'))
-                    ->date('j M Y'),
-                TextColumn::make('license.tgl_habis')
-                    ->label(__('Berlaku sampai'))
-                    ->date('j M Y')
-                    ->placeholder(__('Tanpa batas'))
-                    ->color(fn (LicenseSeat $record): ?string => $record->license->isExpired() ? 'danger' : null),
+                LicenseSeatTable::software(),
+                LicenseSeatTable::installedAt(),
+                LicenseSeatTable::expiresAt(),
             ]);
     }
 }

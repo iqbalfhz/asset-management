@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Consumables\Actions;
 
 use App\Filament\Actions\DomainAction;
+use App\Filament\Schemas\Components\EmployeeSelect;
 use App\Models\Consumable;
 use App\Models\Employee;
 use App\Models\Supplier;
@@ -12,7 +13,6 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Support\Icons\Heroicon;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Arr;
 
 class StockActions
@@ -64,19 +64,7 @@ class StockActions
                     ->suffix(fn (Consumable $record): string => $record->satuan)
                     ->helperText(fn (Consumable $record): string => __('Stok sekarang :stok :satuan.', ['stok' => $record->stok, 'satuan' => $record->satuan]))
                     ->required(),
-                Select::make('employee_id')
-                    ->label(__('Penerima'))
-                    ->searchable()
-                    ->getSearchResultsUsing(fn (string $search, Consumable $record): array => Employee::query()
-                        ->where('company_id', $record->company_id)
-                        ->where('is_active', true)
-                        ->where(fn (Builder $query) => $query->where('nama', 'like', "%{$search}%")->orWhere('nik', 'like', "%{$search}%"))
-                        ->orderBy('nama')
-                        ->limit(50)
-                        ->pluck('nama', 'id')
-                        ->all())
-                    ->getOptionLabelUsing(fn (int|string $value): ?string => Employee::query()->whereKey($value)->value('nama'))
-                    ->required(),
+                EmployeeSelect::make(__('Penerima'), fn (Consumable $record): int => $record->company_id),
                 static::dateInput(),
                 Textarea::make('catatan')
                     ->maxLength(1000),

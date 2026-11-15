@@ -3,6 +3,8 @@
 namespace App\Filament\Resources\Licenses\RelationManagers;
 
 use App\Filament\Actions\DomainAction;
+use App\Filament\Schemas\Components\EmployeeSelect;
+use App\Filament\Tables\LicenseSeatTable;
 use App\Models\Asset;
 use App\Models\Employee;
 use App\Models\License;
@@ -15,7 +17,6 @@ use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -41,31 +42,22 @@ class SeatsRelationManager extends RelationManager
         $canUpdate = fn (): bool => auth()->user()?->can('update', $license) ?? false;
 
         return $table
-            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['employee', 'asset', 'installer']))
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['license', 'employee', 'asset', 'installer']))
             ->defaultSort('dipasang_pada', 'desc')
             ->columns([
                 TextColumn::make('pemegang')
                     ->label(__('Pemakai'))
                     ->state(fn (LicenseSeat $record): string => $record->holderLabel())
                     ->description(fn (LicenseSeat $record): string => $record->employee_id ? __('Karyawan') : __('Aset')),
-                TextColumn::make('dipasang_pada')
-                    ->label(__('Dipasang'))
-                    ->dateTime('j M Y, H:i'),
+                LicenseSeatTable::installedAt(),
                 TextColumn::make('installer.name')
                     ->label(__('Oleh'))
                     ->placeholder('—')
                     ->toggleable(),
-                TextColumn::make('dilepas_pada')
-                    ->label(__('Dilepas'))
-                    ->dateTime('j M Y, H:i')
-                    ->placeholder(__('Masih dipakai')),
+                LicenseSeatTable::releasedAt(),
             ])
             ->filters([
-                Filter::make('aktif')
-                    ->label(__('Hanya yang masih dipakai'))
-                    ->toggle()
-                    ->default()
-                    ->query(fn (Builder $query): Builder => $query->whereNull('dilepas_pada')),
+                LicenseSeatTable::activeOnlyFilter(),
             ])
             ->headerActions([
                 Action::make('assign')
@@ -80,20 +72,8 @@ class SeatsRelationManager extends RelationManager
                             ->inline()
                             ->required()
                             ->live(),
-                        Select::make('employee_id')
-                            ->label(__('Karyawan'))
-                            ->searchable()
-                            ->getSearchResultsUsing(fn (string $search): array => Employee::query()
-                                ->where('company_id', $license->company_id)
-                                ->where('is_active', true)
-                                ->where(fn (Builder $query) => $query->where('nama', 'like', "%{$search}%")->orWhere('nik', 'like', "%{$search}%"))
-                                ->orderBy('nama')
-                                ->limit(50)
-                                ->pluck('nama', 'id')
-                                ->all())
-                            ->getOptionLabelUsing(fn (int|string $value): ?string => Employee::query()->whereKey($value)->value('nama'))
-                            ->visible(fn (Get $get): bool => $get('jenis') === 'karyawan')
-                            ->required(),
+                        EmployeeSelect::make(__('Karyawan'), $license->company_id)
+                            ->visible(fn (Get $get): bool => $get('jenis') === 'karyawan'),
                         Select::make('asset_id')
                             ->label(__('Aset'))
                             ->searchable()
@@ -120,14 +100,7 @@ class SeatsRelationManager extends RelationManager
                     }),
             ])
             ->recordActions([
-                Action::make('release')
-                    ->label(__('Lepas'))
-                    ->icon(Heroicon::OutlinedArrowUturnLeft)
-                    ->color('gray')
-                    ->visible(fn (LicenseSeat $record): bool => $record->dilepas_pada === null && $canUpdate())
-                    ->requiresConfirmation()
-                    ->modalDescription(fn (LicenseSeat $record): string => __('Seat milik :pemakai dilepas dan bisa dipakai lagi. Hapus juga instalasi atau akunnya di sisi software.', ['pemakai' => $record->holderLabel()]))
-                    ->action(fn (LicenseSeat $record, Action $action) => DomainAction::run($action, fn () => $record->release(), __('Seat dilepas'))),
+                LicenseSeatTable::releaseAction(),
             ]);
     }
 }

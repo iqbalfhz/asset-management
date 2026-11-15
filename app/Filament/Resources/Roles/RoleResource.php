@@ -15,7 +15,6 @@ use BezhanSalleh\PluginEssentials\Concerns\Resource as Essentials;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Facades\Filament;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Panel;
@@ -27,7 +26,6 @@ use Filament\Support\Enums\FontWeight;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rules\Unique;
 use Override;
 
 class RoleResource extends Resource
@@ -58,10 +56,7 @@ class RoleResource extends Resource
                             ->schema([
                                 TextInput::make('name')
                                     ->label(__('filament-shield::filament-shield.field.name'))
-                                    ->unique(
-                                        ignoreRecord: true, /** @phpstan-ignore-next-line */
-                                        modifyRuleUsing: fn (Unique $rule): Unique => Utils::isTenancyEnabled() ? $rule->where(Utils::getTenantModelForeignKey(), Filament::getTenant()?->id) : $rule
-                                    )
+                                    ->unique(ignoreRecord: true)
                                     ->required()
                                     ->maxLength(255),
 
@@ -82,14 +77,6 @@ class RoleResource extends Resource
                                     ->selectablePlaceholder(false)
                                     ->required(),
 
-                                Select::make(config('permission.column_names.team_foreign_key'))
-                                    ->label(__('filament-shield::filament-shield.field.team'))
-                                    ->placeholder(__('filament-shield::filament-shield.field.team.placeholder'))
-                                    /** @phpstan-ignore-next-line */
-                                    ->default(Filament::getTenant()?->id)
-                                    ->options(fn (): array => in_array(Utils::getTenantModel(), [null, '', '0'], true) ? [] : Utils::getTenantModel()::pluck('name', 'id')->toArray())
-                                    ->visible(fn (): bool => static::shield()->isCentralApp() && Utils::isTenancyEnabled())
-                                    ->dehydrated(fn (): bool => static::shield()->isCentralApp() && Utils::isTenancyEnabled()),
                                 static::getSelectAllFormComponent(),
 
                             ])
@@ -121,13 +108,6 @@ class RoleResource extends Resource
                     ->badge()
                     ->color('warning')
                     ->label(__('filament-shield::filament-shield.column.guard_name')),
-                TextColumn::make('team.name')
-                    ->default('Global')
-                    ->badge()
-                    ->color(fn (mixed $state): string => str($state)->contains('Global') ? 'gray' : 'primary')
-                    ->label(__('filament-shield::filament-shield.column.team'))
-                    ->searchable()
-                    ->visible(fn (): bool => static::shield()->isCentralApp() && Utils::isTenancyEnabled()),
                 TextColumn::make('permissions_count')
                     ->badge()
                     ->label(__('filament-shield::filament-shield.column.permissions'))
