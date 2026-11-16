@@ -3,9 +3,9 @@
 namespace App\Filament\Resources\Departments;
 
 use App\Filament\Resources\Departments\Pages\ManageDepartments;
-use App\Filament\Schemas\Components\CompanySelect;
-use App\Filament\Tables\Columns\CompanyColumn;
+use App\Models\Assignment;
 use App\Models\Department;
+use App\Models\Employee;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -14,13 +14,10 @@ use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
-use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Validation\Rules\Unique;
 
 class DepartmentResource extends Resource
 {
@@ -49,15 +46,16 @@ class DepartmentResource extends Resource
     {
         return $schema
             ->components([
-                CompanySelect::make(),
                 TextInput::make('nama')
                     ->required()
                     ->maxLength(255)
-                    ->unique(ignoreRecord: true, modifyRuleUsing: fn (Unique $rule, Get $get): Unique => $rule->where('company_id', $get('company_id'))),
+                    ->unique(ignoreRecord: true),
+                // Karyawan dari perusahaan mana pun; NIK ikut tampil supaya nama yang sama bisa dibedakan.
                 Select::make('manager_id')
                     ->label(__('Manajer'))
-                    ->relationship('manager', 'nama', modifyQueryUsing: fn (Builder $query, Get $get): Builder => $query->where('company_id', $get('company_id')))
-                    ->searchable()
+                    ->relationship('manager', 'nama')
+                    ->getOptionLabelFromRecordUsing(fn (Employee $record): string => Assignment::labelFor($record))
+                    ->searchable(['nama', 'nik'])
                     ->preload(),
             ]);
     }
@@ -71,7 +69,6 @@ class DepartmentResource extends Resource
                     ->searchable(),
                 TextColumn::make('manager.nama')
                     ->label(__('Manajer')),
-                CompanyColumn::make(),
             ])
             ->recordActions([
                 EditAction::make(),

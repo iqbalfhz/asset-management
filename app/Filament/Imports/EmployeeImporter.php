@@ -4,7 +4,6 @@ namespace App\Filament\Imports;
 
 use App\Filament\Imports\Concerns\DescribesImportResult;
 use App\Filament\Imports\Concerns\HasCompanyColumn;
-use App\Models\Department;
 use App\Models\Employee;
 use Filament\Actions\Imports\Exceptions\RowImportFailedException;
 use Filament\Actions\Imports\ImportColumn;
@@ -45,10 +44,7 @@ class EmployeeImporter extends Importer
                 ->exampleHeader('departemen')
                 ->example('Keuangan')
                 ->guesses(['departemen'])
-                ->relationship(resolveUsing: fn (string $state, EmployeeImporter $importer): ?Department => Department::query()
-                    ->where('company_id', $importer->companyId())
-                    ->where('nama', $state)
-                    ->first())
+                ->relationship(resolveUsing: 'nama')
                 ->ignoreBlankState(),
         ];
     }

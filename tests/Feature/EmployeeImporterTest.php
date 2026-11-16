@@ -13,7 +13,7 @@ beforeEach(function () {
 });
 
 test('a new employee joins the company of the importing account with its department', function () {
-    $finance = Department::factory()->create(['company_id' => $this->tcm->id, 'nama' => 'Keuangan']);
+    $finance = Department::factory()->create(['nama' => 'Keuangan']);
 
     $employee = EmployeeImporter::test()->import(['nik' => '2026001', 'nama' => 'Rina Wulandari', 'jabatan' => 'Staf Keuangan', 'department' => 'Keuangan'])
         ->assertImported()
@@ -37,8 +37,8 @@ test('an existing NIK fails the row unless updating is chosen', function () {
         ->and(Employee::count())->toBe(1);
 });
 
-test('a department of another company is not used', function () {
-    Department::factory()->create(['company_id' => Company::factory()->create()->id, 'nama' => 'Gudang']);
+test('a department that does not exist fails the row', function () {
+    Department::factory()->create(['nama' => 'Keuangan']);
 
     EmployeeImporter::test()->import(['nik' => '2026002', 'nama' => 'Budi', 'department' => 'Gudang'])
         ->assertHasErrors(['department']);

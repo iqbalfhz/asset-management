@@ -48,7 +48,8 @@ class Assignment extends Model
                 }
             }
 
-            if (static::companyIdOf($target) !== $assets->first()->company_id) {
+            // Departemen dipakai bersama semua perusahaan, jadi boleh menerima aset perusahaan mana pun.
+            if (! $target instanceof Department && static::companyIdOf($target) !== $assets->first()->company_id) {
                 throw new LogicException(__('Tujuan serah-terima berada di perusahaan lain.'));
             }
 

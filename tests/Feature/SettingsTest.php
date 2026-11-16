@@ -2,7 +2,7 @@
 
 use App\Filament\Pages\Settings;
 use App\Models\Company;
-use App\Models\Department;
+use App\Models\Employee;
 use App\Models\Setting;
 use Database\Seeders\RoleSeeder;
 use Filament\Facades\Filament;
@@ -54,8 +54,8 @@ test('super admin saves global and per-company settings without mixing companies
 });
 
 test('turning separation on in the settings page separates the data', function () {
-    Department::factory()->create(['company_id' => $this->companyA->id]);
-    Department::factory()->create(['company_id' => $this->companyB->id]);
+    Employee::factory()->create(['company_id' => $this->companyA->id]);
+    Employee::factory()->create(['company_id' => $this->companyB->id]);
 
     $this->actingAs($this->superAdmin);
 
@@ -66,7 +66,7 @@ test('turning separation on in the settings page separates the data', function (
 
     $this->actingAs(userWithRole('admin_it', attributes: ['company_id' => $this->companyA->id]));
 
-    expect(Department::pluck('company_id')->all())->toBe([$this->companyA->id]);
+    expect(Employee::pluck('company_id')->all())->toBe([$this->companyA->id]);
 });
 
 test('a BAST number format without {NOMOR} is refused', function () {

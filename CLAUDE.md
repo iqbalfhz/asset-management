@@ -31,6 +31,7 @@ Kerjakan per fase. Ikuti sub-tab fase yang sedang aktif. Jangan mengerjakan fitu
 ## Aturan data
 
 - Multi-perusahaan: tabel `companies`, `company_id` di tabel utama, dipisah lewat global scope. Pemisahan bisa dinyalakan/dimatikan di pengaturan (awalnya mati, 1 PT)
+- Departemen dipakai bersama semua perusahaan (tanpa `company_id`; satu departemen bisa berisi karyawan beberapa PT). Karyawan dan aset tetap milik satu perusahaan
 - Kode aset: `PERUSAHAAN-KATEGORI-TAHUN-NOMOR`, contoh `TCM-LPT-2026-00001`. Dibuat di dalam transaksi dengan indeks unik. Tidak pernah berubah
 - Spesifikasi aset: JSON (`KeyValue`), kuncinya dari template kategori. Data yang perlu difilter atau diingatkan dijadikan kolom biasa
 - Pemegang aset polimorfik: karyawan, ruang, departemen, atau aset lain (`assigned_type` + `assigned_id`)

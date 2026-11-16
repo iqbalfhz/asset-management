@@ -6,6 +6,7 @@ use App\Models\Assignment;
 use App\Models\Building;
 use App\Models\Category;
 use App\Models\Company;
+use App\Models\Department;
 use App\Models\Employee;
 use App\Models\Floor;
 use App\Models\Role;
@@ -119,6 +120,15 @@ test('an inactive employee or one from another company cannot receive assets', f
     expect(fn () => Assignment::handOver(new Collection([$asset]), $resigned, $this->details))->toThrow(LogicException::class)
         ->and(fn () => Assignment::handOver(new Collection([$asset]), $otherCompany, $this->details))->toThrow(LogicException::class)
         ->and(Assignment::count())->toBe(0);
+});
+
+test('a department, shared by all companies, receives an asset of any company', function () {
+    $collection = Department::factory()->create();
+    $otherCompanyAsset = availableAsset(Company::factory()->create(), $this->laptop);
+
+    Assignment::handOver(new Collection([$otherCompanyAsset]), $collection, $this->details);
+
+    expect($otherCompanyAsset->refresh()->assigned->is($collection))->toBeTrue();
 });
 
 test('returning an asset frees it, sends it to its default room and records the return', function () {

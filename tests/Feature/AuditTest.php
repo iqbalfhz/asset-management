@@ -161,7 +161,7 @@ test('an asset with an employee or department, directly or through its parent, i
     $handOver = fn (Asset $asset, Model $target) => Assignment::handOver(new Collection([$asset]), $target, ['tanggal' => now()->toDateString(), 'kondisi' => 'Baik']);
     $handOver($this->laptop, Employee::factory()->create(['company_id' => $this->tcm->id]));
     $handOver($monitor, $this->laptop->refresh());
-    $handOver($scanner, Department::factory()->create(['company_id' => $this->tcm->id]));
+    $handOver($scanner, Department::factory()->create());
 
     $audit = Audit::start($this->lab);
 

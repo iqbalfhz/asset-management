@@ -34,7 +34,7 @@ test('admin IT can record a department, an employee, a building with its floor, 
     $this->actingAs(userWithRole('admin_it', attributes: ['company_id' => $this->company->id]));
 
     livewire(ManageDepartments::class)
-        ->callAction(CreateAction::class, data: ['company_id' => $this->company->id, 'nama' => 'Teknologi Informasi'])
+        ->callAction(CreateAction::class, data: ['nama' => 'Teknologi Informasi'])
         ->assertHasNoActionErrors();
     $department = Department::firstWhere('nama', 'Teknologi Informasi');
 
@@ -84,11 +84,30 @@ test('the same NIK is rejected within a company but allowed in another company',
         ->assertHasNoActionErrors();
 });
 
-test('with separation on, admin of company A only sees the organization and locations of company A', function () {
+test('one department holds employees of several companies and its name is used once', function () {
+    $this->actingAs(userWithRole('super_admin', attributes: ['company_id' => $this->company->id]));
     $otherCompany = Company::factory()->create();
+    $collection = Department::factory()->create(['nama' => 'Collection']);
 
     foreach ([$this->company, $otherCompany] as $company) {
-        Department::factory()->create(['company_id' => $company->id]);
+        livewire(ManageEmployees::class)
+            ->callAction(CreateAction::class, data: ['company_id' => $company->id, 'nik' => '3271001', 'nama' => 'Dwi', 'department_id' => $collection->id])
+            ->assertHasNoActionErrors();
+    }
+
+    livewire(ManageDepartments::class)
+        ->callAction(CreateAction::class, data: ['nama' => 'Collection'])
+        ->assertHasActionErrors(['nama' => 'unique']);
+
+    expect(Employee::query()->where('department_id', $collection->id)->pluck('company_id')->sort()->values()->all())
+        ->toBe([$this->company->id, $otherCompany->id]);
+});
+
+test('with separation on, admin of company A only sees the employees and locations of company A, while departments stay shared', function () {
+    $otherCompany = Company::factory()->create();
+    Department::factory()->count(2)->create();
+
+    foreach ([$this->company, $otherCompany] as $company) {
         Employee::factory()->create(['company_id' => $company->id]);
         Room::factory()->for(Floor::factory()->for(Building::factory()->for($company)))->create();
     }
@@ -96,7 +115,7 @@ test('with separation on, admin of company A only sees the organization and loca
     Setting::put('company_separation', true);
     $this->actingAs(userWithRole('admin_it', attributes: ['company_id' => $this->company->id]));
 
-    expect(Department::pluck('company_id')->all())->toBe([$this->company->id])
+    expect(Department::count())->toBe(2)
         ->and(Employee::pluck('company_id')->all())->toBe([$this->company->id])
         ->and(Building::pluck('company_id')->all())->toBe([$this->company->id])
         ->and(Floor::with('building')->get()->pluck('building.company_id')->all())->toBe([$this->company->id])
@@ -104,7 +123,7 @@ test('with separation on, admin of company A only sees the organization and loca
 
     $this->actingAs(userWithRole('super_admin', attributes: ['company_id' => $this->company->id]));
 
-    expect(Department::count())->toBe(2)
+    expect(Employee::count())->toBe(2)
         ->and(Building::count())->toBe(2)
         ->and(Room::count())->toBe(2);
 });

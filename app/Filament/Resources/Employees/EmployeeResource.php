@@ -78,7 +78,7 @@ class EmployeeResource extends Resource
                     ->maxLength(255),
                 Select::make('department_id')
                     ->label(__('Departemen'))
-                    ->relationship('department', 'nama', modifyQueryUsing: fn (Builder $query, Get $get): Builder => $query->where('company_id', $get('company_id')))
+                    ->relationship('department', 'nama')
                     ->searchable()
                     ->preload(),
                 Select::make('user_id')
