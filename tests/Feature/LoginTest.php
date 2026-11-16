@@ -88,6 +88,29 @@ test('a wrong password is rejected', function () {
     $this->assertGuest();
 });
 
+test('the fifth failed attempt locks the login button with a countdown until the minute passes', function () {
+    $this->freezeTime();
+    userWithRole('admin_it', attributes: ['username' => 'budi', 'password' => 'Kantor2026aman']);
+
+    $page = logInAs('budi', 'Salah2026sekali');
+
+    foreach (range(2, 4) as $attempt) {
+        $page->call('authenticate');
+    }
+
+    $page->assertSet('lockedSeconds', 0)
+        ->call('authenticate')
+        ->assertSet('lockedSeconds', 60)
+        ->assertSee('Coba lagi dalam 60 detik');
+
+    // Halaman yang dibuka ulang tetap terkunci sampai batasnya lewat.
+    livewire(Login::class)->assertSet('lockedSeconds', 60);
+
+    $this->travel(61)->seconds();
+
+    livewire(Login::class)->assertSet('lockedSeconds', 0);
+});
+
 test('after login, a user with 2FA must enter a valid code before opening the panel', function () {
     $user = userWithRole('admin_it', attributes: ['username' => 'budi', 'password' => 'Kantor2026aman']);
     $validCode = app(Google2FA::class)->getCurrentOtp($user->breezySession->two_factor_secret);
