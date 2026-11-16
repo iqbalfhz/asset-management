@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\DisposalMethod;
 use App\Enums\DisposalStatus;
+use App\Models\Concerns\LocksStatus;
 use App\Models\Concerns\LogsChanges;
 use Database\Factories\DisposalFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -21,7 +22,7 @@ use LogicException;
 class Disposal extends Model
 {
     /** @use HasFactory<DisposalFactory> */
-    use HasFactory, LogsChanges;
+    use HasFactory, LocksStatus, LogsChanges;
 
     protected static function booted(): void
     {
@@ -129,12 +130,7 @@ class Disposal extends Model
             throw new LogicException(__('Hanya Super Admin yang bisa menyetujui atau menolak penghapusan.'));
         }
 
-        /** @var DisposalStatus $current */
-        $current = static::withoutGlobalScopes()->whereKey($this->getKey())->lockForUpdate()->value('status');
-
-        if ($current !== DisposalStatus::Diajukan) {
-            throw new LogicException(__('Ajuan ini sudah :status.', ['status' => strtolower($current->getLabel())]));
-        }
+        $this->ensureStatus(DisposalStatus::Diajukan);
     }
 
     /**

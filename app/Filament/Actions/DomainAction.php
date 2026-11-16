@@ -2,12 +2,15 @@
 
 namespace App\Filament\Actions;
 
+use BackedEnum;
 use Closure;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
+use Filament\Support\Icons\Heroicon;
+use Illuminate\Database\Eloquent\Model;
 use LogicException;
 
-// Aturan bisnis di model menolak lewat LogicException; di layar pesannya tampil sebagai notifikasi dan aksinya dihentikan.
+// Tombol aksi untuk aturan bisnis di model: penolakan lewat LogicException tampil sebagai notifikasi dan aksinya dihentikan.
 class DomainAction
 {
     /**
@@ -29,6 +32,19 @@ class DomainAction
             // $halt selalu melempar Halt; return ini hanya memenuhi tipe kembalian.
             return null;
         }
+    }
+
+    /**
+     * Tombol yang memindahkan data dari satu status: hanya tampil di status itu dan butuh izin ubah.
+     */
+    public static function transition(string $name, string $label, Heroicon $icon, BackedEnum $from): Action
+    {
+        return Action::make($name)
+            ->label($label)
+            ->icon($icon)
+            ->visible(fn (Model $record): bool => $record->getAttribute('status') === $from)
+            ->authorize('update')
+            ->modalSubmitActionLabel($label);
     }
 
     /**

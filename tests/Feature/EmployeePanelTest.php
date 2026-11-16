@@ -220,4 +220,4 @@ test('an account not linked to an employee record is told why every employee pag
     $this->actingAs(userWithRole('karyawan', 'karyawan', ['company_id' => $this->tcm->id]));
 
     $this->get("/karyawan/{$path}")->assertOk()->assertSee('Akun Anda belum terhubung ke data karyawan');
-})->with(['aset-saya', 'lisensi-saya', 'barang-diterima', 'riwayat', 'lapor-kerusakan']);
+})->with(['aset-saya', 'lisensi-saya', 'barang-diterima', 'riwayat', 'lapor-kerusakan', 'permintaan']);

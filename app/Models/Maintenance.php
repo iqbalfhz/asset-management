@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\MaintenanceStatus;
+use App\Models\Concerns\LocksStatus;
 use App\Models\Concerns\LogsChanges;
 use App\Models\Scopes\ManagedCategoryScope;
 use Database\Factories\MaintenanceFactory;
@@ -21,7 +22,7 @@ use LogicException;
 class Maintenance extends Model
 {
     /** @use HasFactory<MaintenanceFactory> */
-    use HasFactory, LogsChanges;
+    use HasFactory, LocksStatus, LogsChanges;
 
     public const string FOTO_DISK = 'local';
 
@@ -174,17 +175,6 @@ class Maintenance extends Model
 
             $asset->transitionTo($assetStatus);
         });
-    }
-
-    // Dibaca ulang dengan kunci baris, supaya dua admin tidak memproses laporan yang sama bersamaan.
-    private function ensureStatus(MaintenanceStatus $expected): void
-    {
-        /** @var MaintenanceStatus $current */
-        $current = static::withoutGlobalScopes()->whereKey($this->getKey())->lockForUpdate()->value('status');
-
-        if ($current !== $expected) {
-            throw new LogicException(__('Perbaikan ini berstatus :status, jadi aksi ini tidak bisa dilakukan.', ['status' => $current->getLabel()]));
-        }
     }
 
     // Aset dibaca tanpa scope kategori: perbaikan sudah lolos hak lihat saat dibuka.

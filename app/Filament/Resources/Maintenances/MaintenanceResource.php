@@ -137,11 +137,11 @@ class MaintenanceResource extends Resource
                     ->options(MaintenanceStatus::class),
             ])
             ->recordActions([
-                static::transition('process', __('Proses'), Heroicon::OutlinedPlay, MaintenanceStatus::Dilaporkan)
+                DomainAction::transition('process', __('Proses'), Heroicon::OutlinedPlay, MaintenanceStatus::Dilaporkan)
                     ->modalDescription(__('Aset menjadi Dalam Perbaikan sampai perbaikan selesai.'))
                     ->schema(static::processFields())
                     ->action(fn (Maintenance $record, array $data, Action $action) => DomainAction::run($action, fn () => $record->process($data), __('Perbaikan diproses'))),
-                static::transition('reject', __('Tolak'), Heroicon::OutlinedXMark, MaintenanceStatus::Dilaporkan)
+                DomainAction::transition('reject', __('Tolak'), Heroicon::OutlinedXMark, MaintenanceStatus::Dilaporkan)
                     ->color('gray')
                     ->schema([
                         Textarea::make('catatan_admin')
@@ -151,11 +151,11 @@ class MaintenanceResource extends Resource
                             ->maxLength(2000),
                     ])
                     ->action(fn (Maintenance $record, array $data, Action $action) => DomainAction::run($action, fn () => $record->reject($data['catatan_admin']), __('Laporan ditolak'))),
-                static::transition('finish', __('Selesai'), Heroicon::OutlinedCheck, MaintenanceStatus::Diproses)
+                DomainAction::transition('finish', __('Selesai'), Heroicon::OutlinedCheck, MaintenanceStatus::Diproses)
                     ->modalDescription(__('Aset kembali ke status sebelum diperbaiki, dengan pemegang yang sama.'))
                     ->schema(static::closeFields())
                     ->action(fn (Maintenance $record, array $data, Action $action) => DomainAction::run($action, fn () => $record->finish($data), __('Perbaikan selesai'))),
-                static::transition('markBroken', __('Tidak bisa diperbaiki'), Heroicon::OutlinedExclamationTriangle, MaintenanceStatus::Diproses)
+                DomainAction::transition('markBroken', __('Tidak bisa diperbaiki'), Heroicon::OutlinedExclamationTriangle, MaintenanceStatus::Diproses)
                     ->color('danger')
                     ->modalDescription(__('Aset menjadi Rusak dan bisa diajukan penghapusan.'))
                     ->schema(static::closeFields())
@@ -167,16 +167,6 @@ class MaintenanceResource extends Resource
                     ->url(fn (Maintenance $record): string => route('filament.admin.maintenances.photo', $record))
                     ->openUrlInNewTab(),
             ]);
-    }
-
-    private static function transition(string $name, string $label, Heroicon $icon, MaintenanceStatus $from): Action
-    {
-        return Action::make($name)
-            ->label($label)
-            ->icon($icon)
-            ->visible(fn (Maintenance $record): bool => $record->status === $from)
-            ->authorize('update')
-            ->modalSubmitActionLabel($label);
     }
 
     /**

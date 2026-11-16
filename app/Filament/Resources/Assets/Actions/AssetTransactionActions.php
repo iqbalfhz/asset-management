@@ -12,6 +12,7 @@ use App\Models\Status;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Field;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -135,17 +136,29 @@ class AssetTransactionActions
                         return $target ? Assignment::labelFor($target) : null;
                     })
                     ->required(),
-                static::dateInput(),
-                static::conditionInput(),
-                DatePicker::make('expected_return_at')
-                    ->label(__('Tanggal kembali'))
-                    ->helperText(__('Isi kalau aset dipinjamkan.'))
-                    ->afterOrEqual('tanggal'),
-                Textarea::make('catatan')
-                    ->label(__('Catatan'))
-                    ->rows(2)
-                    ->maxLength(1000),
+                ...static::handOverDetailFields(),
             ]);
+    }
+
+    /**
+     * Isian BAST serah-terima; dipakai juga saat menyerahkan aset untuk permintaan karyawan.
+     *
+     * @return array<int, Field>
+     */
+    public static function handOverDetailFields(): array
+    {
+        return [
+            static::dateInput(),
+            static::conditionInput(),
+            DatePicker::make('expected_return_at')
+                ->label(__('Tanggal kembali'))
+                ->helperText(__('Isi kalau aset dipinjamkan.'))
+                ->afterOrEqual('tanggal'),
+            Textarea::make('catatan')
+                ->label(__('Catatan'))
+                ->rows(2)
+                ->maxLength(1000),
+        ];
     }
 
     /**
@@ -221,7 +234,7 @@ class AssetTransactionActions
         static::notifySaved(__('Pengembalian tersimpan'), $noBast);
     }
 
-    private static function notifySaved(string $title, string $noBast): void
+    public static function notifySaved(string $title, string $noBast): void
     {
         $assignmentId = Assignment::query()->where('no_bast', $noBast)->value('id');
 

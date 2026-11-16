@@ -3,7 +3,6 @@
 namespace App\Filament\Karyawan\Pages;
 
 use App\Enums\AssignmentStatus;
-use App\Enums\AssignmentType;
 use App\Filament\Karyawan\Actions\ReportDamageAction;
 use App\Filament\Karyawan\EmployeeTablePage;
 use App\Filament\Support\BadgeColor;
@@ -137,16 +136,7 @@ class MyAssets extends EmployeeTablePage
      */
     private static function pendingAssignments(): Builder
     {
-        $employee = auth()->user()?->employee;
-
-        return Assignment::withoutGlobalScope('asset')
-            ->where('jenis', AssignmentType::Keluar)
-            ->where('status', AssignmentStatus::Menunggu)
-            ->where('target_type', (new Employee)->getMorphClass())
-            ->where('target_id', $employee?->getKey() ?? 0)
-            ->whereHas('asset', fn (Builder $query) => $query->withoutGlobalScopes()
-                ->where('assigned_type', (new Employee)->getMorphClass())
-                ->where('assigned_id', $employee?->getKey() ?? 0));
+        return Assignment::query()->waitingFor(auth()->user()?->employee);
     }
 
     private static function pendingFor(Asset $asset): ?Assignment

@@ -36,7 +36,7 @@
 <body>
     <main class="wrap">
         <h1>{{ __('Panduan karyawan') }}</h1>
-        <p class="lead">{{ __('Tiga hal yang perlu Anda lakukan di :app: masuk pertama kali, menerima aset, dan melapor kerusakan.', ['app' => config('app.name')]) }}</p>
+        <p class="lead">{{ __('Empat hal yang perlu Anda lakukan di :app: masuk pertama kali, menerima aset, melapor kerusakan, dan meminta aset.', ['app' => config('app.name')]) }}</p>
 
         <section class="step">
             <div class="num">1</div>
@@ -73,6 +73,20 @@
                     <li>{{ __('Tulis masalahnya sejelas mungkin. Tambahkan foto kalau membantu.') }}</li>
                     <li>{{ __('Pantau statusnya di menu Lapor kerusakan: Dilaporkan, lalu Diproses, lalu Selesai. Kalau ditolak, alasannya tertulis di catatan admin.') }}</li>
                 </ol>
+            </div>
+        </section>
+
+        <section class="step">
+            <div class="num">4</div>
+            <div>
+                <h2>{{ __('Meminta aset') }}</h2>
+                <ol>
+                    <li>{!! __('Buka menu :menu, lalu tekan :tombol.', ['menu' => '<strong>'.e(__('Permintaan saya')).'</strong>', 'tombol' => '<strong>'.e(__('Ajukan permintaan')).'</strong>']) !!}</li>
+                    <li>{{ __('Pilih kategori aset yang Anda butuhkan dan tulis alasannya.') }}</li>
+                    <li>{{ __('Pantau statusnya: Diajukan, lalu Disetujui. Kalau ditolak, alasannya tertulis di catatan admin.') }}</li>
+                    <li>{{ __('Setelah admin menyerahkan asetnya, terima di menu Aset saya seperti langkah 2. Permintaan Anda otomatis menjadi Selesai.') }}</li>
+                </ol>
+                <p class="note">{{ __('Hanya kategori yang disediakan admin yang bisa diminta. Selama permintaan masih berjalan, kategori yang sama belum bisa diminta lagi.') }}</p>
             </div>
         </section>
 

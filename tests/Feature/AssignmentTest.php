@@ -2,7 +2,6 @@
 
 use App\Enums\AssignmentStatus;
 use App\Enums\AssignmentType;
-use App\Models\Asset;
 use App\Models\Assignment;
 use App\Models\Building;
 use App\Models\Category;
@@ -29,15 +28,6 @@ beforeEach(function () {
     $this->employee = Employee::factory()->create(['company_id' => $this->tcm->id]);
     $this->details = ['tanggal' => '2026-11-11', 'kondisi' => 'Baik'];
 });
-
-function availableAsset(Company $company, Category $category, array $attributes = []): Asset
-{
-    return Asset::factory()->create($attributes + [
-        'company_id' => $company->id,
-        'category_id' => $category->id,
-        'status_id' => Status::named(Status::TERSEDIA)->id,
-    ]);
-}
 
 function roomOf(Company $company): Room
 {

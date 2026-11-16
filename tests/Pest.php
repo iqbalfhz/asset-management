@@ -1,6 +1,10 @@
 <?php
 
+use App\Models\Asset;
+use App\Models\Category;
+use App\Models\Company;
 use App\Models\Role;
+use App\Models\Status;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -21,4 +25,18 @@ function userWithRole(string $role, string $panel = 'admin', array $attributes =
     $user->assignRole(Role::firstOrCreate(['name' => $role, 'guard_name' => 'web'], ['panel' => $panel]));
 
     return $user;
+}
+
+/**
+ * An asset that can be handed over right away.
+ *
+ * @param  array<string, mixed>  $attributes
+ */
+function availableAsset(Company $company, Category $category, array $attributes = []): Asset
+{
+    return Asset::factory()->create($attributes + [
+        'company_id' => $company->id,
+        'category_id' => $category->id,
+        'status_id' => Status::named(Status::TERSEDIA)->id,
+    ]);
 }

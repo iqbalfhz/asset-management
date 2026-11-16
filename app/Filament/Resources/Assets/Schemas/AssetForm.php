@@ -46,6 +46,9 @@ class AssetForm
                         Toggle::make('is_byod')
                             ->label(__('Perangkat pribadi (BYOD)'))
                             ->helperText(__('Tidak ikut laporan nilai aset dan penyusutan.')),
+                        Toggle::make('requestable')
+                            ->label(__('Boleh diminta'))
+                            ->helperText(__('Kategori aset ini muncul di pilihan permintaan aset karyawan.')),
                         Textarea::make('notes')
                             ->label(__('Catatan'))
                             ->rows(3),

@@ -40,6 +40,17 @@ class Category extends Model
         }
     }
 
+    // Kategori yang punya aset bertanda Boleh diminta di perusahaan itu, dari pengelola mana pun; aset Dihapuskan tidak dihitung.
+    #[Scope]
+    protected function requestableIn(Builder $query, int $companyId): void
+    {
+        $query->whereIn('id', Asset::withoutGlobalScopes()
+            ->select('category_id')
+            ->where('company_id', $companyId)
+            ->where('requestable', true)
+            ->whereRelation('status', 'nama', '!=', Status::DIHAPUSKAN));
+    }
+
     // Kode dipakai di kode aset, jadi selalu disimpan huruf besar.
     protected function kode(): Attribute
     {

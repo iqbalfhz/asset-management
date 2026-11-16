@@ -6,6 +6,7 @@ use App\Enums\AssignmentStatus;
 use App\Enums\AssignmentType;
 use Database\Factories\AssignmentFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -150,20 +151,35 @@ class Assignment extends Model
     }
 
     /**
-     * Karyawan menerima serah-terima dalam satu BAST; hanya aset yang masih dipegangnya.
+     * Karyawan menerima serah-terima dalam satu BAST; hanya aset yang masih dipegangnya. Permintaan aset yang terkait ikut selesai.
      */
     public static function accept(Employee $employee, string $noBast): int
     {
-        return static::withoutGlobalScope('asset')
-            ->where('no_bast', $noBast)
+        return DB::transaction(function () use ($employee, $noBast): int {
+            $ids = static::query()->waitingFor($employee)->where('no_bast', $noBast)->pluck('id')->all();
+
+            static::withoutGlobalScope('asset')->whereKey($ids)->update(['status' => AssignmentStatus::Diterima, 'accepted_at' => now()]);
+            AssetRequest::completeFor($ids);
+
+            return count($ids);
+        });
+    }
+
+    // Serah-terima ke karyawan yang belum diterima, untuk aset yang masih dipegangnya; tanpa batas kategori admin.
+    #[Scope]
+    protected function waitingFor(Builder $query, ?Employee $employee): void
+    {
+        $morphClass = (new Employee)->getMorphClass();
+        $employeeId = $employee?->getKey() ?? 0;
+
+        $query->withoutGlobalScope('asset')
             ->where('jenis', AssignmentType::Keluar)
             ->where('status', AssignmentStatus::Menunggu)
-            ->where('target_type', $employee->getMorphClass())
-            ->where('target_id', $employee->getKey())
+            ->where('target_type', $morphClass)
+            ->where('target_id', $employeeId)
             ->whereHas('asset', fn (Builder $query) => $query->withoutGlobalScopes()
-                ->where('assigned_type', $employee->getMorphClass())
-                ->where('assigned_id', $employee->getKey()))
-            ->update(['status' => AssignmentStatus::Diterima, 'accepted_at' => now()]);
+                ->where('assigned_type', $morphClass)
+                ->where('assigned_id', $employeeId));
     }
 
     /**
