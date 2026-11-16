@@ -84,6 +84,29 @@ test('the same NIK is rejected within a company but allowed in another company',
         ->assertHasNoActionErrors();
 });
 
+test('an inactive company is not offered for new data, but its existing records still save', function () {
+    $this->actingAs(userWithRole('super_admin', attributes: ['company_id' => $this->company->id]));
+    $this->company->update(['is_active' => false]);
+    $existing = Employee::factory()->create(['company_id' => $this->company->id, 'nik' => '3271001']);
+
+    // Perusahaan akun yang nonaktif tidak dipakai sebagai isian awal.
+    livewire(ManageEmployees::class)
+        ->callAction(CreateAction::class, data: ['nik' => '3271002', 'nama' => 'Dwi'])
+        ->assertHasActionErrors(['company_id' => 'required']);
+
+    livewire(ManageEmployees::class)
+        ->callAction(CreateAction::class, data: ['company_id' => $this->company->id, 'nik' => '3271002', 'nama' => 'Dwi'])
+        ->assertHasActionErrors(['company_id']);
+
+    livewire(ManageEmployees::class)
+        ->callAction(TestAction::make('edit')->table($existing), data: ['nama' => 'Dwi Lama'])
+        ->assertHasNoActionErrors();
+
+    expect($existing->refresh()->nama)->toBe('Dwi Lama')
+        ->and($existing->company_id)->toBe($this->company->id)
+        ->and(Employee::count())->toBe(1);
+});
+
 test('one department holds employees of several companies and its name is used once', function () {
     $this->actingAs(userWithRole('super_admin', attributes: ['company_id' => $this->company->id]));
     $otherCompany = Company::factory()->create();

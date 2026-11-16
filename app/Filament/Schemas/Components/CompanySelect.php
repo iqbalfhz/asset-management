@@ -2,23 +2,31 @@
 
 namespace App\Filament\Schemas\Components;
 
+use App\Models\Company;
 use App\Models\Scopes\CompanyScope;
 use Filament\Forms\Components\Select;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class CompanySelect
 {
-    // Pilihan perusahaan untuk data yang punya company_id; user yang dibatasi hanya melihat perusahaannya.
+    // Pilihan perusahaan untuk data yang punya company_id: perusahaan aktif, ditambah perusahaan data yang sedang diubah
+    // supaya data lama tetap bisa disimpan. User yang dibatasi hanya melihat perusahaannya.
     public static function make(): Select
     {
         return Select::make('company_id')
             ->label(__('Perusahaan'))
-            ->relationship('company', 'nama', modifyQueryUsing: function (Builder $query): Builder {
+            ->relationship('company', 'nama', modifyQueryUsing: function (Builder $query, ?Model $record): Builder {
                 $companyId = CompanyScope::restrictedCompanyId();
 
-                return $companyId === null ? $query : $query->whereKey($companyId);
+                return $query
+                    ->when($companyId !== null, fn (Builder $query) => $query->whereKey($companyId))
+                    ->where(fn (Builder $query) => $query
+                        ->active()
+                        ->when($record?->getAttribute('company_id'), fn (Builder $query, int $currentId) => $query->orWhereKey($currentId)));
             })
-            ->default(fn (): ?int => auth()->user()?->company_id)
+            ->getOptionLabelFromRecordUsing(fn (Company $record): string => $record->is_active ? $record->nama : __(':nama (nonaktif)', ['nama' => $record->nama]))
+            ->default(fn (): ?int => Company::query()->active()->whereKey(auth()->user()?->company_id)->value('id'))
             ->required()
             ->live();
     }

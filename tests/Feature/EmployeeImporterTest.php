@@ -37,6 +37,20 @@ test('an existing NIK fails the row unless updating is chosen', function () {
         ->and(Employee::count())->toBe(1);
 });
 
+test('rows for an inactive company are not imported', function () {
+    Company::factory()->create(['kode' => 'OLD', 'is_active' => false]);
+
+    EmployeeImporter::test()->import(['company' => 'OLD', 'nik' => '2026003', 'nama' => 'Budi'])
+        ->assertHasErrors(['company']);
+
+    $this->tcm->update(['is_active' => false]);
+
+    EmployeeImporter::test()->import(['nik' => '2026004', 'nama' => 'Ani'])
+        ->assertHasRowFailure('Isi kolom perusahaan.');
+
+    expect(Employee::count())->toBe(0);
+});
+
 test('a department that does not exist fails the row', function () {
     Department::factory()->create(['nama' => 'Keuangan']);
 
