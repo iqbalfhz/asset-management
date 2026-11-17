@@ -87,15 +87,19 @@ class CategoryResource extends Resource
     {
         return $table
             ->recordTitleAttribute('nama')
+            ->defaultSort('nama')
             ->columns([
                 TextColumn::make('nama')
                     ->badge()
                     ->color(fn (Category $record): ?array => BadgeColor::fromHex($record->warna))
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('kode')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('role.name')
                     ->label(__('Pengelola'))
+                    ->sortable()
                     ->formatStateUsing(fn (string $state): string => Str::headline($state)),
                 TextColumn::make('template_spesifikasi')
                     ->label(__('Template spesifikasi'))

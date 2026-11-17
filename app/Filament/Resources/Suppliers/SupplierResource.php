@@ -56,11 +56,14 @@ class SupplierResource extends Resource
     {
         return $table
             ->recordTitleAttribute('nama')
+            ->defaultSort('nama')
             ->columns([
                 TextColumn::make('nama')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('kontak')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

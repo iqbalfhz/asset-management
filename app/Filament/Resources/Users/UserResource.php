@@ -101,14 +101,18 @@ class UserResource extends Resource
     {
         return $table
             ->recordTitleAttribute('name')
+            ->defaultSort('name')
             ->columns([
                 TextColumn::make('name')
                     ->label(__('Nama'))
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('username')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('email')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('roles.name')
                     ->label(__('Role'))
                     ->badge()
@@ -116,7 +120,8 @@ class UserResource extends Resource
                 CompanyColumn::make(),
                 IconColumn::make('is_active')
                     ->label(__('Aktif'))
-                    ->boolean(),
+                    ->boolean()
+                    ->sortable(),
             ])
             ->filters([
                 TernaryFilter::make('is_active')

@@ -72,15 +72,20 @@ class RoomResource extends Resource
         return $table
             ->recordTitleAttribute('nama')
             ->modifyQueryUsing(fn (Builder $query): Builder => $query->with('floor.building'))
+            ->defaultSort('nama')
             ->columns([
                 TextColumn::make('floor.building.nama')
-                    ->label(__('Gedung')),
+                    ->label(__('Gedung'))
+                    ->sortable(),
                 TextColumn::make('floor.nama')
-                    ->label(__('Lantai')),
+                    ->label(__('Lantai'))
+                    ->sortable(),
                 TextColumn::make('nama')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('manager.nama')
-                    ->label(__('Penanggung jawab')),
+                    ->label(__('Penanggung jawab'))
+                    ->sortable(),
             ])
             ->recordActions([
                 EditAction::make(),

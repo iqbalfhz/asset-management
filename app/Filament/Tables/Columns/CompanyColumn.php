@@ -11,6 +11,7 @@ class CompanyColumn
     {
         return TextColumn::make('company.kode')
             ->label(__('Perusahaan'))
+            ->sortable()
             ->toggleable(isToggledHiddenByDefault: true);
     }
 }

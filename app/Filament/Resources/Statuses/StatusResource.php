@@ -70,10 +70,12 @@ class StatusResource extends Resource
                 TextColumn::make('nama')
                     ->badge()
                     ->color(fn (Status $record): ?array => BadgeColor::fromHex($record->warna))
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('tipe')
                     ->badge()
-                    ->color('gray'),
+                    ->color('gray')
+                    ->sortable(),
                 IconColumn::make('is_core')
                     ->label(__('Inti'))
                     ->boolean(),

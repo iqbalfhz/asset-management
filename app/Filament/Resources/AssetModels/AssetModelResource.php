@@ -95,18 +95,23 @@ class AssetModelResource extends Resource
     {
         return $table
             ->recordTitleAttribute('nama')
+            ->defaultSort('nama')
             ->columns([
                 ImageColumn::make('foto')
                     ->square(),
                 TextColumn::make('manufacturer.nama')
                     ->label(__('Produsen'))
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('nama')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('nomor_model')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('category.nama')
-                    ->label(__('Kategori')),
+                    ->label(__('Kategori'))
+                    ->sortable(),
                 TextColumn::make('depreciation.nama')
                     ->label(__('Kelas penyusutan'))
                     ->toggleable(),

@@ -1,9 +1,12 @@
 <?php
 
+use App\Filament\Resources\AssetModels\Pages\ManageAssetModels;
 use App\Filament\Resources\Buildings\BuildingResource;
 use App\Filament\Resources\Buildings\Pages\CreateBuilding;
 use App\Filament\Resources\Buildings\Pages\EditBuilding;
+use App\Filament\Resources\Buildings\Pages\ListBuildings;
 use App\Filament\Resources\Buildings\RelationManagers\FloorsRelationManager;
+use App\Filament\Resources\Categories\Pages\ManageCategories;
 use App\Filament\Resources\Departments\DepartmentResource;
 use App\Filament\Resources\Departments\Pages\ManageDepartments;
 use App\Filament\Resources\Employees\EmployeeResource;
@@ -150,6 +153,40 @@ test('with separation on, admin of company A only sees the employees and locatio
         ->and(Building::count())->toBe(2)
         ->and(Room::count())->toBe(2);
 });
+
+test('employees are listed by name and can be sorted the other way', function () {
+    $this->actingAs(userWithRole('super_admin', attributes: ['company_id' => $this->company->id]));
+    $budi = Employee::factory()->create(['company_id' => $this->company->id, 'nama' => 'Budi', 'nik' => '1']);
+    $ani = Employee::factory()->create(['company_id' => $this->company->id, 'nama' => 'Ani', 'nik' => '2']);
+
+    livewire(ManageEmployees::class)
+        ->assertCanSeeTableRecords([$ani, $budi], inOrder: true)
+        ->sortTable('nama', 'desc')
+        ->assertCanSeeTableRecords([$budi, $ani], inOrder: true);
+});
+
+// Kolom relasi diurutkan lewat subquery; test ini memastikan query-nya tidak gagal.
+test('master tables sort by their related columns', function (string $page, string $column) {
+    $this->actingAs(userWithRole('super_admin', attributes: ['company_id' => $this->company->id]));
+    Employee::factory()->for(Department::factory())->create(['company_id' => $this->company->id]);
+    Room::factory()->for(Floor::factory()->for(Building::factory()->for($this->company)))->create();
+
+    livewire($page)
+        ->sortTable($column)
+        ->assertSuccessful();
+})->with([
+    [ManageEmployees::class, 'department.nama'],
+    [ManageEmployees::class, 'user.username'],
+    [ManageEmployees::class, 'company.kode'],
+    [ManageDepartments::class, 'manager.nama'],
+    [ListBuildings::class, 'floors_count'],
+    [ListBuildings::class, 'manager.nama'],
+    [ManageRooms::class, 'floor.building.nama'],
+    [ManageRooms::class, 'floor.nama'],
+    [ManageAssetModels::class, 'manufacturer.nama'],
+    [ManageAssetModels::class, 'category.nama'],
+    [ManageCategories::class, 'role.name'],
+]);
 
 test('karyawan and roles without permission cannot open the organization pages', function (string $resource) {
     foreach ([userWithRole('karyawan', 'karyawan'), userWithRole('tamu')] as $user) {

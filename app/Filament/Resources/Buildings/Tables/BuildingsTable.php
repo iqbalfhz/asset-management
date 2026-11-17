@@ -14,14 +14,18 @@ class BuildingsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->defaultSort('nama')
             ->columns([
                 TextColumn::make('nama')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('floors_count')
                     ->label(__('Jumlah lantai'))
-                    ->counts('floors'),
+                    ->counts('floors')
+                    ->sortable(),
                 TextColumn::make('manager.nama')
-                    ->label(__('Penanggung jawab')),
+                    ->label(__('Penanggung jawab'))
+                    ->sortable(),
                 CompanyColumn::make(),
             ])
             ->recordActions([

@@ -64,11 +64,14 @@ class DepartmentResource extends Resource
     {
         return $table
             ->recordTitleAttribute('nama')
+            ->defaultSort('nama')
             ->columns([
                 TextColumn::make('nama')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('manager.nama')
-                    ->label(__('Manajer')),
+                    ->label(__('Manajer'))
+                    ->sortable(),
             ])
             ->recordActions([
                 EditAction::make(),

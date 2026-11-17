@@ -68,14 +68,18 @@ class CompanyResource extends Resource
     {
         return $table
             ->recordTitleAttribute('nama')
+            ->defaultSort('nama')
             ->columns([
                 TextColumn::make('nama')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('kode')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 IconColumn::make('is_active')
                     ->label(__('Aktif'))
-                    ->boolean(),
+                    ->boolean()
+                    ->sortable(),
             ])
             ->recordActions([
                 EditAction::make(),

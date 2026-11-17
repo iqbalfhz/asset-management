@@ -123,22 +123,29 @@ class EmployeeResource extends Resource
     {
         return $table
             ->recordTitleAttribute('nama')
+            ->defaultSort('nama')
             ->columns([
                 TextColumn::make('nik')
                     ->label(__('NIK'))
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('nama')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('jabatan')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('department.nama')
-                    ->label(__('Departemen')),
+                    ->label(__('Departemen'))
+                    ->sortable(),
                 TextColumn::make('user.username')
-                    ->label(__('Akun login')),
+                    ->label(__('Akun login'))
+                    ->sortable(),
                 CompanyColumn::make(),
                 IconColumn::make('is_active')
                     ->label(__('Aktif'))
-                    ->boolean(),
+                    ->boolean()
+                    ->sortable(),
             ])
             ->filters([
                 TernaryFilter::make('is_active')

@@ -58,9 +58,11 @@ class DepreciationResource extends Resource
     {
         return $table
             ->recordTitleAttribute('nama')
+            ->defaultSort('nama')
             ->columns([
                 TextColumn::make('nama')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('jumlah_bulan')
                     ->numeric()
                     ->sortable(),

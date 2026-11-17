@@ -59,9 +59,11 @@ class ManufacturerResource extends Resource
     {
         return $table
             ->recordTitleAttribute('nama')
+            ->defaultSort('nama')
             ->columns([
                 TextColumn::make('nama')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('website')
                     ->searchable(),
                 TextColumn::make('kontak_support')
