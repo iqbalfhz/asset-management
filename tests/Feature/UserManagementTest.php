@@ -12,6 +12,7 @@ use Database\Seeders\RoleSeeder;
 use Filament\Actions\CreateAction;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
+use Filament\Forms\Components\TextInput;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Permission;
 
@@ -70,6 +71,16 @@ test('a new user needs a password that meets the policy', function () {
             'password' => '12345678',
         ])
         ->assertHasActionErrors(['password']);
+});
+
+// Tanpa new-password, browser mengisi password admin yang sedang login ke akun baru.
+test('the browser is told not to fill saved logins into the new user form', function () {
+    $this->actingAs($this->superAdmin);
+
+    livewire(ManageUsers::class)
+        ->mountAction(CreateAction::class)
+        ->assertSchemaComponentExists('password', checkComponentUsing: fn (TextInput $field): bool => $field->getAutocomplete() === 'new-password')
+        ->assertSchemaComponentExists('username', checkComponentUsing: fn (TextInput $field): bool => $field->getAutocomplete() === 'off');
 });
 
 test('super admin cannot deactivate their own account', function () {

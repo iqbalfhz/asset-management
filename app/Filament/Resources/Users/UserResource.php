@@ -64,10 +64,12 @@ class UserResource extends Resource
                 TextInput::make('username')
                     ->required()
                     ->alphaDash()
+                    ->autocomplete('off')
                     ->maxLength(50)
                     ->unique(ignoreRecord: true),
                 TextInput::make('email')
                     ->email()
+                    ->autocomplete('off')
                     ->maxLength(255)
                     ->unique(ignoreRecord: true),
                 CompanySelect::make(),
@@ -83,10 +85,12 @@ class UserResource extends Resource
                     ->label(__('Aktif'))
                     ->default(true)
                     ->disabled(fn (?User $record): bool => (bool) $record?->is(auth()->user())),
+                // new-password: browser tidak mengisi password admin yang sedang login ke akun baru.
                 TextInput::make('password')
                     ->label(__('Password awal'))
                     ->password()
                     ->revealable()
+                    ->autocomplete('new-password')
                     ->rule(Password::default())
                     ->required(fn (string $operation): bool => $operation === 'create')
                     ->visible(fn (string $operation): bool => $operation === 'create'),
@@ -128,12 +132,14 @@ class UserResource extends Resource
                             ->label(__('Password baru'))
                             ->password()
                             ->revealable()
+                            ->autocomplete('new-password')
                             ->required()
                             ->rule(Password::default())
                             ->same('passwordConfirmation'),
                         TextInput::make('passwordConfirmation')
                             ->label(__('Ulangi password baru'))
                             ->password()
+                            ->autocomplete('new-password')
                             ->required(),
                     ])
                     ->action(function (User $record, array $data): void {

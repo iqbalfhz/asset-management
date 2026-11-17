@@ -21,13 +21,15 @@ class LicenseForm
                 TextInput::make('nama_software')
                     ->label(__('Nama software'))
                     ->required()
+                    ->autocomplete('off')
                     ->maxLength(255),
                 ManagingRoleSelect::make(),
+                // new-password: browser tidak mengisi password login yang tersimpan ke sini (autocomplete off diabaikan untuk input password).
                 TextInput::make('product_key')
                     ->label(__('Product key'))
                     ->password()
                     ->revealable()
-                    ->autocomplete('off')
+                    ->autocomplete('new-password')
                     ->maxLength(1000),
                 TextInput::make('jumlah_seat')
                     ->label(__('Jumlah seat'))
