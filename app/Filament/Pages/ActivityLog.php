@@ -3,10 +3,10 @@
 namespace App\Filament\Pages;
 
 use App\Filament\Tables\Columns\ActivityColumns;
+use App\Filament\Tables\Filters\DateRangeFilter;
 use App\Models\Asset;
 use App\Models\User;
 use BackedEnum;
-use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\EmbeddedTable;
@@ -101,16 +101,7 @@ class ActivityLog extends Page implements HasTable
                     ->query(fn (Builder $query, array $data): Builder => blank($data['asset_id'] ?? null)
                         ? $query
                         : $query->where('subject_type', (new Asset)->getMorphClass())->where('subject_id', $data['asset_id'])),
-                Filter::make('tanggal')
-                    ->schema([
-                        DatePicker::make('dari')
-                            ->label(__('Dari tanggal')),
-                        DatePicker::make('sampai')
-                            ->label(__('Sampai tanggal')),
-                    ])
-                    ->query(fn (Builder $query, array $data): Builder => $query
-                        ->when($data['dari'] ?? null, fn (Builder $query, string $date) => $query->whereDate('created_at', '>=', $date))
-                        ->when($data['sampai'] ?? null, fn (Builder $query, string $date) => $query->whereDate('created_at', '<=', $date))),
+                DateRangeFilter::make(),
             ]);
     }
 

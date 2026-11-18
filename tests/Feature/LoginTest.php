@@ -1,6 +1,8 @@
 <?php
 
+use App\Enums\LoginResult;
 use App\Filament\Pages\Auth\Login;
+use App\Models\LoginLog;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Support\Facades\Crypt;
@@ -125,6 +127,36 @@ test('a locked account does not lock other accounts, and successful logins are n
         logInAs('ani')->assertRedirect('/karyawan');
         Filament::auth()->logout();
     }
+});
+
+test('failed, locked, successful and logout events are each recorded in the login log', function () {
+    $this->freezeTime();
+    $budi = userWithRole('admin_it', attributes: ['username' => 'budi', 'password' => 'Kantor2026aman']);
+
+    $page = logInAs('budi', 'Salah2026sekali');
+
+    foreach (range(2, 6) as $attempt) {
+        $page->call('authenticate');
+    }
+
+    $this->travel(61)->seconds();
+    logInAs('budi')->assertRedirect('/admin');
+    Filament::auth()->logout();
+
+    expect(LoginLog::query()->orderBy('id')->pluck('hasil')->map->value->all())
+        ->toBe(['gagal', 'gagal', 'gagal', 'gagal', 'gagal', 'terkunci', 'berhasil', 'keluar'])
+        ->and(LoginLog::query()->pluck('user_id')->unique()->all())->toBe([$budi->id])
+        ->and(LoginLog::query()->where('hasil', 'gagal')->value('login'))->toBe('budi');
+});
+
+test('a failed login for an unknown name keeps only its first two letters, in case a password was typed there', function () {
+    logInAs('Rahasia2026kantor', 'Salah2026sekali');
+
+    $entry = LoginLog::query()->sole();
+
+    expect($entry->hasil)->toBe(LoginResult::Gagal)
+        ->and($entry->user_id)->toBeNull()
+        ->and($entry->login)->toBe('Ra•••');
 });
 
 test('after login, a user with 2FA must enter a valid code before opening the panel', function () {

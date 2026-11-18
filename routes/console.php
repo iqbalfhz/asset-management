@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\LoginLog;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -22,6 +23,9 @@ Schedule::command('backup:monitor')->dailyAt('03:00')->onOneServer();
 
 // Email ringkasan harian sebelum jam kantor (waktu Asia/Jakarta).
 Schedule::command('notifikasi:harian')->dailyAt('07:00')->onOneServer();
+
+// Log masuk disimpan satu tahun (LoginLog::prunable).
+Schedule::command('model:prune', ['--model' => [LoginLog::class]])->dailyAt('02:00')->onOneServer();
 
 // Riwayat batch job import/export yang sudah selesai tidak perlu disimpan lama.
 Schedule::command('queue:prune-batches --hours=168')->daily();

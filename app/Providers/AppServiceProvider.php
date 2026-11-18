@@ -2,8 +2,10 @@
 
 namespace App\Providers;
 
+use App\Enums\LoginResult;
 use App\Http\Responses\LoginResponse;
 use App\Livewire\PersonalInfo;
+use App\Models\LoginLog;
 use App\Models\User;
 use App\Policies\ExportPolicy;
 use App\Policies\ImportPolicy;
@@ -16,9 +18,13 @@ use Filament\Actions\Imports\Importer;
 use Filament\Actions\Imports\Models\Import;
 use Filament\Auth\Http\Responses\Contracts\LoginResponse as LoginResponseContract;
 use Filament\Notifications\Notification;
+use Illuminate\Auth\Events\Failed;
+use Illuminate\Auth\Events\Login;
+use Illuminate\Auth\Events\Logout;
 use Illuminate\Contracts\View\View as ViewContract;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
@@ -59,10 +65,23 @@ class AppServiceProvider extends ServiceProvider
         $this->explainDeletingRecordsStillInUse();
         $this->limitImports();
         $this->protectExports();
+        $this->recordLogins();
 
         // Halaman Backup: hanya Super Admin yang mengunduh; backup dihapus oleh pembersihan terjadwal, bukan dari panel.
         Gate::define('download-backup', fn (User $user): bool => $user->hasRole('super_admin'));
         Gate::define('delete-backup', fn (): bool => false);
+    }
+
+    // Log masuk untuk Super Admin; "terkunci" dicatat oleh halaman login saat batas percobaan tercapai.
+    private function recordLogins(): void
+    {
+        Event::listen(Login::class, fn (Login $event) => LoginLog::record(LoginResult::Berhasil, $event->user));
+        Event::listen(Logout::class, fn (Logout $event) => LoginLog::record(LoginResult::Keluar, $event->user));
+        Event::listen(Failed::class, fn (Failed $event) => LoginLog::record(
+            LoginResult::Gagal,
+            $event->user,
+            $event->credentials['email'] ?? $event->credentials['username'] ?? null,
+        ));
     }
 
     private function protectExports(): void

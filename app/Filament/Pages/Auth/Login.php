@@ -2,16 +2,20 @@
 
 namespace App\Filament\Pages\Auth;
 
+use App\Enums\LoginResult;
+use App\Models\LoginLog;
 use DanHarrin\LivewireRateLimiting\Exceptions\TooManyRequestsException;
 use Filament\Actions\Action;
 use Filament\Auth\Http\Responses\Contracts\LoginResponse;
 use Filament\Auth\Pages\Login as BaseLogin;
+use Filament\Facades\Filament;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Component;
 use Filament\Schemas\Schema;
 use Filament\Support\Components\Attributes\Exposed;
 use Filament\Support\Components\Attributes\Unexposed;
 use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Js;
@@ -78,6 +82,11 @@ class Login extends BaseLogin
         $seconds = $this->secondsUntilUnlocked();
 
         if ($seconds > 0) {
+            $login = (string) ($this->data['login'] ?? '');
+            $account = Filament::auth()->getProvider()->retrieveByCredentials(Arr::except($this->getCredentialsFromFormData(['login' => $login, 'password' => '']), 'password'));
+
+            LoginLog::record(LoginResult::Terkunci, $account, $login);
+
             throw new TooManyRequestsException(static::class, 'authenticate', request()->ip(), $seconds);
         }
     }
