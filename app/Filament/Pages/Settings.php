@@ -7,6 +7,8 @@ use App\Enums\LabelSize;
 use App\Models\Audit;
 use App\Models\Company;
 use App\Models\Setting;
+use App\Notifications\Channels\TelegramChannel;
+use App\Notifications\Notice;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\CheckboxList;
@@ -23,6 +25,7 @@ use Filament\Schemas\Components\Form;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use RuntimeException;
 
 class Settings extends Page
 {
@@ -74,7 +77,24 @@ class Settings extends Page
                             ->label(__('Kirim notifikasi email'))
                             ->helperText(__('Laporan kerusakan, permintaan aset, dan ringkasan harian jam 07:00. Email kode lupa password tetap terkirim.')),
                         Toggle::make('telegram_enabled')
-                            ->label(__('Notifikasi Telegram')),
+                            ->label(__('Notifikasi Telegram'))
+                            ->helperText(fn (): string => TelegramChannel::isConfigured()
+                                ? __('Laporan kerusakan dan permintaan aset baru juga dikirim ke grup admin Telegram.')
+                                : __('Belum bisa dipakai: TELEGRAM_BOT_TOKEN dan TELEGRAM_CHAT_ID belum diisi di server.'))
+                            ->afterContent(Action::make('telegramTest')
+                                ->label(__('Kirim pesan uji'))
+                                ->visible(fn (): bool => TelegramChannel::isConfigured())
+                                ->action(function (): void {
+                                    try {
+                                        TelegramChannel::adminGroup()->notifyNow(Notice::telegramTest());
+                                    } catch (RuntimeException $exception) {
+                                        Notification::make()->danger()->title(__('Pesan uji gagal'))->body($exception->getMessage())->send();
+
+                                        return;
+                                    }
+
+                                    Notification::make()->success()->title(__('Pesan uji terkirim ke grup Telegram'))->send();
+                                })),
                     ]),
                 Section::make(__('Per perusahaan'))
                     ->schema([

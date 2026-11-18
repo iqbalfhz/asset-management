@@ -14,7 +14,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Notification;
 use LogicException;
 
 #[Fillable([
@@ -61,7 +60,7 @@ class Maintenance extends Model
                 'foto' => $foto,
             ]);
 
-            Notification::send(User::managersOf($asset->category->role_id, $asset->company_id), Notice::damageReported($asset, $employee, $keluhan));
+            Notice::damageReported($asset, $employee, $keluhan)->sendToManagers($asset->category->role_id, $asset->company_id);
 
             return $maintenance;
         });

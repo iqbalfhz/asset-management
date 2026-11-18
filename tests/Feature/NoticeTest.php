@@ -9,6 +9,7 @@ use App\Models\Employee;
 use App\Models\Maintenance;
 use App\Models\Role;
 use App\Models\Setting;
+use App\Notifications\Channels\TelegramChannel;
 use App\Notifications\Notice;
 use Database\Seeders\RoleSeeder;
 use Database\Seeders\StatusSeeder;
@@ -92,7 +93,7 @@ test('the email is sent after the response and shows the greeting, the list and 
 
     $html = (string) $notice->toMail($this->adminIt)->render();
 
-    expect($notice->viaConnections())->toBe(['mail' => 'deferred'])
+    expect($notice->viaConnections())->toBe(['mail' => 'deferred', TelegramChannel::class => 'deferred'])
         ->and($html)->toContain(e("Halo {$this->adminIt->name},"))
         ->toContain('Pembuka email.')
         ->toContain('Layar &lt;berkedip&gt;')
