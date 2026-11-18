@@ -80,7 +80,7 @@ test('the same NIK is rejected within a company but allowed in another company',
 
     livewire(ManageEmployees::class)
         ->callAction(CreateAction::class, data: ['company_id' => $this->company->id, 'nik' => '3271001', 'nama' => 'Ani'])
-        ->assertHasActionErrors(['nik' => 'unique']);
+        ->assertHasActionErrors(['nik' => ['NIK sudah dipakai.']]);
 
     livewire(ManageEmployees::class)
         ->callAction(CreateAction::class, data: ['company_id' => $otherCompany->id, 'nik' => '3271001', 'nama' => 'Ani'])
