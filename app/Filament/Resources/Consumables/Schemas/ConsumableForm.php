@@ -18,10 +18,12 @@ class ConsumableForm
             ->components([
                 CompanySelect::make(),
                 TextInput::make('nama')
+                    ->label(__('Nama'))
                     ->required()
                     ->maxLength(255)
                     ->unique(ignoreRecord: true, modifyRuleUsing: fn (Unique $rule, Get $get): Unique => $rule->where('company_id', $get('company_id'))),
                 TextInput::make('satuan')
+                    ->label(__('Satuan'))
                     ->required()
                     ->maxLength(30)
                     ->datalist(['pcs', 'rim', 'kotak', 'botol', 'roll', 'pak']),
@@ -41,6 +43,7 @@ class ConsumableForm
                     ->default(0)
                     ->visibleOn('create'),
                 Textarea::make('catatan')
+                    ->label(__('Catatan'))
                     ->maxLength(2000)
                     ->columnSpanFull(),
             ]);

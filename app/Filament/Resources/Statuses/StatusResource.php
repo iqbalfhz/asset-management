@@ -49,11 +49,13 @@ class StatusResource extends Resource
         return $schema
             ->components([
                 TextInput::make('nama')
+                    ->label(__('Nama'))
                     ->required()
                     ->maxLength(255)
                     ->unique(ignoreRecord: true)
                     ->disabled(fn (?Status $record): bool => (bool) $record?->is_core),
                 Select::make('tipe')
+                    ->label(__('Tipe'))
                     ->options(StatusType::class)
                     ->required()
                     ->disabled(fn (?Status $record): bool => (bool) $record?->is_core),
@@ -68,11 +70,13 @@ class StatusResource extends Resource
             ->recordTitleAttribute('nama')
             ->columns([
                 TextColumn::make('nama')
+                    ->label(__('Nama'))
                     ->badge()
                     ->color(fn (Status $record): ?array => BadgeColor::fromHex($record->warna))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('tipe')
+                    ->label(__('Tipe'))
                     ->badge()
                     ->color('gray')
                     ->sortable(),
@@ -80,6 +84,7 @@ class StatusResource extends Resource
                     ->label(__('Inti'))
                     ->boolean(),
                 TextColumn::make('updated_at')
+                    ->label(__('Diperbarui'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

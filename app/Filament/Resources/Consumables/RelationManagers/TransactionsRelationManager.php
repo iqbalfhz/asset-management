@@ -37,10 +37,13 @@ class TransactionsRelationManager extends RelationManager
             ->defaultSort('id', 'desc')
             ->columns([
                 TextColumn::make('tanggal')
+                    ->label(__('Tanggal'))
                     ->date('j M Y'),
                 TextColumn::make('jenis')
+                    ->label(__('Jenis'))
                     ->badge(),
                 TextColumn::make('jumlah')
+                    ->label(__('Jumlah'))
                     ->formatStateUsing(fn (int $state, ConsumableTransaction $record): string => ($record->jenis->isIncoming() ? '+' : '−').$state),
                 TextColumn::make('stok_sesudah')
                     ->label(__('Stok sesudah')),
@@ -53,12 +56,14 @@ class TransactionsRelationManager extends RelationManager
                     ->placeholder('—')
                     ->toggleable(),
                 TextColumn::make('catatan')
+                    ->label(__('Catatan'))
                     ->limit(50)
                     ->placeholder('—')
                     ->toggleable(),
             ])
             ->filters([
                 SelectFilter::make('jenis')
+                    ->label(__('Jenis'))
                     ->options(StockMovement::class),
             ]);
     }

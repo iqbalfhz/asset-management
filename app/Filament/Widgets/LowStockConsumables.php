@@ -27,8 +27,10 @@ class LowStockConsumables extends TableWidget
             ->emptyStateHeading(__('Semua stok masih di atas batas minimum'))
             ->recordUrl(fn (Consumable $record): string => ConsumableResource::getUrl('view', ['record' => $record]))
             ->columns([
-                TextColumn::make('nama'),
+                TextColumn::make('nama')
+                    ->label(__('Nama')),
                 TextColumn::make('stok')
+                    ->label(__('Stok'))
                     ->formatStateUsing(fn (int $state, Consumable $record): string => "{$state} {$record->satuan}")
                     ->color('danger'),
                 TextColumn::make('stok_minimum')

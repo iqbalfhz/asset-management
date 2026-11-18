@@ -49,6 +49,7 @@ class LicenseInfolist
                             ->label(__('Supplier'))
                             ->placeholder('—'),
                         TextEntry::make('catatan')
+                            ->label(__('Catatan'))
                             ->placeholder('—')
                             ->columnSpanFull(),
                     ]),

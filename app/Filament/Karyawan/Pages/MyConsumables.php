@@ -36,12 +36,15 @@ class MyConsumables extends EmployeeTablePage
             ->defaultSort('tanggal', 'desc')
             ->columns([
                 TextColumn::make('tanggal')
+                    ->label(__('Tanggal'))
                     ->date('j M Y'),
                 TextColumn::make('consumable.nama')
                     ->label(__('Barang')),
                 TextColumn::make('jumlah')
+                    ->label(__('Jumlah'))
                     ->formatStateUsing(fn (ConsumableTransaction $record): string => "{$record->jumlah} {$record->consumable->satuan}"),
                 TextColumn::make('catatan')
+                    ->label(__('Catatan'))
                     ->placeholder('—')
                     ->wrap(),
             ]);

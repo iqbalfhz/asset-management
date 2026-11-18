@@ -21,6 +21,7 @@ class AuditInfolist
                             ->label(__('Ruang'))
                             ->formatStateUsing(fn (Audit $record): string => $record->room->path()),
                         TextEntry::make('status')
+                            ->label(__('Status'))
                             ->badge(),
                         TextEntry::make('creator.name')
                             ->label(__('Dibuat oleh'))
@@ -36,6 +37,7 @@ class AuditInfolist
                             ->label(__('Ditutup oleh'))
                             ->placeholder('—'),
                         TextEntry::make('catatan')
+                            ->label(__('Catatan'))
                             ->placeholder('—')
                             ->columnSpanFull(),
                     ]),

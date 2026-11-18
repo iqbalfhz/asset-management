@@ -47,6 +47,7 @@ class DepartmentResource extends Resource
         return $schema
             ->components([
                 TextInput::make('nama')
+                    ->label(__('Nama'))
                     ->required()
                     ->maxLength(255)
                     ->unique(ignoreRecord: true),
@@ -67,6 +68,7 @@ class DepartmentResource extends Resource
             ->defaultSort('nama')
             ->columns([
                 TextColumn::make('nama')
+                    ->label(__('Nama'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('manager.nama')

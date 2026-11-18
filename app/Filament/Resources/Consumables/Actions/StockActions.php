@@ -26,6 +26,7 @@ class StockActions
             ->modalHeading(fn (Consumable $record): string => __('Stok masuk: :nama', ['nama' => $record->nama]))
             ->schema([
                 TextInput::make('jumlah')
+                    ->label(__('Jumlah'))
                     ->integer()
                     ->minValue(1)
                     ->maxValue(1_000_000)
@@ -37,6 +38,7 @@ class StockActions
                     ->searchable(),
                 static::dateInput(),
                 Textarea::make('catatan')
+                    ->label(__('Catatan'))
                     ->maxLength(1000),
             ])
             ->action(fn (Consumable $record, array $data, Action $action) => static::run(
@@ -58,6 +60,7 @@ class StockActions
             ->modalHeading(fn (Consumable $record): string => __('Stok keluar: :nama', ['nama' => $record->nama]))
             ->schema([
                 TextInput::make('jumlah')
+                    ->label(__('Jumlah'))
                     ->integer()
                     ->minValue(1)
                     ->maxValue(fn (Consumable $record): int => $record->stok)
@@ -67,6 +70,7 @@ class StockActions
                 EmployeeSelect::make(__('Penerima'), fn (Consumable $record): int => $record->company_id),
                 static::dateInput(),
                 Textarea::make('catatan')
+                    ->label(__('Catatan'))
                     ->maxLength(1000),
             ])
             // Penerima dicari ulang dengan hak lihat user, bukan dipercaya dari isian form.
@@ -111,6 +115,7 @@ class StockActions
     private static function dateInput(): DatePicker
     {
         return DatePicker::make('tanggal')
+            ->label(__('Tanggal'))
             ->default(today())
             ->maxDate(today())
             ->required();

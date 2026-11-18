@@ -48,6 +48,7 @@ class AssignmentResource extends Resource
             ->defaultSort('id', 'desc')
             ->columns([
                 TextColumn::make('tanggal')
+                    ->label(__('Tanggal'))
                     ->date('j M Y')
                     ->sortable(),
                 TextColumn::make('asset.kode')
@@ -56,11 +57,13 @@ class AssignmentResource extends Resource
                     ->searchable()
                     ->hidden(fn (Component $livewire): bool => $livewire instanceof RelationManager),
                 TextColumn::make('jenis')
+                    ->label(__('Jenis'))
                     ->badge(),
                 TextColumn::make('pemegang')
                     ->label(__('Pemegang'))
                     ->state(fn (Assignment $record): string => $record->targetLabel()),
-                TextColumn::make('kondisi'),
+                TextColumn::make('kondisi')
+                    ->label(__('Kondisi')),
                 TextColumn::make('no_bast')
                     ->label(__('Nomor BAST'))
                     ->searchable(),
@@ -70,6 +73,7 @@ class AssignmentResource extends Resource
                     ->placeholder('—')
                     ->toggleable(),
                 TextColumn::make('status')
+                    ->label(__('Status'))
                     ->badge(),
                 TextColumn::make('accepted_at')
                     ->label(__('Diterima pada'))
@@ -82,8 +86,10 @@ class AssignmentResource extends Resource
             ])
             ->filters([
                 SelectFilter::make('status')
+                    ->label(__('Status'))
                     ->options(AssignmentStatus::class),
                 SelectFilter::make('jenis')
+                    ->label(__('Jenis'))
                     ->options(AssignmentType::class),
             ])
             ->recordActions([

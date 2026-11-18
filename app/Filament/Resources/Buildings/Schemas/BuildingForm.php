@@ -18,6 +18,7 @@ class BuildingForm
             ->components([
                 CompanySelect::make(),
                 TextInput::make('nama')
+                    ->label(__('Nama'))
                     ->required()
                     ->maxLength(255)
                     ->unique(ignoreRecord: true, modifyRuleUsing: fn (Unique $rule, Get $get): Unique => $rule->where('company_id', $get('company_id'))),

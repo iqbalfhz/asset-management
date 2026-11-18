@@ -62,12 +62,14 @@ class UserResource extends Resource
                     ->required()
                     ->maxLength(255),
                 TextInput::make('username')
+                    ->label(__('Username'))
                     ->required()
                     ->alphaDash()
                     ->autocomplete('off')
                     ->maxLength(50)
                     ->unique(ignoreRecord: true),
                 TextInput::make('email')
+                    ->label(__('Email'))
                     ->email()
                     ->autocomplete('off')
                     ->maxLength(255)
@@ -108,9 +110,11 @@ class UserResource extends Resource
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('username')
+                    ->label(__('Username'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('email')
+                    ->label(__('Email'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('roles.name')

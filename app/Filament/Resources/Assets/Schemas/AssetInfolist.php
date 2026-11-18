@@ -22,8 +22,10 @@ class AssetInfolist
             ->columnSpanFull()
             ->schema([
                 TextEntry::make('kode')
+                    ->label(__('Kode'))
                     ->copyable(),
-                TextEntry::make('nama'),
+                TextEntry::make('nama')
+                    ->label(__('Nama')),
                 TextEntry::make('category.nama')
                     ->label(__('Kategori'))
                     ->badge()

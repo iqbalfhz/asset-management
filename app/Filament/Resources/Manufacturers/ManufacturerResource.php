@@ -44,13 +44,16 @@ class ManufacturerResource extends Resource
         return $schema
             ->components([
                 TextInput::make('nama')
+                    ->label(__('Nama'))
                     ->required()
                     ->maxLength(255)
                     ->unique(ignoreRecord: true),
                 TextInput::make('website')
+                    ->label(__('Website'))
                     ->url()
                     ->maxLength(255),
                 TextInput::make('kontak_support')
+                    ->label(__('Kontak support'))
                     ->maxLength(255),
             ]);
     }
@@ -62,17 +65,22 @@ class ManufacturerResource extends Resource
             ->defaultSort('nama')
             ->columns([
                 TextColumn::make('nama')
+                    ->label(__('Nama'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('website')
+                    ->label(__('Website'))
                     ->searchable(),
                 TextColumn::make('kontak_support')
+                    ->label(__('Kontak support'))
                     ->searchable(),
                 TextColumn::make('created_at')
+                    ->label(__('Dibuat'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
+                    ->label(__('Diperbarui'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

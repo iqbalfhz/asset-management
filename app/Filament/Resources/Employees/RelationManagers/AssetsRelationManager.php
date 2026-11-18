@@ -34,8 +34,10 @@ class AssetsRelationManager extends RelationManager
             ->emptyStateHeading(__('Tidak memegang aset'))
             ->columns([
                 TextColumn::make('kode')
+                    ->label(__('Kode'))
                     ->searchable(),
                 TextColumn::make('nama')
+                    ->label(__('Nama'))
                     ->searchable(),
                 TextColumn::make('category.nama')
                     ->label(__('Kategori')),

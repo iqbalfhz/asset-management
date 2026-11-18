@@ -35,7 +35,8 @@ class AccessoryCheckoutsRelationManager extends RelationManager
             ->columns([
                 TextColumn::make('accessory.nama')
                     ->label(__('Aksesori')),
-                TextColumn::make('jumlah'),
+                TextColumn::make('jumlah')
+                    ->label(__('Jumlah')),
                 AllocatableStock::openedAt(AccessoryCheckout::class, __('Diserahkan')),
             ])
             ->recordActions([

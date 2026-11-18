@@ -44,10 +44,12 @@ class DepreciationResource extends Resource
         return $schema
             ->components([
                 TextInput::make('nama')
+                    ->label(__('Nama'))
                     ->required()
                     ->maxLength(255)
                     ->unique(ignoreRecord: true),
                 TextInput::make('jumlah_bulan')
+                    ->label(__('Jumlah bulan'))
                     ->required()
                     ->integer()
                     ->minValue(1),
@@ -61,16 +63,20 @@ class DepreciationResource extends Resource
             ->defaultSort('nama')
             ->columns([
                 TextColumn::make('nama')
+                    ->label(__('Nama'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('jumlah_bulan')
+                    ->label(__('Jumlah bulan'))
                     ->numeric()
                     ->sortable(),
                 TextColumn::make('created_at')
+                    ->label(__('Dibuat'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
+                    ->label(__('Diperbarui'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

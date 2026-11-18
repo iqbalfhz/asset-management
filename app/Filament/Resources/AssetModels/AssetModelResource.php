@@ -57,10 +57,12 @@ class AssetModelResource extends Resource
                     ->required()
                     ->live(),
                 TextInput::make('nama')
+                    ->label(__('Nama'))
                     ->required()
                     ->maxLength(255)
                     ->unique(ignoreRecord: true, modifyRuleUsing: fn (Unique $rule, Get $get): Unique => $rule->where('manufacturer_id', $get('manufacturer_id'))),
                 TextInput::make('nomor_model')
+                    ->label(__('Nomor model'))
                     ->maxLength(255),
                 Select::make('category_id')
                     ->label(__('Kategori'))
@@ -82,6 +84,7 @@ class AssetModelResource extends Resource
                     ->label(__('Wajib nomor seri'))
                     ->helperText(__('Setiap aset dengan model ini harus punya nomor seri.')),
                 FileUpload::make('foto')
+                    ->label(__('Foto'))
                     ->image()
                     // Tanpa SVG: SVG bisa membawa skrip saat dibuka di browser.
                     ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
@@ -98,15 +101,18 @@ class AssetModelResource extends Resource
             ->defaultSort('nama')
             ->columns([
                 ImageColumn::make('foto')
+                    ->label(__('Foto'))
                     ->square(),
                 TextColumn::make('manufacturer.nama')
                     ->label(__('Produsen'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('nama')
+                    ->label(__('Nama'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('nomor_model')
+                    ->label(__('Nomor model'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('category.nama')

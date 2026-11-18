@@ -51,6 +51,7 @@ class LicenseForm
                     ->searchable()
                     ->preload(),
                 Textarea::make('catatan')
+                    ->label(__('Catatan'))
                     ->maxLength(2000)
                     ->columnSpanFull(),
             ]);

@@ -21,16 +21,19 @@ class RecentAssignments extends TableWidget
             ->emptyStateHeading(__('Belum ada serah-terima'))
             ->columns([
                 TextColumn::make('tanggal')
+                    ->label(__('Tanggal'))
                     ->date('j M Y'),
                 TextColumn::make('asset.kode')
                     ->label(__('Aset'))
                     ->description(fn (Assignment $record): string => $record->asset->nama),
                 TextColumn::make('jenis')
+                    ->label(__('Jenis'))
                     ->badge(),
                 TextColumn::make('pemegang')
                     ->label(__('Pemegang'))
                     ->state(fn (Assignment $record): string => $record->targetLabel()),
                 TextColumn::make('status')
+                    ->label(__('Status'))
                     ->badge(),
             ]);
     }

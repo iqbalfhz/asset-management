@@ -66,10 +66,12 @@ class KitResource extends Resource
                 CompanySelect::make()
                     ->afterStateUpdated(fn (Set $set) => $set('items', [])),
                 TextInput::make('nama')
+                    ->label(__('Nama'))
                     ->required()
                     ->maxLength(255)
                     ->unique(ignoreRecord: true, modifyRuleUsing: fn (Unique $rule, Get $get): Unique => $rule->where('company_id', $get('company_id'))),
                 Textarea::make('keterangan')
+                    ->label(__('Keterangan'))
                     ->maxLength(2000)
                     ->columnSpanFull(),
                 Repeater::make('items')
@@ -91,6 +93,7 @@ class KitResource extends Resource
                             ->searchable()
                             ->required(),
                         TextInput::make('jumlah')
+                            ->label(__('Jumlah'))
                             ->integer()
                             ->minValue(1)
                             ->maxValue(fn (Get $get): ?int => $get('item_type') === License::class ? 1 : null)
@@ -108,6 +111,7 @@ class KitResource extends Resource
             ->defaultSort('nama')
             ->columns([
                 TextColumn::make('nama')
+                    ->label(__('Nama'))
                     ->description(fn (Kit $record): ?string => $record->keterangan)
                     ->searchable()
                     ->sortable(),

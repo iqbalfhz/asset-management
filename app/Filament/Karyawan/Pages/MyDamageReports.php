@@ -54,9 +54,11 @@ class MyDamageReports extends EmployeeTablePage
                     ->label(__('Aset'))
                     ->description(fn (Maintenance $record): string => $record->asset->nama),
                 TextColumn::make('keluhan')
+                    ->label(__('Keluhan'))
                     ->limit(80)
                     ->wrap(),
                 TextColumn::make('status')
+                    ->label(__('Status'))
                     ->badge(),
                 TextColumn::make('catatan_admin')
                     ->label(__('Catatan admin'))

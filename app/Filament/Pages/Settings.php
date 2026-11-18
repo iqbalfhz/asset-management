@@ -83,6 +83,7 @@ class Settings extends Page
                             ->live()
                             ->afterStateUpdated(fn (?string $state) => $this->fillForCompany((int) $state)),
                         FileUpload::make('logo')
+                            ->label(__('Logo'))
                             ->image()
                             // Tanpa SVG: SVG bisa membawa skrip saat dibuka di browser.
                             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])

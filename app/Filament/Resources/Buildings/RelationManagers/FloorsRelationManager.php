@@ -29,6 +29,7 @@ class FloorsRelationManager extends RelationManager
         return $schema
             ->components([
                 TextInput::make('nama')
+                    ->label(__('Nama'))
                     ->required()
                     ->maxLength(255)
                     ->unique(ignoreRecord: true, modifyRuleUsing: fn (Unique $rule): Unique => $rule->where('building_id', $this->getOwnerRecord()->getKey())),
@@ -43,6 +44,7 @@ class FloorsRelationManager extends RelationManager
             ->pluralModelLabel(__('Lantai'))
             ->columns([
                 TextColumn::make('nama')
+                    ->label(__('Nama'))
                     ->searchable(),
                 TextColumn::make('rooms_count')
                     ->label(__('Jumlah ruang'))

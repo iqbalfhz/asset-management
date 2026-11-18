@@ -89,12 +89,14 @@ class DisposalResource extends Resource
                     ->description(fn (Disposal $record): string => $record->asset->nama)
                     ->searchable(),
                 TextColumn::make('metode')
+                    ->label(__('Metode'))
                     ->badge(),
                 TextColumn::make('nilai_jual')
                     ->label(__('Nilai jual'))
                     ->money('IDR', locale: 'id')
                     ->placeholder('—'),
                 TextColumn::make('status')
+                    ->label(__('Status'))
                     ->badge(),
                 TextColumn::make('submitter.name')
                     ->label(__('Pengaju')),
@@ -103,12 +105,14 @@ class DisposalResource extends Resource
                     ->placeholder('—')
                     ->searchable(),
                 TextColumn::make('catatan')
+                    ->label(__('Catatan'))
                     ->limit(60)
                     ->placeholder('—')
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 SelectFilter::make('status')
+                    ->label(__('Status'))
                     ->options(DisposalStatus::class),
             ])
             ->recordActions([

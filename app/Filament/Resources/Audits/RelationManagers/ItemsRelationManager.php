@@ -44,6 +44,7 @@ class ItemsRelationManager extends RelationManager
                     ->description(fn (AuditItem $record): string => $record->asset->nama)
                     ->searchable(),
                 TextColumn::make('hasil')
+                    ->label(__('Hasil'))
                     ->badge(),
                 TextColumn::make('recordedRoom.nama')
                     ->label(__('Tercatat di'))
@@ -64,6 +65,7 @@ class ItemsRelationManager extends RelationManager
             ])
             ->filters([
                 SelectFilter::make('hasil')
+                    ->label(__('Hasil'))
                     ->options(AuditResult::class),
             ])
             ->headerActions([

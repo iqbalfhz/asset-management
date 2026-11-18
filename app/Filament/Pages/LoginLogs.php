@@ -67,6 +67,7 @@ class LoginLogs extends Page implements HasTable
                     ->dateTime('j M Y H:i:s')
                     ->sortable(),
                 TextColumn::make('hasil')
+                    ->label(__('Hasil'))
                     ->badge()
                     ->sortable(),
                 TextColumn::make('user.name')
@@ -92,6 +93,7 @@ class LoginLogs extends Page implements HasTable
             ])
             ->filters([
                 SelectFilter::make('hasil')
+                    ->label(__('Hasil'))
                     ->options(LoginResult::class),
                 SelectFilter::make('user_id')
                     ->label(__('Akun'))

@@ -45,7 +45,8 @@ class InstallationsRelationManager extends RelationManager
                 TextColumn::make('aset')
                     ->label(__('Aset'))
                     ->state(fn (ComponentInstallation $record): string => Assignment::labelFor($record->asset)),
-                TextColumn::make('jumlah'),
+                TextColumn::make('jumlah')
+                    ->label(__('Jumlah')),
                 AllocatableStock::openedAt(ComponentInstallation::class, __('Dipasang')),
                 TextColumn::make('installer.name')
                     ->label(__('Oleh'))
@@ -53,6 +54,7 @@ class InstallationsRelationManager extends RelationManager
                     ->toggleable(),
                 AllocatableStock::releasedAt(ComponentInstallation::class, __('Dilepas')),
                 TextColumn::make('catatan')
+                    ->label(__('Catatan'))
                     ->placeholder('—')
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
@@ -67,11 +69,13 @@ class InstallationsRelationManager extends RelationManager
                     ->schema([
                         AssetSelect::make(__('Aset'), $component->company_id),
                         TextInput::make('jumlah')
+                            ->label(__('Jumlah'))
                             ->integer()
                             ->minValue(1)
                             ->default(1)
                             ->required(),
                         Textarea::make('catatan')
+                            ->label(__('Catatan'))
                             ->maxLength(1000),
                     ])
                     // Aset dicari ulang dengan hak lihat user, bukan dipercaya dari isian form.

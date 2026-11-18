@@ -49,10 +49,12 @@ class CompanyResource extends Resource
         return $schema
             ->components([
                 TextInput::make('nama')
+                    ->label(__('Nama'))
                     ->required()
                     ->maxLength(255)
                     ->unique(ignoreRecord: true),
                 TextInput::make('kode')
+                    ->label(__('Kode'))
                     ->helperText(__('Awalan kode aset, contoh TCM.'))
                     ->required()
                     ->alphaNum()
@@ -71,9 +73,11 @@ class CompanyResource extends Resource
             ->defaultSort('nama')
             ->columns([
                 TextColumn::make('nama')
+                    ->label(__('Nama'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('kode')
+                    ->label(__('Kode'))
                     ->searchable()
                     ->sortable(),
                 IconColumn::make('is_active')

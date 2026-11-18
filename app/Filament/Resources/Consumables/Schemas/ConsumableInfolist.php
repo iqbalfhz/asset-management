@@ -18,19 +18,22 @@ class ConsumableInfolist
                     ->columns(3)
                     ->columnSpanFull()
                     ->schema([
-                        TextEntry::make('nama'),
+                        TextEntry::make('nama')
+                            ->label(__('Nama')),
                         TextEntry::make('role.name')
                             ->label(__('Role pengelola'))
                             ->formatStateUsing(fn (string $state): string => Str::headline($state)),
                         TextEntry::make('company.nama')
                             ->label(__('Perusahaan')),
                         TextEntry::make('stok')
+                            ->label(__('Stok'))
                             ->formatStateUsing(fn (int $state, Consumable $record): string => "{$state} {$record->satuan}")
                             ->color(fn (Consumable $record): ?string => $record->isLow() ? 'danger' : null),
                         TextEntry::make('stok_minimum')
                             ->label(__('Batas minimum'))
                             ->formatStateUsing(fn (int $state, Consumable $record): string => $state > 0 ? "{$state} {$record->satuan}" : __('Tidak dipantau')),
                         TextEntry::make('catatan')
+                            ->label(__('Catatan'))
                             ->placeholder('—'),
                     ]),
             ]);

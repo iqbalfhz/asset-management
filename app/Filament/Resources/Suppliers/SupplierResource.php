@@ -44,10 +44,12 @@ class SupplierResource extends Resource
         return $schema
             ->components([
                 TextInput::make('nama')
+                    ->label(__('Nama'))
                     ->required()
                     ->maxLength(255)
                     ->unique(ignoreRecord: true),
                 TextInput::make('kontak')
+                    ->label(__('Kontak'))
                     ->maxLength(255),
             ]);
     }
@@ -59,16 +61,20 @@ class SupplierResource extends Resource
             ->defaultSort('nama')
             ->columns([
                 TextColumn::make('nama')
+                    ->label(__('Nama'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('kontak')
+                    ->label(__('Kontak'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('created_at')
+                    ->label(__('Dibuat'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
+                    ->label(__('Diperbarui'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

@@ -33,16 +33,19 @@ class ConsumableTransactionsRelationManager extends RelationManager
             ->emptyStateHeading(__('Belum pernah menerima barang habis pakai'))
             ->columns([
                 TextColumn::make('tanggal')
+                    ->label(__('Tanggal'))
                     ->date('j M Y'),
                 TextColumn::make('consumable.nama')
                     ->label(__('Barang')),
                 TextColumn::make('jumlah')
+                    ->label(__('Jumlah'))
                     ->formatStateUsing(fn (int $state, ConsumableTransaction $record): string => "{$state} {$record->consumable->satuan}"),
                 TextColumn::make('creator.name')
                     ->label(__('Dicatat oleh'))
                     ->placeholder('—')
                     ->toggleable(),
                 TextColumn::make('catatan')
+                    ->label(__('Catatan'))
                     ->limit(50)
                     ->placeholder('—'),
             ]);

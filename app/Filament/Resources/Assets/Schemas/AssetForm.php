@@ -72,6 +72,7 @@ class AssetForm
             ->schema([
                 CompanySelect::make(),
                 TextInput::make('nama')
+                    ->label(__('Nama'))
                     ->required()
                     ->maxLength(255),
                 Select::make('category_id')
@@ -110,6 +111,7 @@ class AssetForm
                     ->visibleOn('create'),
                 ...static::serialNumberFields(),
                 FileUpload::make('foto')
+                    ->label(__('Foto'))
                     ->image()
                     // Tanpa SVG: SVG bisa membawa skrip saat dibuka di browser.
                     ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])

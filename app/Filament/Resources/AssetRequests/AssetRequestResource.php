@@ -76,20 +76,24 @@ class AssetRequestResource extends Resource
                     ->badge()
                     ->color(fn (AssetRequest $record): ?array => BadgeColor::fromHex($record->category->warna)),
                 TextColumn::make('alasan')
+                    ->label(__('Alasan'))
                     ->limit(60)
                     ->wrap(),
                 TextColumn::make('status')
+                    ->label(__('Status'))
                     ->badge(),
                 TextColumn::make('assignment.asset.kode')
                     ->label(__('Aset diserahkan'))
                     ->placeholder('—'),
                 TextColumn::make('catatan')
+                    ->label(__('Catatan'))
                     ->limit(60)
                     ->placeholder('—')
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 SelectFilter::make('status')
+                    ->label(__('Status'))
                     ->options(AssetRequestStatus::class),
             ])
             ->recordActions([

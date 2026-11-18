@@ -37,6 +37,7 @@ class AuditsTable
                     ->description(fn (Audit $record): string => $record->room->floor->path())
                     ->searchable(),
                 TextColumn::make('status')
+                    ->label(__('Status'))
                     ->badge(),
                 TextColumn::make('items_count')
                     ->label(__('Aset')),
@@ -50,6 +51,7 @@ class AuditsTable
             ])
             ->filters([
                 SelectFilter::make('status')
+                    ->label(__('Status'))
                     ->options(AuditStatus::class),
             ])
             ->recordActions([

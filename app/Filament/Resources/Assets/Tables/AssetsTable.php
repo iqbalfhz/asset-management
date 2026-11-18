@@ -68,10 +68,12 @@ class AssetsTable
     {
         return [
             TextColumn::make('kode')
+                ->label(__('Kode'))
                 ->searchable()
                 ->sortable()
                 ->copyable(),
             TextColumn::make('nama')
+                ->label(__('Nama'))
                 ->searchable(),
             TextColumn::make('category.nama')
                 ->label(__('Kategori'))

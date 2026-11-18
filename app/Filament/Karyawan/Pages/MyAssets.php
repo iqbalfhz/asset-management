@@ -68,8 +68,10 @@ class MyAssets extends EmployeeTablePage
                 ->where('assigned_id', $employee?->getKey() ?? 0)
                 ->whereHas('status', fn (Builder $query) => $query->whereIn('nama', [Status::DIPAKAI, Status::DALAM_PERBAIKAN])))
             ->columns([
-                TextColumn::make('kode'),
+                TextColumn::make('kode')
+                    ->label(__('Kode')),
                 TextColumn::make('nama')
+                    ->label(__('Nama'))
                     ->description(fn (Asset $record): ?string => $record->assetModel?->fullName()),
                 TextColumn::make('category.nama')
                     ->label(__('Kategori')),

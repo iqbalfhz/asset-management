@@ -41,6 +41,7 @@ class AuditItemsRelationManager extends RelationManager
                 TextColumn::make('audit.room.nama')
                     ->label(__('Ruang diaudit')),
                 TextColumn::make('hasil')
+                    ->label(__('Hasil'))
                     ->badge(),
                 TextColumn::make('discan_pada')
                     ->label(__('Discan'))

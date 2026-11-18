@@ -115,25 +115,30 @@ class MaintenanceResource extends Resource
                     ->label(__('Pelapor'))
                     ->placeholder(__('Admin')),
                 TextColumn::make('keluhan')
+                    ->label(__('Keluhan'))
                     ->limit(60)
                     ->wrap(),
                 TextColumn::make('status')
+                    ->label(__('Status'))
                     ->badge(),
                 TextColumn::make('supplier.nama')
                     ->label(__('Vendor'))
                     ->placeholder('—')
                     ->toggleable(),
                 TextColumn::make('biaya')
+                    ->label(__('Biaya'))
                     ->money('IDR', locale: 'id')
                     ->placeholder('—')
                     ->toggleable(),
                 TextColumn::make('hasil')
+                    ->label(__('Hasil'))
                     ->limit(60)
                     ->placeholder('—')
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 SelectFilter::make('status')
+                    ->label(__('Status'))
                     ->options(MaintenanceStatus::class),
             ])
             ->recordActions([

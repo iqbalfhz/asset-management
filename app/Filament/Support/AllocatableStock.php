@@ -38,6 +38,7 @@ class AllocatableStock
         return [
             CompanySelect::make(),
             TextInput::make('nama')
+                ->label(__('Nama'))
                 ->required()
                 ->maxLength(255)
                 ->unique(ignoreRecord: true, modifyRuleUsing: fn (Unique $rule, Get $get): Unique => $rule->where('company_id', $get('company_id'))),
@@ -62,6 +63,7 @@ class AllocatableStock
                 ->default(0)
                 ->required(),
             Textarea::make('catatan')
+                ->label(__('Catatan'))
                 ->maxLength(2000)
                 ->columnSpanFull(),
         ];
@@ -97,6 +99,7 @@ class AllocatableStock
     {
         return [
             TextColumn::make('nama')
+                ->label(__('Nama'))
                 ->description(fn (Model $record): string => Str::headline($record->role->name))
                 ->searchable()
                 ->sortable(),
@@ -123,7 +126,8 @@ class AllocatableStock
     private static function infolistEntries(): array
     {
         return [
-            TextEntry::make('nama'),
+            TextEntry::make('nama')
+                ->label(__('Nama')),
             TextEntry::make('role.name')
                 ->label(__('Role pengelola'))
                 ->formatStateUsing(fn (string $state): string => Str::headline($state)),
@@ -140,6 +144,7 @@ class AllocatableStock
                 ->label(__('Produsen'))
                 ->placeholder('—'),
             TextEntry::make('catatan')
+                ->label(__('Catatan'))
                 ->placeholder('—'),
         ];
     }

@@ -51,9 +51,11 @@ class MyAssetRequests extends EmployeeTablePage
                 TextColumn::make('category.nama')
                     ->label(__('Kategori')),
                 TextColumn::make('alasan')
+                    ->label(__('Alasan'))
                     ->limit(80)
                     ->wrap(),
                 TextColumn::make('status')
+                    ->label(__('Status'))
                     ->badge(),
                 TextColumn::make('catatan')
                     ->label(__('Catatan admin'))

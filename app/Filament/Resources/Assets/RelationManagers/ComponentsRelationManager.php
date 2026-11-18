@@ -35,7 +35,8 @@ class ComponentsRelationManager extends RelationManager
             ->columns([
                 TextColumn::make('component.nama')
                     ->label(__('Komponen')),
-                TextColumn::make('jumlah'),
+                TextColumn::make('jumlah')
+                    ->label(__('Jumlah')),
                 AllocatableStock::openedAt(ComponentInstallation::class, __('Dipasang')),
                 AllocatableStock::releasedAt(ComponentInstallation::class, __('Dilepas')),
             ])

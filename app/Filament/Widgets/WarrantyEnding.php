@@ -22,8 +22,10 @@ class WarrantyEnding extends TableWidget
             ->emptyStateHeading(__('Tidak ada garansi yang segera habis'))
             ->recordUrl(fn (Asset $record): string => AssetResource::getUrl('edit', ['record' => $record]))
             ->columns([
-                TextColumn::make('kode'),
-                TextColumn::make('nama'),
+                TextColumn::make('kode')
+                    ->label(__('Kode')),
+                TextColumn::make('nama')
+                    ->label(__('Nama')),
                 TextColumn::make('category.nama')
                     ->label(__('Kategori')),
                 TextColumn::make('garansi_sampai')

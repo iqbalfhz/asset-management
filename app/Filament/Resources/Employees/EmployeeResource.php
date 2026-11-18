@@ -71,9 +71,11 @@ class EmployeeResource extends Resource
                     ->maxLength(50)
                     ->unique(ignoreRecord: true, modifyRuleUsing: fn (Unique $rule, Get $get): Unique => $rule->where('company_id', $get('company_id'))),
                 TextInput::make('nama')
+                    ->label(__('Nama'))
                     ->required()
                     ->maxLength(255),
                 TextInput::make('jabatan')
+                    ->label(__('Jabatan'))
                     ->maxLength(255),
                 Select::make('department_id')
                     ->label(__('Departemen'))
@@ -100,8 +102,10 @@ class EmployeeResource extends Resource
                     ->schema([
                         TextEntry::make('nik')
                             ->label(__('NIK')),
-                        TextEntry::make('nama'),
+                        TextEntry::make('nama')
+                            ->label(__('Nama')),
                         TextEntry::make('jabatan')
+                            ->label(__('Jabatan'))
                             ->placeholder('—'),
                         TextEntry::make('department.nama')
                             ->label(__('Departemen'))
@@ -129,9 +133,11 @@ class EmployeeResource extends Resource
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('nama')
+                    ->label(__('Nama'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('jabatan')
+                    ->label(__('Jabatan'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('department.nama')

@@ -44,7 +44,8 @@ class CheckoutsRelationManager extends RelationManager
                 TextColumn::make('employee.nama')
                     ->label(__('Karyawan'))
                     ->description(fn (AccessoryCheckout $record): string => $record->employee->nik),
-                TextColumn::make('jumlah'),
+                TextColumn::make('jumlah')
+                    ->label(__('Jumlah')),
                 AllocatableStock::openedAt(AccessoryCheckout::class, __('Diserahkan')),
                 TextColumn::make('giver.name')
                     ->label(__('Oleh'))
@@ -52,6 +53,7 @@ class CheckoutsRelationManager extends RelationManager
                     ->toggleable(),
                 AllocatableStock::releasedAt(AccessoryCheckout::class, __('Dikembalikan')),
                 TextColumn::make('catatan')
+                    ->label(__('Catatan'))
                     ->placeholder('—')
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
@@ -66,11 +68,13 @@ class CheckoutsRelationManager extends RelationManager
                     ->schema([
                         EmployeeSelect::make(__('Karyawan'), $accessory->company_id),
                         TextInput::make('jumlah')
+                            ->label(__('Jumlah'))
                             ->integer()
                             ->minValue(1)
                             ->default(1)
                             ->required(),
                         Textarea::make('catatan')
+                            ->label(__('Catatan'))
                             ->maxLength(1000),
                     ])
                     // Karyawan dicari ulang dengan hak lihat user, bukan dipercaya dari isian form.

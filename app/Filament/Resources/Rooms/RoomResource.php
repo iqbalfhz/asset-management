@@ -56,6 +56,7 @@ class RoomResource extends Resource
                     ->required()
                     ->live(),
                 TextInput::make('nama')
+                    ->label(__('Nama'))
                     ->required()
                     ->maxLength(255)
                     ->unique(ignoreRecord: true, modifyRuleUsing: fn (Unique $rule, Get $get): Unique => $rule->where('floor_id', $get('floor_id'))),
@@ -81,6 +82,7 @@ class RoomResource extends Resource
                     ->label(__('Lantai'))
                     ->sortable(),
                 TextColumn::make('nama')
+                    ->label(__('Nama'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('manager.nama')

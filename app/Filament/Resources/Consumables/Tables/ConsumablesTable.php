@@ -21,10 +21,12 @@ class ConsumablesTable
             ->defaultSort('nama')
             ->columns([
                 TextColumn::make('nama')
+                    ->label(__('Nama'))
                     ->description(fn (Consumable $record): string => Str::headline($record->role->name))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('stok')
+                    ->label(__('Stok'))
                     ->formatStateUsing(fn (int $state, Consumable $record): string => "{$state} {$record->satuan}")
                     ->color(fn (Consumable $record): ?string => $record->isLow() ? 'danger' : null)
                     ->sortable(),

@@ -51,10 +51,12 @@ class CategoryResource extends Resource
         return $schema
             ->components([
                 TextInput::make('nama')
+                    ->label(__('Nama'))
                     ->required()
                     ->maxLength(255)
                     ->unique(ignoreRecord: true),
                 TextInput::make('kode')
+                    ->label(__('Kode'))
                     ->helperText(__('Dipakai di kode aset, contoh LPT.'))
                     ->required()
                     ->alphaNum()
@@ -90,11 +92,13 @@ class CategoryResource extends Resource
             ->defaultSort('nama')
             ->columns([
                 TextColumn::make('nama')
+                    ->label(__('Nama'))
                     ->badge()
                     ->color(fn (Category $record): ?array => BadgeColor::fromHex($record->warna))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('kode')
+                    ->label(__('Kode'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('role.name')
@@ -107,6 +111,7 @@ class CategoryResource extends Resource
                     ->color('gray')
                     ->limitList(3),
                 TextColumn::make('updated_at')
+                    ->label(__('Diperbarui'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
