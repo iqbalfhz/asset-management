@@ -18,6 +18,8 @@ class AccessoryCheckout extends Model
     /** @use HasFactory<AccessoryCheckoutFactory> */
     use HasFactory, LogsChanges, ReleasesAllocation;
 
+    public const string OPENED_AT = 'diserahkan_pada';
+
     public const string RELEASED_AT = 'dikembalikan_pada';
 
     public const string RELEASED_BY = 'dikembalikan_oleh';

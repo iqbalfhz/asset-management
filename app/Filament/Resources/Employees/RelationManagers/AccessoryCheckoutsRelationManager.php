@@ -29,17 +29,14 @@ class AccessoryCheckoutsRelationManager extends RelationManager
     {
         return $table
             ->modifyQueryUsing(fn (Builder $query): Builder => $query->with('accessory')->open())
-            ->defaultSort('diserahkan_pada', 'desc')
+            ->defaultSort(AccessoryCheckout::OPENED_AT, 'desc')
             ->recordUrl(fn (AccessoryCheckout $record): string => AccessoryResource::getUrl('view', ['record' => $record->accessory_id]))
             ->emptyStateHeading(__('Tidak memegang aksesori'))
             ->columns([
                 TextColumn::make('accessory.nama')
                     ->label(__('Aksesori')),
                 TextColumn::make('jumlah'),
-                TextColumn::make('diserahkan_pada')
-                    ->label(__('Diserahkan'))
-                    ->dateTime('j M Y, H:i')
-                    ->sortable(),
+                AllocatableStock::openedAt(AccessoryCheckout::class, __('Diserahkan')),
             ])
             ->recordActions([
                 AllocatableStock::releaseAction(__('Kembalikan'), __('Aksesori dikembalikan'), 'accessory'),

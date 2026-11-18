@@ -7,16 +7,21 @@ use App\Filament\Schemas\Components\CompanySelect;
 use App\Filament\Schemas\Components\ManagingRoleSelect;
 use App\Filament\Tables\Columns\CompanyColumn;
 use Filament\Actions\Action;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Field;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\Column;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
@@ -62,10 +67,33 @@ class AllocatableStock
         ];
     }
 
+    // Daftar barang di halaman resource-nya.
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['role', 'manufacturer', 'company']))
+            ->defaultSort('nama')
+            ->columns(static::tableColumns())
+            ->recordActions([
+                ViewAction::make(),
+                EditAction::make(),
+            ]);
+    }
+
+    public static function infolist(Schema $schema, string $title): Schema
+    {
+        return $schema->components([
+            Section::make($title)
+                ->columns(3)
+                ->columnSpanFull()
+                ->schema(static::infolistEntries()),
+        ]);
+    }
+
     /**
      * @return array<int, Column>
      */
-    public static function tableColumns(): array
+    private static function tableColumns(): array
     {
         return [
             TextColumn::make('nama')
@@ -92,7 +120,7 @@ class AllocatableStock
     /**
      * @return array<int, TextEntry>
      */
-    public static function infolistEntries(): array
+    private static function infolistEntries(): array
     {
         return [
             TextEntry::make('nama'),
@@ -128,6 +156,17 @@ class AllocatableStock
             ->toggle()
             ->default()
             ->query(fn (Builder $query): Builder => $query->whereNull($line::RELEASED_AT));
+    }
+
+    /**
+     * @param  class-string<Model>  $line
+     */
+    public static function openedAt(string $line, string $label): TextColumn
+    {
+        return TextColumn::make($line::OPENED_AT)
+            ->label($label)
+            ->dateTime('j M Y, H:i')
+            ->sortable();
     }
 
     /**

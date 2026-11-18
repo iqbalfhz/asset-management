@@ -176,6 +176,18 @@ class Asset extends Model
         $this->refresh();
     }
 
+    // Barang berperusahaan (seat lisensi, komponen) hanya dipasang ke aset yang belum dihapuskan di perusahaan yang sama.
+    public function ensureCanReceive(Model $item): void
+    {
+        if ($this->status->nama === Status::DIHAPUSKAN) {
+            throw new LogicException(__('Aset :kode sudah dihapuskan.', ['kode' => $this->kode]));
+        }
+
+        if ((int) $this->company_id !== (int) $item->getAttribute('company_id')) {
+            throw new LogicException(__('Aset :kode berada di perusahaan lain.', ['kode' => $this->kode]));
+        }
+    }
+
     // Ajuan penghapusan yang masih menunggu harus ditolak dulu sebelum aset dipakai lagi.
     public function ensureNoPendingDisposal(): void
     {
@@ -362,6 +374,14 @@ class Asset extends Model
     public function licenseSeats(): HasMany
     {
         return $this->hasMany(LicenseSeat::class);
+    }
+
+    /**
+     * @return HasMany<ComponentInstallation, $this>
+     */
+    public function componentInstallations(): HasMany
+    {
+        return $this->hasMany(ComponentInstallation::class);
     }
 
     /**

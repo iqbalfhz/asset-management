@@ -39,16 +39,13 @@ class CheckoutsRelationManager extends RelationManager
 
         return $table
             ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['accessory', 'employee', 'giver']))
-            ->defaultSort('diserahkan_pada', 'desc')
+            ->defaultSort(AccessoryCheckout::OPENED_AT, 'desc')
             ->columns([
                 TextColumn::make('employee.nama')
                     ->label(__('Karyawan'))
                     ->description(fn (AccessoryCheckout $record): string => $record->employee->nik),
                 TextColumn::make('jumlah'),
-                TextColumn::make('diserahkan_pada')
-                    ->label(__('Diserahkan'))
-                    ->dateTime('j M Y, H:i')
-                    ->sortable(),
+                AllocatableStock::openedAt(AccessoryCheckout::class, __('Diserahkan')),
                 TextColumn::make('giver.name')
                     ->label(__('Oleh'))
                     ->placeholder('—')

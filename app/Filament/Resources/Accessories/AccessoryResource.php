@@ -8,14 +8,10 @@ use App\Filament\Resources\Accessories\RelationManagers\CheckoutsRelationManager
 use App\Filament\Support\AllocatableStock;
 use App\Models\Accessory;
 use BackedEnum;
-use Filament\Actions\EditAction;
-use Filament\Actions\ViewAction;
 use Filament\Resources\Resource;
-use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 
 class AccessoryResource extends Resource
 {
@@ -44,24 +40,12 @@ class AccessoryResource extends Resource
 
     public static function infolist(Schema $schema): Schema
     {
-        return $schema->components([
-            Section::make(__('Aksesori'))
-                ->columns(3)
-                ->columnSpanFull()
-                ->schema(AllocatableStock::infolistEntries()),
-        ]);
+        return AllocatableStock::infolist($schema, __('Aksesori'));
     }
 
     public static function table(Table $table): Table
     {
-        return $table
-            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['role', 'manufacturer', 'company']))
-            ->defaultSort('nama')
-            ->columns(AllocatableStock::tableColumns())
-            ->recordActions([
-                ViewAction::make(),
-                EditAction::make(),
-            ]);
+        return AllocatableStock::table($table);
     }
 
     public static function getRelations(): array

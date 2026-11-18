@@ -3,15 +3,14 @@
 namespace App\Filament\Resources\Licenses\RelationManagers;
 
 use App\Filament\Actions\DomainAction;
+use App\Filament\Schemas\Components\AssetSelect;
 use App\Filament\Schemas\Components\EmployeeSelect;
 use App\Filament\Tables\LicenseSeatTable;
 use App\Models\Asset;
 use App\Models\Employee;
 use App\Models\License;
 use App\Models\LicenseSeat;
-use App\Models\Status;
 use Filament\Actions\Action;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Utilities\Get;
@@ -74,21 +73,8 @@ class SeatsRelationManager extends RelationManager
                             ->live(),
                         EmployeeSelect::make(__('Karyawan'), $license->company_id)
                             ->visible(fn (Get $get): bool => $get('jenis') === 'karyawan'),
-                        Select::make('asset_id')
-                            ->label(__('Aset'))
-                            ->searchable()
-                            ->getSearchResultsUsing(fn (string $search): array => Asset::query()
-                                ->where('company_id', $license->company_id)
-                                ->whereDoesntHave('status', fn (Builder $query) => $query->where('nama', Status::DIHAPUSKAN))
-                                ->where(fn (Builder $query) => $query->where('kode', 'like', "%{$search}%")->orWhere('nama', 'like', "%{$search}%"))
-                                ->orderBy('kode')
-                                ->limit(50)
-                                ->get()
-                                ->mapWithKeys(fn (Asset $asset): array => [$asset->id => "{$asset->kode} — {$asset->nama}"])
-                                ->all())
-                            ->getOptionLabelUsing(fn (int|string $value): ?string => Asset::query()->whereKey($value)->value('kode'))
-                            ->visible(fn (Get $get): bool => $get('jenis') === 'aset')
-                            ->required(),
+                        AssetSelect::make(__('Aset'), $license->company_id)
+                            ->visible(fn (Get $get): bool => $get('jenis') === 'aset'),
                     ])
                     ->action(function (array $data, Action $action) use ($license): void {
                         // Pemakai dicari ulang dengan hak lihat user, bukan dipercaya dari isian form.

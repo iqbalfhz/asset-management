@@ -65,17 +65,7 @@ class License extends Model
                 throw new LogicException(__('Lisensi :nama sudah lewat tanggal habis.', ['nama' => $license->nama_software]));
             }
 
-            if ((int) $holder->company_id !== (int) $license->company_id) {
-                throw new LogicException(__(':pemegang berada di perusahaan lain.', ['pemegang' => $label]));
-            }
-
-            if ($holder instanceof Employee) {
-                $holder->ensureActive();
-            }
-
-            if ($holder instanceof Asset && $holder->status->nama === Status::DIHAPUSKAN) {
-                throw new LogicException(__('Aset :kode sudah dihapuskan.', ['kode' => $holder->kode]));
-            }
+            $holder->ensureCanReceive($license);
 
             $column = $holder instanceof Employee ? 'employee_id' : 'asset_id';
             $activeSeats = LicenseSeat::withoutGlobalScopes()->where('license_id', $license->getKey())->whereNull('dilepas_pada');
