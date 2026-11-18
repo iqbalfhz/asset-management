@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages\Auth;
 
+use DanHarrin\LivewireRateLimiting\Exceptions\TooManyRequestsException;
 use Filament\Actions\Action;
 use Filament\Auth\Http\Responses\Contracts\LoginResponse;
 use Filament\Auth\Pages\Login as BaseLogin;
@@ -14,24 +15,17 @@ use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Js;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use SensitiveParameter;
 
 class Login extends BaseLogin
 {
-    // Sama dengan batas percobaan per menit di Login bawaan Filament.
-    private const int MAX_ATTEMPTS = 5;
+    // Batas percobaan gagal per menit untuk satu akun dari satu alamat IP.
+    private const int MAX_FAILED_ATTEMPTS = 5;
 
     // Detik sampai boleh mencoba lagi; selama lebih dari 0, tombol Masuk terkunci dan menghitung mundur di browser.
     public int $lockedSeconds = 0;
-
-    #[Unexposed]
-    public function mount(): void
-    {
-        parent::mount();
-
-        $this->lockedSeconds = $this->secondsUntilUnlocked();
-    }
 
     #[Exposed]
     public function authenticate(): ?LoginResponse
@@ -77,8 +71,21 @@ class Login extends BaseLogin
         ];
     }
 
+    // Pengganti batas bawaan Filament (per IP, semua percobaan dihitung): satu kantor keluar lewat satu IP,
+    // jadi batas dihitung per akun dan IP, dan hanya percobaan gagal yang menambah hitungan.
+    protected function rateLimit($maxAttempts, $decaySeconds = 60, $method = null, $component = null): void
+    {
+        $seconds = $this->secondsUntilUnlocked();
+
+        if ($seconds > 0) {
+            throw new TooManyRequestsException(static::class, 'authenticate', request()->ip(), $seconds);
+        }
+    }
+
     protected function throwFailureValidationException(): never
     {
+        RateLimiter::hit($this->loginRateLimitKey());
+
         throw ValidationException::withMessages([
             'data.login' => __('filament-panels::auth/pages/login.messages.failed'),
         ]);
@@ -105,8 +112,13 @@ class Login extends BaseLogin
 
     private function secondsUntilUnlocked(): int
     {
-        $key = $this->getRateLimitKey('authenticate');
+        $key = $this->loginRateLimitKey();
 
-        return RateLimiter::tooManyAttempts($key, self::MAX_ATTEMPTS) ? RateLimiter::availableIn($key) : 0;
+        return RateLimiter::tooManyAttempts($key, self::MAX_FAILED_ATTEMPTS) ? RateLimiter::availableIn($key) : 0;
+    }
+
+    private function loginRateLimitKey(): string
+    {
+        return 'login:'.Str::transliterate(Str::lower(trim((string) ($this->data['login'] ?? '')))).'|'.request()->ip();
     }
 }
