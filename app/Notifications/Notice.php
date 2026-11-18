@@ -11,17 +11,13 @@ use App\Models\AssetRequest;
 use App\Models\Category;
 use App\Models\Employee;
 use App\Models\Setting;
-use App\Models\User;
-use App\Notifications\Channels\TelegramChannel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use Illuminate\Support\Str;
 
-// Notifikasi bertema Kertas: pembuka, beberapa daftar, dan satu tombol. Isinya disusun saat dikirim,
-// jadi tidak dibaca ulang dengan hak lihat user lain. Ke user lewat email, ke grup admin lewat Telegram.
+// Email notifikasi bertema Kertas: pembuka, beberapa daftar, dan satu tombol. Isinya disusun saat dikirim,
+// jadi tidak dibaca ulang dengan hak lihat user lain.
 final class Notice extends Notification implements ShouldQueue
 {
     use Queueable;
@@ -89,38 +85,11 @@ final class Notice extends Notification implements ShouldQueue
         );
     }
 
-    public static function telegramTest(): self
-    {
-        return new self(
-            __('Uji notifikasi Telegram'),
-            __('Bot :app sudah terhubung ke grup ini. Laporan kerusakan dan permintaan aset baru akan dikirim ke sini.', ['app' => config('app.name')]),
-            [],
-            __('Buka :app', ['app' => config('app.name')]),
-            url('/'),
-        );
-    }
-
-    /**
-     * Email ke pengelola kategori, dan ke grup admin Telegram kalau dinyalakan di Pengaturan.
-     */
-    public function sendToManagers(int $roleId, int $companyId): void
-    {
-        User::managersOf($roleId, $companyId)->each->notify($this);
-
-        if (Setting::get('telegram_enabled', false) && TelegramChannel::isConfigured()) {
-            TelegramChannel::adminGroup()->notify($this);
-        }
-    }
-
     /**
      * @return array<int, string>
      */
     public function via(object $notifiable): array
     {
-        if ($notifiable instanceof AnonymousNotifiable) {
-            return [TelegramChannel::class];
-        }
-
         return Setting::get('email_notifikasi', true) ? ['mail'] : [];
     }
 
@@ -131,19 +100,7 @@ final class Notice extends Notification implements ShouldQueue
      */
     public function viaConnections(): array
     {
-        return ['mail' => 'deferred', TelegramChannel::class => 'deferred'];
-    }
-
-    /**
-     * Teks HTML Telegram; semua isian di-escape.
-     */
-    public function toTelegram(): string
-    {
-        $sections = collect($this->sections)->map(fn (array $lines, string $heading): string => '<b>'.e($heading)."</b>\n"
-            .collect($lines)->map(fn (string $line): string => '• '.e(Str::limit($line, 500)))->implode("\n"));
-
-        return collect(['<b>'.e($this->subject).'</b>', e($this->intro), ...$sections, '<a href="'.e($this->actionUrl).'">'.e($this->actionLabel).'</a>'])
-            ->implode("\n\n");
+        return ['mail' => 'deferred'];
     }
 
     public function toMail(object $notifiable): MailMessage

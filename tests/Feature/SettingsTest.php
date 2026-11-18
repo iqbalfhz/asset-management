@@ -37,7 +37,6 @@ test('super admin saves global and per-company settings without mixing companies
         ->fillForm([
             'company_separation' => true,
             'email_notifikasi' => false,
-            'telegram_enabled' => false,
             'company_id' => $this->companyA->id,
             'kop_bast' => 'PT Tangcity',
             'format_nomor_bast' => 'BAST/{KODE}/{TAHUN}/{NOMOR}',
@@ -53,7 +52,6 @@ test('super admin saves global and per-company settings without mixing companies
 
     expect(Setting::get('company_separation'))->toBeTrue()
         ->and(Setting::get('email_notifikasi'))->toBeFalse()
-        ->and(Setting::get('telegram_enabled'))->toBeFalse()
         ->and(Setting::get('kop_bast', null, $this->companyA->id))->toBe('PT Tangcity')
         ->and(Setting::get('kop_bast', null, $this->companyB->id))->toBe('PT Lain')
         ->and(Setting::get('format_nomor_bast', null, $this->companyB->id))->toBe('BA/{NOMOR}');
