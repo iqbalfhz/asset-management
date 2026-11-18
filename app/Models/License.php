@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\LogsChanges;
 use App\Models\Scopes\CompanyScope;
 use App\Models\Scopes\ManagedRoleScope;
+use Carbon\CarbonInterface;
 use Database\Factories\LicenseFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -99,9 +100,9 @@ class License extends Model
 
     // Lisensi yang sudah lewat atau akan habis dalam masa peringatan.
     #[Scope]
-    protected function expiringSoon(Builder $query): void
+    protected function expiringSoon(Builder $query, ?CarbonInterface $until = null): void
     {
-        $query->whereNotNull('tgl_habis')->whereDate('tgl_habis', '<=', today()->addDays(static::EXPIRY_WARNING_DAYS));
+        $query->whereNotNull('tgl_habis')->whereDate('tgl_habis', '<=', $until ?? today()->addDays(static::EXPIRY_WARNING_DAYS));
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Enums\AssetRequestStatus;
+use App\Enums\DigestFrequency;
 use App\Filament\Karyawan\Pages\MyAssetRequests;
 use App\Filament\Resources\AssetRequests\AssetRequestResource;
 use App\Filament\Resources\Maintenances\MaintenanceResource;
@@ -74,10 +75,14 @@ final class Notice extends Notification implements ShouldQueue
     /**
      * @param  array<string, array<int, string>>  $sections
      */
-    public static function dailyDigest(array $sections, string $url): self
+    public static function digest(DigestFrequency $frequency, array $sections, string $url): self
     {
         return new self(
-            __('Ringkasan harian :tanggal', ['tanggal' => today()->translatedFormat('j F Y')]),
+            match ($frequency) {
+                DigestFrequency::Bulanan => __('Ringkasan bulanan :bulan', ['bulan' => today()->translatedFormat('F Y')]),
+                DigestFrequency::Tahunan => __('Ringkasan tahunan :tahun', ['tahun' => today()->year]),
+                default => __('Ringkasan mingguan :tanggal', ['tanggal' => today()->translatedFormat('j F Y')]),
+            },
             __('Berikut hal yang perlu ditindaklanjuti.'),
             $sections,
             __('Buka :app', ['app' => config('app.name')]),

@@ -9,8 +9,8 @@ test('the queue and the nightly backup run from the scheduler, since the server 
         ->assertSuccessful();
 });
 
-test('the daily email digest runs at seven in the morning', function () {
+test('the email digest check runs every morning at seven', function () {
     Artisan::call('schedule:list');
 
-    expect(Artisan::output())->toMatch('/0\s+7\s+\*\s+\*\s+\*\s+php artisan notifikasi:harian/');
+    expect(Artisan::output())->toMatch('/0\s+7\s+\*\s+\*\s+\*\s+php artisan notifikasi:ringkasan/');
 });

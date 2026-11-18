@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\DigestFrequency;
 use App\Models\Concerns\LogsChanges;
 use App\Models\Scopes\CompanyScope;
 use Database\Factories\UserFactory;
@@ -25,13 +26,15 @@ use Jeffgreco13\FilamentBreezy\Traits\TwoFactorAuthenticatable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'username', 'email', 'avatar_url', 'password', 'company_id', 'is_active'])]
+#[Fillable(['name', 'username', 'email', 'digest_frequency', 'avatar_url', 'password', 'company_id', 'is_active'])]
 #[Hidden(['password', 'remember_token'])]
 #[ScopedBy([CompanyScope::class])]
 class User extends Authenticatable implements FilamentUser, HasAvatar
 {
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, HasRoles, LogsChanges, Notifiable, TwoFactorAuthenticatable;
+
+    protected $attributes = ['digest_frequency' => DigestFrequency::Mati->value];
 
     // Admin juga karyawan yang memegang aset, jadi role admin ikut membuka panel karyawan; panel auth hanya halaman masuk.
     public function canAccessPanel(Panel $panel): bool
@@ -132,6 +135,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
         return [
             'email_verified_at' => 'datetime',
             'is_active' => 'boolean',
+            'digest_frequency' => DigestFrequency::class,
             'password' => 'hashed',
         ];
     }

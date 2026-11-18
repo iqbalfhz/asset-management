@@ -38,7 +38,7 @@ class Asset extends Model
         'requestable' => false,
     ];
 
-    // Batas hari pengingat di dashboard dan ringkasan harian.
+    // Batas hari pengingat bawaan di dashboard dan ringkasan email.
     public const int WARRANTY_WARNING_DAYS = 60;
 
     public const int EOL_WARNING_DAYS = 90;
@@ -225,18 +225,18 @@ class Asset extends Model
     }
 
     #[Scope]
-    protected function warrantyEndingSoon(Builder $query): void
+    protected function warrantyEndingSoon(Builder $query, ?CarbonInterface $until = null): void
     {
         $query->whereDate('garansi_sampai', '>=', today())
-            ->whereDate('garansi_sampai', '<=', today()->addDays(static::WARRANTY_WARNING_DAYS))
+            ->whereDate('garansi_sampai', '<=', $until ?? today()->addDays(static::WARRANTY_WARNING_DAYS))
             ->whereRelation('status', 'nama', '!=', Status::DIHAPUSKAN);
     }
 
     #[Scope]
-    protected function eolSoon(Builder $query): void
+    protected function eolSoon(Builder $query, ?CarbonInterface $until = null): void
     {
         $query->whereDate('eol_date', '>=', today())
-            ->whereDate('eol_date', '<=', today()->addDays(static::EOL_WARNING_DAYS))
+            ->whereDate('eol_date', '<=', $until ?? today()->addDays(static::EOL_WARNING_DAYS))
             ->whereRelation('status', 'nama', '!=', Status::DIHAPUSKAN);
     }
 
@@ -249,9 +249,9 @@ class Asset extends Model
 
     // Termasuk audit yang sudah terlambat.
     #[Scope]
-    protected function auditDueSoon(Builder $query): void
+    protected function auditDueSoon(Builder $query, ?CarbonInterface $until = null): void
     {
-        $query->whereDate('next_audit_date', '<=', today()->addDays(static::AUDIT_WARNING_DAYS))->auditable();
+        $query->whereDate('next_audit_date', '<=', $until ?? today()->addDays(static::AUDIT_WARNING_DAYS))->auditable();
     }
 
     /**

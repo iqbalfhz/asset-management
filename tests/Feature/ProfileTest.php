@@ -1,10 +1,12 @@
 <?php
 
+use App\Enums\DigestFrequency;
 use App\Livewire\ApiTokens;
 use App\Livewire\PersonalInfo;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Jeffgreco13\FilamentBreezy\Livewire\BrowserSessions;
 use Jeffgreco13\FilamentBreezy\Livewire\TwoFactorAuthentication;
@@ -72,3 +74,20 @@ test('the profile photo is shown through a signed temporary link', function () {
     expect($user->getFilamentAvatarUrl())->toContain('signature=')
         ->and(User::factory()->make(['avatar_url' => null])->getFilamentAvatarUrl())->toBeNull();
 });
+
+test('the email digest starts switched off, and each user picks their own in Profile', function (string $panel, string $role) {
+    Filament::setCurrentPanel($panel);
+    $user = userWithRole($role, $panel);
+    $this->actingAs($user);
+
+    // Default kolom juga mati, supaya user yang sudah ada sebelum fitur ini tidak tiba-tiba menerima ringkasan.
+    expect($user->refresh()->digest_frequency)->toBe(DigestFrequency::Mati)
+        ->and(collect(Schema::getColumns('users'))->firstWhere('name', 'digest_frequency')['default'])->toContain('mati');
+
+    livewire(PersonalInfo::class)
+        ->fillForm(['digest_frequency' => DigestFrequency::Bulanan->value])
+        ->call('submit')
+        ->assertHasNoFormErrors();
+
+    expect($user->refresh()->digest_frequency)->toBe(DigestFrequency::Bulanan);
+})->with([['admin', 'admin_it'], ['karyawan', 'karyawan']]);

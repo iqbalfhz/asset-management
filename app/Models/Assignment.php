@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\AssignmentStatus;
 use App\Enums\AssignmentType;
+use Carbon\CarbonInterface;
 use Database\Factories\AssignmentFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -28,7 +29,7 @@ class Assignment extends Model
     /** @use HasFactory<AssignmentFactory> */
     use HasFactory;
 
-    // Batas hari pengingat di ringkasan harian.
+    // Batas hari pengingat bawaan di ringkasan email.
     public const int RETURN_WARNING_DAYS = 3;
 
     public const int UNACCEPTED_REMINDER_DAYS = 2;
@@ -208,12 +209,12 @@ class Assignment extends Model
             ->stillWithTarget();
     }
 
-    // Pinjaman yang tanggal kembalinya tinggal RETURN_WARNING_DAYS hari atau sudah lewat.
+    // Pinjaman yang tanggal kembalinya sudah lewat atau sampai batas (bawaan: RETURN_WARNING_DAYS hari lagi).
     #[Scope]
-    protected function returnDueSoon(Builder $query): void
+    protected function returnDueSoon(Builder $query, ?CarbonInterface $until = null): void
     {
         $query->where('jenis', AssignmentType::Keluar)
-            ->whereDate('expected_return_at', '<=', today()->addDays(static::RETURN_WARNING_DAYS))
+            ->whereDate('expected_return_at', '<=', $until ?? today()->addDays(static::RETURN_WARNING_DAYS))
             ->stillWithTarget();
     }
 

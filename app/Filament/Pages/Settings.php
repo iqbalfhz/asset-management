@@ -72,7 +72,7 @@ class Settings extends Page
                             ->helperText(__('Kalau nyala, user hanya melihat data perusahaannya, kecuali yang punya izin lihat semua perusahaan.')),
                         Toggle::make('email_notifikasi')
                             ->label(__('Kirim notifikasi email'))
-                            ->helperText(__('Laporan kerusakan, permintaan aset, dan ringkasan harian jam 07:00. Email kode lupa password tetap terkirim.')),
+                            ->helperText(__('Laporan kerusakan, permintaan aset, dan ringkasan email yang dipilih tiap user di Profil. Email kode lupa password tetap terkirim.')),
                     ]),
                 Section::make(__('Per perusahaan'))
                     ->schema([

@@ -21,8 +21,8 @@ Schedule::command('backup:clean')->dailyAt('01:00')->onOneServer()->runInBackgro
 Schedule::command('backup:run')->dailyAt('01:30')->onOneServer()->runInBackground();
 Schedule::command('backup:monitor')->dailyAt('03:00')->onOneServer();
 
-// Email ringkasan harian sebelum jam kantor (waktu Asia/Jakarta).
-Schedule::command('notifikasi:harian')->dailyAt('07:00')->onOneServer();
+// Ringkasan email sebelum jam kantor (waktu Asia/Jakarta), ke user yang jadwal pilihannya jatuh hari itu.
+Schedule::command('notifikasi:ringkasan')->dailyAt('07:00')->onOneServer();
 
 // Log masuk disimpan satu tahun (LoginLog::prunable).
 Schedule::command('model:prune', ['--model' => [LoginLog::class]])->dailyAt('02:00')->onOneServer();
