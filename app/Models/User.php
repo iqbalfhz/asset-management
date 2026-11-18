@@ -4,13 +4,16 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\DigestFrequency;
+use App\Enums\Language;
 use App\Models\Concerns\LogsChanges;
 use App\Models\Scopes\CompanyScope;
+use Closure;
 use Database\Factories\UserFactory;
 use Filament\Facades\Filament;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasAvatar;
 use Filament\Panel;
+use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Attributes\ScopedBy;
@@ -21,20 +24,42 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Traits\Localizable;
 use Jeffgreco13\FilamentBreezy\Traits\TwoFactorAuthenticatable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'username', 'email', 'digest_frequency', 'avatar_url', 'password', 'company_id', 'is_active'])]
+#[Fillable(['name', 'username', 'email', 'digest_frequency', 'locale', 'avatar_url', 'password', 'company_id', 'is_active'])]
 #[Hidden(['password', 'remember_token'])]
 #[ScopedBy([CompanyScope::class])]
-class User extends Authenticatable implements FilamentUser, HasAvatar
+class User extends Authenticatable implements FilamentUser, HasAvatar, HasLocalePreference
 {
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasFactory, HasRoles, LogsChanges, Notifiable, TwoFactorAuthenticatable;
+    use HasApiTokens, HasFactory, HasRoles, Localizable, LogsChanges, Notifiable, TwoFactorAuthenticatable;
 
-    protected $attributes = ['digest_frequency' => DigestFrequency::Mati->value];
+    protected $attributes = ['digest_frequency' => DigestFrequency::Mati->value, 'locale' => Language::Indonesia->value];
+
+    // Email dan notifikasi Laravel ke user ini dikirim dalam bahasanya.
+    public function preferredLocale(): string
+    {
+        return $this->locale->value;
+    }
+
+    // Jalankan sesuatu (menyusun notifikasi, ringkasan) dalam bahasa user ini, bukan bahasa user yang sedang membuka aplikasi.
+    public function inOwnLanguage(Closure $callback): mixed
+    {
+        return $this->withLocale($this->preferredLocale(), $callback);
+    }
+
+    /**
+     * @param  Closure(): Notification  $notice
+     */
+    public function notifyInOwnLanguage(Closure $notice): void
+    {
+        $this->notify($this->inOwnLanguage($notice));
+    }
 
     // Admin juga karyawan yang memegang aset, jadi role admin ikut membuka panel karyawan; panel auth hanya halaman masuk.
     public function canAccessPanel(Panel $panel): bool
@@ -136,6 +161,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
             'email_verified_at' => 'datetime',
             'is_active' => 'boolean',
             'digest_frequency' => DigestFrequency::class,
+            'locale' => Language::class,
             'password' => 'hashed',
         ];
     }

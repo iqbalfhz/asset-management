@@ -75,11 +75,11 @@ class LocationImporter extends Importer
 
     public static function getCompletedNotificationTitle(Import $import): string
     {
-        return __('Import lokasi selesai');
+        return $import->user->inOwnLanguage(fn (): string => __('Import lokasi selesai'));
     }
 
     public static function getCompletedNotificationBody(Import $import): string
     {
-        return static::importResult($import, __('ruang'));
+        return static::importResult($import, fn (): string => __('ruang'));
     }
 }

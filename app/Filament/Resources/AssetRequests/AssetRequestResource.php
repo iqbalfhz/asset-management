@@ -38,7 +38,7 @@ class AssetRequestResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('Permintaan aset');
+        return trans_choice('Permintaan aset|Permintaan aset', 2);
     }
 
     public static function canCreate(): bool

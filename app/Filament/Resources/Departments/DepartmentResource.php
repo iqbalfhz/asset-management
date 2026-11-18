@@ -34,7 +34,7 @@ class DepartmentResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('Departemen');
+        return trans_choice('Departemen|Departemen', 2);
     }
 
     public static function getNavigationGroup(): ?string

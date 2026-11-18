@@ -40,7 +40,7 @@ class AssetResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('Aset');
+        return trans_choice('Aset|Aset', 2);
     }
 
     public static function form(Schema $schema): Schema

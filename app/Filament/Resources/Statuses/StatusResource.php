@@ -36,7 +36,7 @@ class StatusResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('Status');
+        return trans_choice('Status|Status', 2);
     }
 
     public static function getNavigationGroup(): ?string

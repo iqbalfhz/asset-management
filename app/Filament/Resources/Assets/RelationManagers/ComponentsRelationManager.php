@@ -18,7 +18,7 @@ class ComponentsRelationManager extends RelationManager
 
     public static function getTitle(Model $ownerRecord, string $pageClass): string
     {
-        return __('Komponen');
+        return trans_choice('Komponen|Komponen', 2);
     }
 
     public function isReadOnly(): bool

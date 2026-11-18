@@ -15,7 +15,7 @@ class AuditItemsRelationManager extends RelationManager
 
     public static function getTitle(Model $ownerRecord, string $pageClass): string
     {
-        return __('Stock opname');
+        return trans_choice('Stock opname|Stock opname', 2);
     }
 
     public function isReadOnly(): bool

@@ -95,7 +95,7 @@ class AssetForm
                     ->live(),
                 Select::make('status_id')
                     ->label(__('Status awal'))
-                    ->options(fn (): array => Status::query()->whereIn('nama', [Status::DISIAPKAN, Status::TERSEDIA])->pluck('nama', 'id')->all())
+                    ->options(fn (): array => Status::initialOptions())
                     ->default(fn (): ?int => Status::query()->where('nama', Status::DISIAPKAN)->value('id'))
                     ->required()
                     ->visibleOn('create'),

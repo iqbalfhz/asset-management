@@ -31,7 +31,7 @@ class DepreciationResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('Kelas Penyusutan');
+        return trans_choice('Kelas Penyusutan|Kelas Penyusutan', 2);
     }
 
     public static function getNavigationGroup(): ?string

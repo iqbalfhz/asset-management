@@ -80,11 +80,11 @@ class LicenseImporter extends Importer
 
     public static function getCompletedNotificationTitle(Import $import): string
     {
-        return __('Import lisensi selesai');
+        return $import->user->inOwnLanguage(fn (): string => __('Import lisensi selesai'));
     }
 
     public static function getCompletedNotificationBody(Import $import): string
     {
-        return static::importResult($import, __('lisensi'));
+        return static::importResult($import, fn (): string => __('lisensi'));
     }
 }

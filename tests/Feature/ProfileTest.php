@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\DigestFrequency;
+use App\Enums\Language;
 use App\Livewire\ApiTokens;
 use App\Livewire\PersonalInfo;
 use App\Models\User;
@@ -91,3 +92,19 @@ test('the email digest starts switched off, and each user picks their own in Pro
 
     expect($user->refresh()->digest_frequency)->toBe(DigestFrequency::Bulanan);
 })->with([['admin', 'admin_it'], ['karyawan', 'karyawan']]);
+
+test('a user switches the interface language in Profile', function () {
+    Filament::setCurrentPanel('admin');
+    $user = userWithRole('admin_it');
+    $this->actingAs($user);
+
+    expect($user->refresh()->locale)->toBe(Language::Indonesia);
+
+    livewire(PersonalInfo::class)
+        ->fillForm(['locale' => Language::English->value])
+        ->call('submit')
+        ->assertHasNoFormErrors();
+
+    expect($user->refresh()->locale)->toBe(Language::English)
+        ->and($user->preferredLocale())->toBe('en');
+});

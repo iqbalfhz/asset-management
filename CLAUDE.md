@@ -45,7 +45,8 @@ Kerjakan per fase. Ikuti sub-tab fase yang sedang aktif. Jangan mengerjakan fitu
 ## Pengaturan dasar
 
 - Zona waktu `Asia/Jakarta`, `APP_LOCALE=id`, uang dalam Rupiah (`->money('IDR', locale: 'id')`)
-- Teks antarmuka buatan sendiri lewat `__()`
+- Teks antarmuka buatan sendiri lewat `__()`, dengan label eksplisit (tanpa label otomatis Filament). Setiap teks baru wajib punya terjemahan di `lang/en.json` (dijaga `TranslationTest`)
+- Bahasa per user (Indonesia/English) di Profil; email disusun dalam bahasa penerima (`User::inOwnLanguage`). Dokumen resmi (BAST, berita acara, laporan, label) selalu berbahasa Indonesia
 
 ## Cara kerja
 

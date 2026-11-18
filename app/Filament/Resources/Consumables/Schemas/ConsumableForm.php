@@ -37,7 +37,7 @@ class ConsumableForm
                     ->required(),
                 TextInput::make('stok_awal')
                     ->label(__('Stok awal'))
-                    ->helperText(__('Dicatat sebagai transaksi masuk. Setelah ini, stok hanya berubah lewat Masuk dan Keluar.'))
+                    ->helperText(__('Dicatat sebagai transaksi masuk. Setelah ini, stok hanya berubah lewat Stok masuk dan Stok keluar.'))
                     ->integer()
                     ->minValue(0)
                     ->default(0)

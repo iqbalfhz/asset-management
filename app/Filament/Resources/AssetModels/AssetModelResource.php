@@ -37,7 +37,7 @@ class AssetModelResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('Model Aset');
+        return trans_choice('Model Aset|Model Aset', 2);
     }
 
     public static function getNavigationGroup(): ?string

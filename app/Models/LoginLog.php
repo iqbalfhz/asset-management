@@ -45,13 +45,13 @@ class LoginLog extends Model
         return blank($typed) ? null : Str::substr($typed, 0, 2).'•••';
     }
 
-    // Nama negara dalam Bahasa Indonesia; T1 = jaringan Tor, XX = tidak diketahui Cloudflare.
+    // Nama negara dalam bahasa user; T1 = jaringan Tor, XX = tidak diketahui Cloudflare.
     public function countryName(): ?string
     {
         return match ($this->negara) {
             null, 'XX' => null,
             'T1' => __('Jaringan Tor'),
-            default => Locale::getDisplayRegion("-{$this->negara}", 'id'),
+            default => Locale::getDisplayRegion("-{$this->negara}", app()->getLocale()),
         };
     }
 

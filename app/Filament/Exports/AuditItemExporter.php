@@ -48,11 +48,11 @@ class AuditItemExporter extends Exporter
 
     public static function getCompletedNotificationTitle(Export $export): string
     {
-        return __('Export hasil stock opname selesai');
+        return $export->user->inOwnLanguage(fn (): string => __('Export hasil stock opname selesai'));
     }
 
     public static function getCompletedNotificationBody(Export $export): string
     {
-        return static::exportResult($export, __('aset'));
+        return static::exportResult($export, fn (): string => __('aset'));
     }
 }

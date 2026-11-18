@@ -2,20 +2,28 @@
 
 namespace App\Filament\Exports\Concerns;
 
+use Closure;
 use Filament\Actions\Exports\Models\Export;
 use Illuminate\Support\Number;
 
+// Notifikasi export selesai dibuat di antrean, jadi isinya disusun dalam bahasa user yang mengexport (judulnya juga, di tiap exporter).
 trait DescribesExportResult
 {
-    // Isi notifikasi export selesai: jumlah baris berhasil, ditambah jumlah yang gagal kalau ada.
-    protected static function exportResult(Export $export, string $noun): string
+    /**
+     * Jumlah baris berhasil, ditambah jumlah yang gagal kalau ada.
+     *
+     * @param  Closure(): string  $noun
+     */
+    protected static function exportResult(Export $export, Closure $noun): string
     {
-        $body = __(':count :data berhasil diexport.', ['count' => Number::format($export->successful_rows, locale: 'id'), 'data' => $noun]);
+        return $export->user->inOwnLanguage(function () use ($export, $noun): string {
+            $body = __(':count :data berhasil diexport.', ['count' => Number::format($export->successful_rows, locale: app()->getLocale()), 'data' => $noun()]);
 
-        if ($failedRowsCount = $export->getFailedRowsCount()) {
-            $body .= ' '.__(':count baris gagal diexport.', ['count' => Number::format($failedRowsCount, locale: 'id')]);
-        }
+            if ($failedRowsCount = $export->getFailedRowsCount()) {
+                $body .= ' '.__(':count baris gagal diexport.', ['count' => Number::format($failedRowsCount, locale: app()->getLocale())]);
+            }
 
-        return $body;
+            return $body;
+        });
     }
 }

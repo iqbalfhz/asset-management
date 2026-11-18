@@ -16,7 +16,7 @@ class LicenseSeatsRelationManager extends RelationManager
 
     public static function getTitle(Model $ownerRecord, string $pageClass): string
     {
-        return __('Lisensi');
+        return trans_choice('Lisensi|Lisensi', 2);
     }
 
     public function isReadOnly(): bool

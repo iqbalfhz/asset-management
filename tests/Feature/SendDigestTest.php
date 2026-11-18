@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\DigestFrequency;
+use App\Enums\Language;
 use App\Models\Asset;
 use App\Models\Assignment;
 use App\Models\Category;
@@ -164,4 +165,16 @@ test('a long list stops at ten lines, and inactive managers or managers without 
         ->and(end($warranties))->toBe('dan 2 lainnya');
 
     Notification::assertNotSentTo([$inactive, $withoutEmail], Notice::class);
+});
+
+test('a user who picked English gets the digest in English', function () {
+    $this->adminIt->update(['locale' => Language::English]);
+    availableAsset($this->tcm, $this->laptops, ['garansi_sampai' => today()->addDays(30)]);
+
+    $this->artisan('notifikasi:ringkasan')->assertSuccessful();
+
+    Notification::assertSentTo($this->adminIt, Notice::class, fn (Notice $notice): bool => $notice->subject === 'Weekly summary 1 February 2027');
+
+    expect(digestFor($this->adminIt))->toContain('Warranties ending by 2 Apr 2027');
+    expect(digestFor($this->adminGa))->toBeNull();
 });

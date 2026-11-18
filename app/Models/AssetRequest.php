@@ -14,7 +14,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Notification;
 use LogicException;
 
 #[Fillable(['employee_id', 'category_id', 'alasan', 'status', 'catatan', 'diputuskan_oleh', 'assignment_id'])]
@@ -62,7 +61,8 @@ class AssetRequest extends Model
                 'status' => AssetRequestStatus::Diajukan,
             ]);
 
-            Notification::send(User::managersOf($category->role_id, $employee->company_id), Notice::assetRequested($employee, $category, $alasan));
+            User::managersOf($category->role_id, $employee->company_id)
+                ->each->notifyInOwnLanguage(fn (): Notice => Notice::assetRequested($employee, $category, $alasan));
 
             return $request;
         });
@@ -139,7 +139,7 @@ class AssetRequest extends Model
             $requester = $this->employee->user;
 
             if ($requester?->canReceiveEmail()) {
-                $requester->notify(Notice::assetRequestDecided($this));
+                $requester->notifyInOwnLanguage(fn (): Notice => Notice::assetRequestDecided($this));
             }
         });
     }

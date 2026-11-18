@@ -14,7 +14,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Notification;
 use LogicException;
 
 #[Fillable([
@@ -61,7 +60,8 @@ class Maintenance extends Model
                 'foto' => $foto,
             ]);
 
-            Notification::send(User::managersOf($asset->category->role_id, $asset->company_id), Notice::damageReported($asset, $employee, $keluhan));
+            User::managersOf($asset->category->role_id, $asset->company_id)
+                ->each->notifyInOwnLanguage(fn (): Notice => Notice::damageReported($asset, $employee, $keluhan));
 
             return $maintenance;
         });
@@ -104,7 +104,7 @@ class Maintenance extends Model
             $asset = $this->lockedAsset();
 
             if (! in_array($asset->status->nama, [Status::TERSEDIA, Status::DIPAKAI, Status::RUSAK], true)) {
-                throw new LogicException(__('Aset :kode berstatus :status, jadi tidak bisa diperbaiki.', ['kode' => $asset->kode, 'status' => $asset->status->nama]));
+                throw new LogicException(__('Aset :kode berstatus :status, jadi tidak bisa diperbaiki.', ['kode' => $asset->kode, 'status' => $asset->status->label()]));
             }
 
             $asset->ensureNoPendingDisposal();

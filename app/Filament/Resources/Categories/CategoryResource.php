@@ -38,7 +38,7 @@ class CategoryResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('Kategori');
+        return trans_choice('Kategori|Kategori', 2);
     }
 
     public static function getNavigationGroup(): ?string

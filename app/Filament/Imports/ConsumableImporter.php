@@ -85,11 +85,11 @@ class ConsumableImporter extends Importer
 
     public static function getCompletedNotificationTitle(Import $import): string
     {
-        return __('Import barang habis pakai selesai');
+        return $import->user->inOwnLanguage(fn (): string => __('Import barang habis pakai selesai'));
     }
 
     public static function getCompletedNotificationBody(Import $import): string
     {
-        return static::importResult($import, __('barang'));
+        return static::importResult($import, fn (): string => __('barang'));
     }
 }

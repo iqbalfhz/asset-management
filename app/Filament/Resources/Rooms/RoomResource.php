@@ -36,7 +36,7 @@ class RoomResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('Ruang');
+        return trans_choice('Ruang|Ruang', 2);
     }
 
     public static function getNavigationGroup(): ?string

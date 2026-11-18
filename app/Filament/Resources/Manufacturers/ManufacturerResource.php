@@ -31,7 +31,7 @@ class ManufacturerResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('Produsen');
+        return trans_choice('Produsen|Produsen', 2);
     }
 
     public static function getNavigationGroup(): ?string

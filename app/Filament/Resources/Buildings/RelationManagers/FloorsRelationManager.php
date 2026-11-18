@@ -21,7 +21,7 @@ class FloorsRelationManager extends RelationManager
 
     public static function getTitle(Model $ownerRecord, string $pageClass): string
     {
-        return __('Lantai');
+        return trans_choice('Lantai|Lantai', 2);
     }
 
     public function form(Schema $schema): Schema
@@ -41,7 +41,7 @@ class FloorsRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('nama')
             ->modelLabel(__('Lantai'))
-            ->pluralModelLabel(__('Lantai'))
+            ->pluralModelLabel(trans_choice('Lantai|Lantai', 2))
             ->columns([
                 TextColumn::make('nama')
                     ->label(__('Nama'))

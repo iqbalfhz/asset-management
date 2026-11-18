@@ -64,7 +64,7 @@ class AuditItem extends Model
             $asset = $this->lockedAsset();
 
             if (! in_array($asset->status->nama, [Status::DISIAPKAN, Status::TERSEDIA, Status::DIPAKAI], true)) {
-                throw new LogicException(__('Aset :kode berstatus :status, jadi tidak bisa ditandai hilang.', ['kode' => $asset->kode, 'status' => $asset->status->nama]));
+                throw new LogicException(__('Aset :kode berstatus :status, jadi tidak bisa ditandai hilang.', ['kode' => $asset->kode, 'status' => $asset->status->label()]));
             }
 
             $asset->transitionTo(Status::named(Status::HILANG));

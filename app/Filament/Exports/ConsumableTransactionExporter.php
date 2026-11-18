@@ -74,11 +74,11 @@ class ConsumableTransactionExporter extends Exporter
 
     public static function getCompletedNotificationTitle(Export $export): string
     {
-        return __('Export riwayat stok selesai');
+        return $export->user->inOwnLanguage(fn (): string => __('Export riwayat stok selesai'));
     }
 
     public static function getCompletedNotificationBody(Export $export): string
     {
-        return static::exportResult($export, __('transaksi'));
+        return static::exportResult($export, fn (): string => __('transaksi'));
     }
 }

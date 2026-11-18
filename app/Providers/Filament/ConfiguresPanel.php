@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Http\Middleware\SetUserLocale;
 use App\Livewire\PersonalInfo;
 use Closure;
 use Filament\FontProviders\LocalFontProvider;
@@ -68,6 +69,7 @@ trait ConfiguresPanel
                 AddQueuedCookiesToResponse::class,
                 StartSession::class,
                 AuthenticateSession::class,
+                SetUserLocale::class,
                 ShareErrorsFromSession::class,
                 PreventRequestForgery::class,
                 SubstituteBindings::class,

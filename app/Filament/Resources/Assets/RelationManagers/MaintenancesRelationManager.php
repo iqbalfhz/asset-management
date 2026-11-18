@@ -13,7 +13,7 @@ class MaintenancesRelationManager extends RelationManager
 
     public static function getTitle(Model $ownerRecord, string $pageClass): string
     {
-        return __('Perbaikan');
+        return trans_choice('Perbaikan|Perbaikan', 2);
     }
 
     public function isReadOnly(): bool

@@ -39,7 +39,7 @@ class DisposalResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('Penghapusan');
+        return trans_choice('Penghapusan|Penghapusan', 2);
     }
 
     public static function form(Schema $schema): Schema

@@ -212,5 +212,5 @@ test('the history export follows the table search and the date range, with signe
         return true;
     });
 
-    expect(ConsumableTransactionExporter::test(columnMap: ['jenis' => 'Jenis', 'jumlah' => 'Jumlah'])->export($inRange))->toBe(['Keluar', '-3']);
+    expect(ConsumableTransactionExporter::test(columnMap: ['jenis' => 'Jenis', 'jumlah' => 'Jumlah'])->export($inRange))->toBe(['Stok keluar', '-3']);
 });

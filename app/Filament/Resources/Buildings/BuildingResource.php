@@ -30,7 +30,7 @@ class BuildingResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('Gedung');
+        return trans_choice('Gedung|Gedung', 2);
     }
 
     public static function getNavigationGroup(): ?string

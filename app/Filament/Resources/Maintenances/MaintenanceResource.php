@@ -40,7 +40,7 @@ class MaintenanceResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('Perbaikan');
+        return trans_choice('Perbaikan|Perbaikan', 2);
     }
 
     public static function getNavigationBadge(): ?string
@@ -104,7 +104,7 @@ class MaintenanceResource extends Resource
             ->defaultSort('id', 'desc')
             ->columns([
                 TextColumn::make('created_at')
-                    ->label(__('Masuk'))
+                    ->label(__('Tanggal masuk'))
                     ->date('j M Y'),
                 TextColumn::make('asset.kode')
                     ->label(__('Aset'))

@@ -72,7 +72,7 @@ class Disposal extends Model
             $asset = Asset::withoutGlobalScopes()->with('status')->whereKey($this->asset_id)->lockForUpdate()->firstOrFail();
 
             if (! in_array($asset->status->nama, [Status::RUSAK, Status::HILANG], true)) {
-                throw new LogicException(__('Aset :kode sekarang berstatus :status, jadi tidak bisa dihapuskan.', ['kode' => $asset->kode, 'status' => $asset->status->nama]));
+                throw new LogicException(__('Aset :kode sekarang berstatus :status, jadi tidak bisa dihapuskan.', ['kode' => $asset->kode, 'status' => $asset->status->label()]));
             }
 
             $this->update([

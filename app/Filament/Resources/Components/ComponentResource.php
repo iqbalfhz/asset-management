@@ -30,7 +30,7 @@ class ComponentResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('Komponen');
+        return trans_choice('Komponen|Komponen', 2);
     }
 
     public static function form(Schema $schema): Schema

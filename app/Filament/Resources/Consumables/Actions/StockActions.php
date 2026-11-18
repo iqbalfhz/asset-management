@@ -20,7 +20,7 @@ class StockActions
     public static function receive(): Action
     {
         return Action::make('receive')
-            ->label(__('Masuk'))
+            ->label(__('Stok masuk'))
             ->icon(Heroicon::OutlinedArrowDownTray)
             ->authorize('update')
             ->modalHeading(fn (Consumable $record): string => __('Stok masuk: :nama', ['nama' => $record->nama]))
@@ -51,7 +51,7 @@ class StockActions
     public static function issue(): Action
     {
         return Action::make('issue')
-            ->label(__('Keluar'))
+            ->label(__('Stok keluar'))
             ->icon(Heroicon::OutlinedArrowUpTray)
             ->color('gray')
             ->authorize('update')

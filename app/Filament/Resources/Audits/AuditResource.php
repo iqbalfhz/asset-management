@@ -32,7 +32,7 @@ class AuditResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('Stock opname');
+        return trans_choice('Stock opname|Stock opname', 2);
     }
 
     public static function form(Schema $schema): Schema

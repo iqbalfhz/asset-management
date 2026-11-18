@@ -22,7 +22,7 @@ class AttachmentsRelationManager extends RelationManager
 
     public static function getTitle(Model $ownerRecord, string $pageClass): string
     {
-        return __('Lampiran');
+        return trans_choice('Lampiran|Lampiran', 2);
     }
 
     public function form(Schema $schema): Schema
@@ -54,7 +54,7 @@ class AttachmentsRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('nama_file')
             ->modelLabel(__('Lampiran'))
-            ->pluralModelLabel(__('Lampiran'))
+            ->pluralModelLabel(trans_choice('Lampiran|Lampiran', 2))
             ->columns([
                 TextColumn::make('nama_file')
                     ->label(__('Nama file'))

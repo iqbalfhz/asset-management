@@ -36,7 +36,7 @@ class CompanyResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('Perusahaan');
+        return trans_choice('Perusahaan|Perusahaan', 2);
     }
 
     public static function getNavigationGroup(): ?string

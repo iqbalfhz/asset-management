@@ -20,8 +20,8 @@ enum StockMovement: string implements HasColor, HasLabel
     public function getLabel(): string
     {
         return match ($this) {
-            self::Masuk => __('Masuk'),
-            self::Keluar => __('Keluar'),
+            self::Masuk => __('Stok masuk'),
+            self::Keluar => __('Stok keluar'),
             self::PenyesuaianTambah => __('Penyesuaian (+)'),
             self::PenyesuaianKurang => __('Penyesuaian (−)'),
         };

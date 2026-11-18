@@ -14,6 +14,7 @@ use App\Models\Floor;
 use App\Models\Role;
 use App\Models\Room;
 use App\Models\Status;
+use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Database\Seeders\StatusSeeder;
 use Filament\Actions\ExportAction;
@@ -132,8 +133,10 @@ test('an owner without 2FA passes the export download check', function () {
 });
 
 test('the export result tells how many rows were exported and how many failed', function () {
-    expect(AssetExporter::getCompletedNotificationBody(new Export(['total_rows' => 1001, 'successful_rows' => 1000])))
+    $export = fn (array $rows): Export => (new Export($rows))->setRelation('user', User::factory()->make());
+
+    expect(AssetExporter::getCompletedNotificationBody($export(['total_rows' => 1001, 'successful_rows' => 1000])))
         ->toBe('1.000 aset berhasil diexport. 1 baris gagal diexport.')
-        ->and(LicenseExporter::getCompletedNotificationBody(new Export(['total_rows' => 3, 'successful_rows' => 3])))
+        ->and(LicenseExporter::getCompletedNotificationBody($export(['total_rows' => 3, 'successful_rows' => 3])))
         ->toBe('3 lisensi berhasil diexport.');
 });

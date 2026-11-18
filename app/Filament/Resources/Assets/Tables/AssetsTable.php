@@ -7,6 +7,7 @@ use App\Filament\Resources\Assets\Actions\AssetTransactionActions;
 use App\Filament\Resources\Assets\Actions\PrintLabelActions;
 use App\Filament\Resources\Assets\AssetResource;
 use App\Filament\Support\BadgeColor;
+use App\Filament\Tables\Columns\AssetStatusColumn;
 use App\Models\Asset;
 use App\Models\Assignment;
 use App\Models\Employee;
@@ -79,10 +80,7 @@ class AssetsTable
                 ->label(__('Kategori'))
                 ->badge()
                 ->color(fn (Asset $record): ?array => BadgeColor::fromHex($record->category->warna)),
-            TextColumn::make('status.nama')
-                ->label(__('Status'))
-                ->badge()
-                ->color(fn (Asset $record): ?array => BadgeColor::fromHex($record->status->warna)),
+            AssetStatusColumn::make(),
             TextColumn::make('pemegang')
                 ->label(__('Pemegang'))
                 ->state(fn (Asset $record): ?string => $record->assigned ? Assignment::labelFor($record->assigned) : null)
@@ -137,7 +135,8 @@ class AssetsTable
                 ->relationship('category', 'nama', fn (Builder $query): Builder => $query->managedByCurrentUser()),
             SelectFilter::make('status_id')
                 ->label(__('Status'))
-                ->relationship('status', 'nama'),
+                ->relationship('status', 'nama')
+                ->getOptionLabelFromRecordUsing(fn (Status $record): string => $record->label()),
             SelectFilter::make('room_id')
                 ->label(__('Lokasi'))
                 ->relationship('room', 'nama'),
@@ -180,7 +179,7 @@ class AssetsTable
             ->schema([
                 Select::make('status_id')
                     ->label(__('Status'))
-                    ->options(fn (): array => Status::query()->whereIn('nama', [Status::DISIAPKAN, Status::TERSEDIA])->pluck('nama', 'id')->all())
+                    ->options(fn (): array => Status::initialOptions())
                     ->required(),
             ])
             ->authorizeIndividualRecords('update')
@@ -197,7 +196,7 @@ class AssetsTable
                 }
 
                 Notification::make()
-                    ->title(__(':count aset diubah ke :status.', ['count' => $records->count() - $skipped, 'status' => $target->nama]))
+                    ->title(__(':count aset diubah ke :status.', ['count' => $records->count() - $skipped, 'status' => $target->label()]))
                     ->body($skipped ? __(':count aset dilewati karena statusnya bukan Disiapkan atau Tersedia.', ['count' => $skipped]) : null)
                     ->success()
                     ->send();

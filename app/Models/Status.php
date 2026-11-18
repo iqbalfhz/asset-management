@@ -36,6 +36,38 @@ class Status extends Model
         return static::query()->where('nama', $nama)->firstOrFail();
     }
 
+    // Nama tampilan: status inti ikut bahasa user, status buatan admin tampil apa adanya.
+    public static function labelFor(string $nama): string
+    {
+        return match ($nama) {
+            self::DISIAPKAN => __('Disiapkan'),
+            self::TERSEDIA => __('Tersedia'),
+            self::DIPAKAI => __('Dipakai'),
+            self::DALAM_PERBAIKAN => __('Dalam Perbaikan'),
+            self::RUSAK => __('Rusak'),
+            self::HILANG => __('Hilang'),
+            self::DIHAPUSKAN => __('Dihapuskan'),
+            default => $nama,
+        };
+    }
+
+    public function label(): string
+    {
+        return static::labelFor($this->nama);
+    }
+
+    /**
+     * Status yang boleh dipilih langsung untuk aset: Disiapkan dan Tersedia.
+     *
+     * @return array<int, string>
+     */
+    public static function initialOptions(): array
+    {
+        return static::query()->whereIn('nama', [self::DISIAPKAN, self::TERSEDIA])->get()
+            ->mapWithKeys(fn (self $status): array => [$status->getKey() => $status->label()])
+            ->all();
+    }
+
     protected static function booted(): void
     {
         // Status inti dipakai oleh transaksi aset, jadi nama dan tipenya dikunci.

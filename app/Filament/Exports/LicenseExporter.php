@@ -51,11 +51,11 @@ class LicenseExporter extends Exporter
 
     public static function getCompletedNotificationTitle(Export $export): string
     {
-        return __('Export lisensi selesai');
+        return $export->user->inOwnLanguage(fn (): string => __('Export lisensi selesai'));
     }
 
     public static function getCompletedNotificationBody(Export $export): string
     {
-        return static::exportResult($export, __('lisensi'));
+        return static::exportResult($export, fn (): string => __('lisensi'));
     }
 }

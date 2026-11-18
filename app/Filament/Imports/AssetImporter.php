@@ -164,12 +164,12 @@ class AssetImporter extends Importer
 
     public static function getCompletedNotificationTitle(Import $import): string
     {
-        return __('Import aset selesai');
+        return $import->user->inOwnLanguage(fn (): string => __('Import aset selesai'));
     }
 
     public static function getCompletedNotificationBody(Import $import): string
     {
-        return static::importResult($import, __('aset'));
+        return static::importResult($import, fn (): string => __('aset'));
     }
 
     private function room(): ?Room

@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Assets\Schemas;
 use App\Filament\Support\BadgeColor;
 use App\Models\Asset;
 use App\Models\Assignment;
+use App\Models\Status;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\KeyValueEntry;
 use Filament\Infolists\Components\TextEntry;
@@ -33,6 +34,7 @@ class AssetInfolist
                 TextEntry::make('status.nama')
                     ->label(__('Status'))
                     ->badge()
+                    ->formatStateUsing(fn (string $state): string => Status::labelFor($state))
                     ->color(fn (Asset $record): ?array => BadgeColor::fromHex($record->status->warna)),
                 TextEntry::make('model')
                     ->label(__('Model'))

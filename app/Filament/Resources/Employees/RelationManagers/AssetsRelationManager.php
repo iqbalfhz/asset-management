@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\Employees\RelationManagers;
 
 use App\Filament\Resources\Assets\AssetResource;
-use App\Filament\Support\BadgeColor;
+use App\Filament\Tables\Columns\AssetStatusColumn;
 use App\Models\Asset;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Columns\TextColumn;
@@ -41,10 +41,7 @@ class AssetsRelationManager extends RelationManager
                     ->searchable(),
                 TextColumn::make('category.nama')
                     ->label(__('Kategori')),
-                TextColumn::make('status.nama')
-                    ->label(__('Status'))
-                    ->badge()
-                    ->color(fn (Asset $record): ?array => BadgeColor::fromHex($record->status->warna)),
+                AssetStatusColumn::make(),
             ]);
     }
 }

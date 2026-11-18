@@ -45,7 +45,7 @@ class UserResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('User');
+        return trans_choice('User|User', 2);
     }
 
     public static function getNavigationGroup(): ?string

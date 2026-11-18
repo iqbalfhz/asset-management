@@ -34,7 +34,7 @@ class LicenseResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('Lisensi');
+        return trans_choice('Lisensi|Lisensi', 2);
     }
 
     public static function form(Schema $schema): Schema

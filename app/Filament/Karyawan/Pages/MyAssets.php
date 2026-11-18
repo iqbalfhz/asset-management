@@ -6,7 +6,7 @@ use App\Enums\AssignmentStatus;
 use App\Filament\Forms\Components\SignaturePad;
 use App\Filament\Karyawan\Actions\ReportDamageAction;
 use App\Filament\Karyawan\EmployeeTablePage;
-use App\Filament\Support\BadgeColor;
+use App\Filament\Tables\Columns\AssetStatusColumn;
 use App\Models\Asset;
 use App\Models\Assignment;
 use App\Models\Employee;
@@ -78,10 +78,7 @@ class MyAssets extends EmployeeTablePage
                 TextColumn::make('no_seri')
                     ->label(__('Nomor seri'))
                     ->placeholder('—'),
-                TextColumn::make('status.nama')
-                    ->label(__('Status'))
-                    ->badge()
-                    ->color(fn (Asset $record): ?array => BadgeColor::fromHex($record->status->warna)),
+                AssetStatusColumn::make(),
                 TextColumn::make('penerimaan')
                     ->label(__('Penerimaan'))
                     ->badge()

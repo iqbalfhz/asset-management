@@ -31,7 +31,7 @@ class SupplierResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('Supplier');
+        return trans_choice('Supplier|Supplier', 2);
     }
 
     public static function getNavigationGroup(): ?string

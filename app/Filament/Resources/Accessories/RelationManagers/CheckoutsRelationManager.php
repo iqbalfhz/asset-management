@@ -24,7 +24,7 @@ class CheckoutsRelationManager extends RelationManager
 
     public static function getTitle(Model $ownerRecord, string $pageClass): string
     {
-        return __('Pemegang');
+        return trans_choice('Pemegang|Pemegang', 2);
     }
 
     public function isReadOnly(): bool

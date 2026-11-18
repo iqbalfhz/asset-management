@@ -41,17 +41,17 @@ class SendDigest extends Command
             ->get()
             ->filter(fn (User $user): bool => $user->canReceiveEmail())
             ->each(function (User $user) use ($managingRoleIds): void {
-                // Query di bawah memakai hak lihat penerima, sama seperti dashboard-nya.
+                // Query di bawah memakai hak lihat penerima, sama seperti dashboard-nya, dan disusun dalam bahasanya.
                 Auth::setUser($user);
                 $periodEnd = $user->digest_frequency->periodEnd(today());
 
-                $sections = array_filter([
+                $sections = $user->inOwnLanguage(fn (): array => array_filter([
                     ...($user->roles->pluck('id')->intersect($managingRoleIds)->isNotEmpty() ? $this->managerSections($periodEnd) : []),
                     ...($user->employee ? $this->employeeSections($user->employee, $periodEnd) : []),
-                ]);
+                ]));
 
                 if ($sections !== []) {
-                    $user->notifyNow(Notice::digest($user->digest_frequency, $sections, $user->homePanel()?->getUrl() ?? url('/')));
+                    $user->notifyNow($user->inOwnLanguage(fn (): Notice => Notice::digest($user->digest_frequency, $sections, $user->homePanel()?->getUrl() ?? url('/'))));
                 }
             });
 

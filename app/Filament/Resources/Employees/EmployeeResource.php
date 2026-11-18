@@ -52,7 +52,7 @@ class EmployeeResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('Karyawan');
+        return trans_choice('Karyawan|Karyawan', 2);
     }
 
     public static function getNavigationGroup(): ?string

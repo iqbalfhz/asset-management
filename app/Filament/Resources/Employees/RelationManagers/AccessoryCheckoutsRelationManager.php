@@ -17,7 +17,7 @@ class AccessoryCheckoutsRelationManager extends RelationManager
 
     public static function getTitle(Model $ownerRecord, string $pageClass): string
     {
-        return __('Aksesori');
+        return trans_choice('Aksesori|Aksesori', 2);
     }
 
     public function isReadOnly(): bool

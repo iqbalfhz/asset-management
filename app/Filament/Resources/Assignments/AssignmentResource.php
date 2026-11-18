@@ -33,7 +33,7 @@ class AssignmentResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return __('Serah-terima');
+        return trans_choice('Serah-terima|Serah-terima', 2);
     }
 
     public static function canCreate(): bool

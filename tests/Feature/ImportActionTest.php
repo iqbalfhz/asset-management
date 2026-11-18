@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Language;
 use App\Filament\Imports\AssetImporter;
 use App\Filament\Imports\LocationImporter;
 use App\Filament\Resources\Assets\Pages\ListAssets;
@@ -8,6 +9,7 @@ use App\Filament\Resources\Employees\Pages\ManageEmployees;
 use App\Filament\Resources\Licenses\Pages\ListLicenses;
 use App\Filament\Resources\Rooms\Pages\ManageRooms;
 use App\Models\Role;
+use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Filament\Actions\ImportAction;
 use Filament\Actions\Imports\Models\Import;
@@ -88,8 +90,18 @@ test('the location import also needs permission to create buildings', function (
 });
 
 test('the import result tells how many rows were imported and how many failed', function () {
-    expect(AssetImporter::getCompletedNotificationBody(new Import(['total_rows' => 1203, 'successful_rows' => 1200])))
+    $import = fn (array $rows): Import => (new Import($rows))->setRelation('user', User::factory()->make());
+
+    expect(AssetImporter::getCompletedNotificationBody($import(['total_rows' => 1203, 'successful_rows' => 1200])))
         ->toBe('1.200 aset berhasil diimport. 3 baris gagal; unduh daftarnya untuk melihat alasannya.')
-        ->and(LocationImporter::getCompletedNotificationBody(new Import(['total_rows' => 4, 'successful_rows' => 4])))
+        ->and(LocationImporter::getCompletedNotificationBody($import(['total_rows' => 4, 'successful_rows' => 4])))
         ->toBe('4 ruang berhasil diimport.');
+});
+
+// Notifikasi dibuat di antrean, jadi bahasanya mengikuti user yang mengimport, bukan bahasa bawaan.
+test('the import result is written in the language of the user who imported', function () {
+    $import = (new Import(['total_rows' => 1203, 'successful_rows' => 1200]))->setRelation('user', User::factory()->make(['locale' => Language::English]));
+
+    expect(AssetImporter::getCompletedNotificationBody($import))->toBe('1,200 assets imported successfully. 3 rows failed; download the list to see why.')
+        ->and(AssetImporter::getCompletedNotificationTitle($import))->toBe('Asset import completed');
 });
