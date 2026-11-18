@@ -39,8 +39,6 @@ use Laravel\Sanctum\PersonalAccessToken;
 use Laravel\Sanctum\Sanctum;
 use Livewire\Livewire;
 use LogicException;
-use SocialiteProviders\Manager\SocialiteWasCalled;
-use SocialiteProviders\Microsoft\Provider as MicrosoftProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -77,9 +75,6 @@ class AppServiceProvider extends ServiceProvider
         $this->protectExports();
         $this->recordLogins();
         $this->guardApi();
-
-        // Penyedia login Microsoft (Entra ID) dari SocialiteProviders.
-        Event::listen(fn (SocialiteWasCalled $event) => $event->extendSocialite('microsoft', MicrosoftProvider::class));
 
         // Halaman Backup: hanya Super Admin yang mengunduh; backup dihapus oleh pembersihan terjadwal, bukan dari panel.
         Gate::define('download-backup', fn (User $user): bool => $user->hasRole('super_admin'));

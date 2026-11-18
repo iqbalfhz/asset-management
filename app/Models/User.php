@@ -20,9 +20,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Jeffgreco13\FilamentBreezy\Traits\TwoFactorAuthenticatable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
@@ -74,19 +72,6 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
     public function canReceiveEmail(): bool
     {
         return $this->is_active && filled($this->email);
-    }
-
-    /**
-     * Akun untuk login Microsoft: yang sudah tertaut ke ID itu, atau yang belum tertaut dan emailnya sama dengan email kantornya.
-     *
-     * @param  array<int, ?string>  $emails
-     */
-    public static function forMicrosoftAccount(string $microsoftId, array $emails): ?self
-    {
-        $emails = collect($emails)->filter()->map(fn (string $email): string => Str::lower($email))->unique()->all();
-
-        return static::withoutGlobalScopes()->firstWhere('microsoft_id', $microsoftId)
-            ?? static::withoutGlobalScopes()->whereNull('microsoft_id')->whereIn(DB::raw('lower(email)'), $emails)->first();
     }
 
     /**

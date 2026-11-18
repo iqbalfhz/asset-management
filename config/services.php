@@ -34,14 +34,6 @@ return [
         'chat_id' => env('TELEGRAM_CHAT_ID'),
     ],
 
-    // Masuk dengan akun Microsoft 365 kantor (Fase 20); tenant diisi supaya hanya akun kantor yang bisa masuk.
-    'microsoft' => [
-        'client_id' => env('MICROSOFT_CLIENT_ID'),
-        'client_secret' => env('MICROSOFT_CLIENT_SECRET'),
-        'tenant' => env('MICROSOFT_TENANT_ID'),
-        'redirect' => '/login/microsoft/callback',
-    ],
-
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),
