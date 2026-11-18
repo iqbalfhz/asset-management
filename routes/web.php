@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\MicrosoftLoginController;
 use App\Http\Controllers\ScanAssetController;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Route;
@@ -15,6 +16,12 @@ Route::get('/', function (): RedirectResponse {
     abort_if($homePanel === null, 403);
 
     return redirect($homePanel->getUrl());
+});
+
+// Masuk dengan akun Microsoft 365 kantor; tombolnya muncul di halaman masuk kalau sudah diatur di .env.
+Route::middleware(['guest', 'throttle:20,1'])->group(function () {
+    Route::get('/login/microsoft', [MicrosoftLoginController::class, 'redirect'])->name('login.microsoft');
+    Route::get('/login/microsoft/callback', [MicrosoftLoginController::class, 'callback']);
 });
 
 // Panduan karyawan dibaca sebelum login (memasang 2FA), jadi tanpa autentikasi.

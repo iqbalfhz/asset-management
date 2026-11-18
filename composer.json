@@ -14,10 +14,12 @@
         "jeffgreco13/filament-breezy": "^3.2",
         "laravel/framework": "^13.17",
         "laravel/sanctum": "^4.4",
+        "laravel/socialite": "^5.33",
         "laravel/tinker": "^3.0",
         "league/flysystem-aws-s3-v3": "*",
         "picqer/php-barcode-generator": "^3.3",
         "shuvroroy/filament-spatie-laravel-backup": "*",
+        "socialiteproviders/microsoft": "^4.10",
         "spatie/laravel-activitylog": "^5.1",
         "spatie/laravel-backup": "*"
     },

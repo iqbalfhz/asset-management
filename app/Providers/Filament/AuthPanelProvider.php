@@ -22,6 +22,7 @@ class AuthPanelProvider extends PanelProvider
             ->login(Login::class)
             // Reset memakai kode OTP di halaman permintaan; halaman reset lewat tautan bawaan Filament tidak dipakai.
             ->passwordReset(RequestPasswordReset::class, resetAction: null)
+            ->renderHook(PanelsRenderHook::AUTH_LOGIN_FORM_AFTER, fn (): View => view('filament.auth.microsoft-login'))
             ->renderHook(PanelsRenderHook::AUTH_LOGIN_FORM_AFTER, fn (): View => view('filament.karyawan.login-guide-link'));
     }
 }
