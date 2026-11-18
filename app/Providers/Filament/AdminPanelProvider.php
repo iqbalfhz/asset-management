@@ -9,6 +9,7 @@ use App\Http\Controllers\DownloadDisposalReportController;
 use App\Http\Controllers\PrintAssetLabelsController;
 use App\Http\Controllers\ScanAssetController;
 use App\Http\Controllers\ShowMaintenancePhotoController;
+use App\Livewire\ApiTokens;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Actions\Action;
 use Filament\Facades\Filament;
@@ -57,7 +58,10 @@ class AdminPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->plugins([
                 FilamentShieldPlugin::make(),
-                $this->profilePlugin()->enableSanctumTokens(),
+                // Token REST API (/api/v1) dibuat sendiri dari Profil; izinnya tetap mengikuti role pemiliknya.
+                $this->profilePlugin()
+                    ->enableSanctumTokens(permissions: fn (): array => ['baca-aset' => __('Baca aset'), 'serah-terima' => __('Serah-terima')])
+                    ->myProfileComponents(['sanctum_tokens' => ApiTokens::class]),
                 FilamentSpatieLaravelBackupPlugin::make()
                     ->authorize(fn (): bool => auth()->user()?->hasRole('super_admin') ?? false)
                     ->navigationGroup(fn (): string => __('Administrasi'))

@@ -36,6 +36,14 @@ class Assignment extends Model
     // Tanda tangan penerima di disk privat; hanya tampil di BAST yang diunduh lewat route berizin.
     public const string SIGNATURE_DISK = 'local';
 
+    // Nama jenis tujuan serah-terima di API.
+    public const array TARGET_TYPES = [
+        'karyawan' => Employee::class,
+        'ruang' => Room::class,
+        'departemen' => Department::class,
+        'aset' => Asset::class,
+    ];
+
     protected static function booted(): void
     {
         // Serah-terima ikut hak lihat asetnya (perusahaan dan kategori pengelola).
@@ -301,6 +309,22 @@ class Assignment extends Model
         }
 
         return $all;
+    }
+
+    /**
+     * Tujuan serah-terima yang boleh dipilih sesuai jenisnya; karyawan nonaktif tidak termasuk.
+     *
+     * @return Builder<Model>|null
+     */
+    public static function targetQuery(?string $type): ?Builder
+    {
+        return match ($type) {
+            Employee::class => Employee::query()->where('is_active', true),
+            Room::class => Room::query()->with('floor.building'),
+            Department::class => Department::query(),
+            Asset::class => Asset::query(),
+            default => null,
+        };
     }
 
     public static function companyIdOf(Model $target): ?int

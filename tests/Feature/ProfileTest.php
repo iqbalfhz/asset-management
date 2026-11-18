@@ -1,12 +1,12 @@
 <?php
 
+use App\Livewire\ApiTokens;
 use App\Livewire\PersonalInfo;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Jeffgreco13\FilamentBreezy\Livewire\BrowserSessions;
-use Jeffgreco13\FilamentBreezy\Livewire\SanctumTokens;
 use Jeffgreco13\FilamentBreezy\Livewire\TwoFactorAuthentication;
 use Jeffgreco13\FilamentBreezy\Livewire\UpdatePassword;
 
@@ -21,7 +21,7 @@ test('the admin profile page has personal info, password, 2FA, browser sessions 
         ->assertSeeLivewire(UpdatePassword::class)
         ->assertSeeLivewire(TwoFactorAuthentication::class)
         ->assertSeeLivewire(BrowserSessions::class)
-        ->assertSeeLivewire(SanctumTokens::class);
+        ->assertSeeLivewire(ApiTokens::class);
 });
 
 test('the karyawan profile page has no API tokens', function () {
@@ -30,7 +30,7 @@ test('the karyawan profile page has no API tokens', function () {
     $this->get('/karyawan/profil')
         ->assertOk()
         ->assertSeeLivewire(BrowserSessions::class)
-        ->assertDontSeeLivewire(SanctumTokens::class);
+        ->assertDontSeeLivewire(ApiTokens::class);
 });
 
 test('a user without email can save their profile', function () {

@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Enums\LoginResult;
 use App\Http\Responses\LoginResponse;
+use App\Livewire\ApiTokens;
 use App\Livewire\PersonalInfo;
 use App\Models\LoginLog;
 use App\Models\User;
@@ -17,19 +18,25 @@ use Filament\Actions\ImportAction;
 use Filament\Actions\Imports\Importer;
 use Filament\Actions\Imports\Models\Import;
 use Filament\Auth\Http\Responses\Contracts\LoginResponse as LoginResponseContract;
+use Filament\Facades\Filament;
 use Filament\Notifications\Notification;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Contracts\View\View as ViewContract;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\QueryException;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Laravel\Sanctum\PersonalAccessToken;
+use Laravel\Sanctum\Sanctum;
 use Livewire\Livewire;
 use LogicException;
 
@@ -53,8 +60,9 @@ class AppServiceProvider extends ServiceProvider
         // Produksi selalu lewat HTTPS (Cloudflare); link yang dibuat aplikasi ikut HTTPS.
         URL::forceHttps($this->app->isProduction());
 
-        // Breezy mendaftarkan nama 'personal_info' untuk komponennya; arahkan ke versi kita (email boleh kosong).
+        // Breezy mendaftarkan nama komponennya sendiri; arahkan ke versi kita (email boleh kosong, token wajib kedaluwarsa).
         Livewire::component('personal_info', PersonalInfo::class);
+        Livewire::component('sanctum_tokens', ApiTokens::class);
 
         // Semua email Kertas: nama aplikasi dan huruf yang ditulis inline (Outlook tidak mewarisi huruf ke tabel di dalamnya).
         View::composer('mail.*', fn (ViewContract $view) => $view->with([
@@ -66,10 +74,22 @@ class AppServiceProvider extends ServiceProvider
         $this->limitImports();
         $this->protectExports();
         $this->recordLogins();
+        $this->guardApi();
 
         // Halaman Backup: hanya Super Admin yang mengunduh; backup dihapus oleh pembersihan terjadwal, bukan dari panel.
         Gate::define('download-backup', fn (User $user): bool => $user->hasRole('super_admin'));
         Gate::define('delete-backup', fn (): bool => false);
+    }
+
+    // REST API: token hanya berlaku untuk akun aktif yang boleh membuka panel admin, dan permintaan dibatasi per menit.
+    private function guardApi(): void
+    {
+        Sanctum::authenticateAccessTokensUsing(fn (PersonalAccessToken $token, bool $isValid): bool => $isValid
+            && $token->tokenable instanceof User
+            && $token->tokenable->canAccessPanel(Filament::getPanel('admin')));
+
+        RateLimiter::for('api', fn (Request $request): Limit => Limit::perMinute(60)
+            ->by((string) ($request->user('sanctum')?->getAuthIdentifier() ?? $request->ip())));
     }
 
     // Log masuk untuk Super Admin; "terkunci" dicatat oleh halaman login saat batas percobaan tercapai.

@@ -131,7 +131,7 @@ class AssetTransactionActions
                     ->searchable()
                     ->getSearchResultsUsing(fn (string $search, Get $get): array => static::searchTargets($get('target_type'), $search))
                     ->getOptionLabelUsing(function (mixed $value, Get $get): ?string {
-                        $target = static::targetQuery($get('target_type'))?->find($value);
+                        $target = Assignment::targetQuery($get('target_type'))?->find($value);
 
                         return $target ? Assignment::labelFor($target) : null;
                     })
@@ -210,7 +210,7 @@ class AssetTransactionActions
      */
     private static function runHandOver(Collection $assets, array $data, Action $action): void
     {
-        $target = static::targetQuery($data['target_type'])?->find($data['target_id']);
+        $target = Assignment::targetQuery($data['target_type'])?->find($data['target_id']);
 
         $noBast = DomainAction::attempt(function () use ($assets, $target, $data): string {
             if ($target === null) {
@@ -252,29 +252,13 @@ class AssetTransactionActions
     }
 
     /**
-     * Daftar tujuan sesuai jenisnya; karyawan nonaktif tidak bisa dipilih.
-     *
-     * @return Builder<Model>|null
-     */
-    private static function targetQuery(?string $type): ?Builder
-    {
-        return match ($type) {
-            Employee::class => Employee::query()->where('is_active', true),
-            Room::class => Room::query()->with('floor.building'),
-            Department::class => Department::query(),
-            Asset::class => Asset::query(),
-            default => null,
-        };
-    }
-
-    /**
      * @return array<int, string>
      */
     private static function searchTargets(?string $type, string $search): array
     {
         $like = "%{$search}%";
 
-        return static::targetQuery($type)
+        return Assignment::targetQuery($type)
             ?->where(fn (Builder $query) => match ($type) {
                 Employee::class => $query->where('nama', 'like', $like)->orWhere('nik', 'like', $like),
                 Asset::class => $query->where('kode', 'like', $like)->orWhere('nama', 'like', $like),

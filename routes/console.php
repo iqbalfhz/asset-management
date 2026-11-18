@@ -29,3 +29,6 @@ Schedule::command('model:prune', ['--model' => [LoginLog::class]])->dailyAt('02:
 
 // Riwayat batch job import/export yang sudah selesai tidak perlu disimpan lama.
 Schedule::command('queue:prune-batches --hours=168')->daily();
+
+// Token API yang sudah kedaluwarsa dihapus.
+Schedule::command('sanctum:prune-expired --hours=24')->daily();
