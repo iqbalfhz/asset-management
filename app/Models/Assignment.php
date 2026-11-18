@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\DB;
 use LogicException;
 
@@ -24,6 +25,11 @@ class Assignment extends Model
 {
     /** @use HasFactory<AssignmentFactory> */
     use HasFactory;
+
+    // Batas hari pengingat di ringkasan harian.
+    public const int RETURN_WARNING_DAYS = 3;
+
+    public const int UNACCEPTED_REMINDER_DAYS = 2;
 
     protected static function booted(): void
     {
@@ -170,17 +176,43 @@ class Assignment extends Model
     #[Scope]
     protected function waitingFor(Builder $query, ?Employee $employee): void
     {
-        $morphClass = (new Employee)->getMorphClass();
-        $employeeId = $employee?->getKey() ?? 0;
-
         $query->withoutGlobalScope('asset')
             ->where('jenis', AssignmentType::Keluar)
             ->where('status', AssignmentStatus::Menunggu)
-            ->where('target_type', $morphClass)
-            ->where('target_id', $employeeId)
-            ->whereHas('asset', fn (Builder $query) => $query->withoutGlobalScopes()
-                ->where('assigned_type', $morphClass)
-                ->where('assigned_id', $employeeId));
+            ->where('target_type', (new Employee)->getMorphClass())
+            ->where('target_id', $employee?->getKey() ?? 0)
+            ->stillWithTarget();
+    }
+
+    // Pinjaman yang tanggal kembalinya tinggal RETURN_WARNING_DAYS hari atau sudah lewat.
+    #[Scope]
+    protected function returnDueSoon(Builder $query): void
+    {
+        $query->where('jenis', AssignmentType::Keluar)
+            ->whereDate('expected_return_at', '<=', today()->addDays(static::RETURN_WARNING_DAYS))
+            ->stillWithTarget();
+    }
+
+    #[Scope]
+    protected function unacceptedTooLong(Builder $query): void
+    {
+        $query->where('jenis', AssignmentType::Keluar)
+            ->where('status', AssignmentStatus::Menunggu)
+            ->where('created_at', '<=', now()->subDays(static::UNACCEPTED_REMINDER_DAYS))
+            ->stillWithTarget();
+    }
+
+    // Serah-terima terakhir aset itu, dan asetnya masih dipegang tujuannya (belum dikembalikan atau dipindah).
+    #[Scope]
+    protected function stillWithTarget(Builder $query): void
+    {
+        $query->whereNotExists(fn (QueryBuilder $later) => $later
+            ->from('assignments as later')
+            ->whereColumn('later.asset_id', 'assignments.asset_id')
+            ->whereColumn('later.id', '>', 'assignments.id'))
+            ->whereHas('asset', fn (Builder $asset) => $asset->withoutGlobalScopes()
+                ->whereColumn('assets.assigned_type', 'assignments.target_type')
+                ->whereColumn('assets.assigned_id', 'assignments.target_id'));
     }
 
     /**

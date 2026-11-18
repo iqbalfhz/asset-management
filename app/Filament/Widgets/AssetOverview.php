@@ -10,7 +10,6 @@ use App\Models\Maintenance;
 use App\Models\Status;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
-use Illuminate\Database\Eloquent\Builder;
 
 // Semua angka memakai query yang sudah dibatasi perusahaan dan kategori pengelola.
 class AssetOverview extends StatsOverviewWidget
@@ -36,18 +35,8 @@ class AssetOverview extends StatsOverviewWidget
                 ->description(__('Belum dicek admin')),
             Stat::make(__('Menunggu diterima'), Assignment::query()->where('status', AssignmentStatus::Menunggu)->count())
                 ->description(__('Serah-terima ke karyawan')),
-            Stat::make(__('Garansi habis'), static::warrantyEndingSoon()->count())
-                ->description(__('Dalam 60 hari ke depan')),
+            Stat::make(__('Garansi habis'), Asset::query()->warrantyEndingSoon()->count())
+                ->description(__('Dalam :hari hari ke depan', ['hari' => Asset::WARRANTY_WARNING_DAYS])),
         ];
-    }
-
-    /**
-     * @return Builder<Asset>
-     */
-    public static function warrantyEndingSoon(): Builder
-    {
-        return Asset::query()
-            ->whereBetween('garansi_sampai', [today(), today()->addDays(60)])
-            ->whereRelation('status', 'nama', '!=', Status::DIHAPUSKAN);
     }
 }

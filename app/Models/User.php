@@ -13,6 +13,8 @@ use Filament\Panel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Attributes\ScopedBy;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -59,6 +61,31 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
         }
 
         return null;
+    }
+
+    // Perusahaan yang boleh dilihat user ini, atau null kalau datanya tidak dibatasi.
+    public function restrictedCompanyId(): ?int
+    {
+        return Setting::get('company_separation', false) && ! $this->can('view_all_companies') ? $this->company_id : null;
+    }
+
+    public function canReceiveEmail(): bool
+    {
+        return $this->is_active && filled($this->email);
+    }
+
+    /**
+     * Admin pengelola yang menerima email: pemegang role pengelola itu yang boleh melihat perusahaan datanya.
+     *
+     * @return Collection<int, self>
+     */
+    public static function managersOf(int $roleId, int $companyId): Collection
+    {
+        return static::withoutGlobalScope(CompanyScope::class)
+            ->whereHas('roles', fn (Builder $query) => $query->whereKey($roleId))
+            ->get()
+            ->filter(fn (self $user): bool => $user->canReceiveEmail() && in_array($user->restrictedCompanyId(), [null, $companyId], true))
+            ->values();
     }
 
     /**

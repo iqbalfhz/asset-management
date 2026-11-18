@@ -35,7 +35,6 @@ class PasswordResetCode extends Notification implements ShouldQueue
                 'code' => $this->code,
                 'name' => $notifiable->name ?? null,
                 'minutes' => RequestPasswordReset::CODE_MINUTES,
-                'appName' => config('app.name'),
             ]);
     }
 }

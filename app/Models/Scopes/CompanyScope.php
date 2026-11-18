@@ -2,7 +2,6 @@
 
 namespace App\Models\Scopes;
 
-use App\Models\Setting;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Scope;
@@ -28,12 +27,6 @@ class CompanyScope implements Scope
     public static function restrictedCompanyId(): ?int
     {
         // hasUser() does not load the user, so resolving the logged-in user never re-enters this scope.
-        if (! Auth::hasUser() || ! Setting::get('company_separation', false)) {
-            return null;
-        }
-
-        $user = Auth::user();
-
-        return $user->can('view_all_companies') ? null : $user->company_id;
+        return Auth::hasUser() ? Auth::user()->restrictedCompanyId() : null;
     }
 }

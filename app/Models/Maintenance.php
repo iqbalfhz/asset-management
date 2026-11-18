@@ -6,6 +6,7 @@ use App\Enums\MaintenanceStatus;
 use App\Models\Concerns\LocksStatus;
 use App\Models\Concerns\LogsChanges;
 use App\Models\Scopes\ManagedCategoryScope;
+use App\Notifications\Notice;
 use Database\Factories\MaintenanceFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -13,6 +14,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use LogicException;
 
 #[Fillable([
@@ -50,7 +52,7 @@ class Maintenance extends Model
                 throw new LogicException(__('Aset :kode sudah punya laporan yang sedang ditangani.', ['kode' => $asset->kode]));
             }
 
-            return static::query()->create([
+            $maintenance = static::query()->create([
                 'asset_id' => $asset->getKey(),
                 'dilapor_oleh' => $employee->getKey(),
                 'dibuat_oleh' => auth()->id(),
@@ -58,6 +60,10 @@ class Maintenance extends Model
                 'keluhan' => $keluhan,
                 'foto' => $foto,
             ]);
+
+            Notification::send(User::managersOf($asset->category->role_id, $asset->company_id), Notice::damageReported($asset, $employee, $keluhan));
+
+            return $maintenance;
         });
     }
 

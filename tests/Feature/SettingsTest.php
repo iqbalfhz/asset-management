@@ -21,7 +21,11 @@ test('admin IT cannot open the settings page', function () {
     $this->actingAs(userWithRole('admin_it'))->get(Settings::getUrl())->assertForbidden();
 });
 
-test('a missing setting falls back to its default', function () {
+test('a missing setting falls back to its default, and notification emails start switched on', function () {
+    $this->actingAs($this->superAdmin);
+
+    livewire(Settings::class)->assertSchemaStateSet(['email_notifikasi' => true]);
+
     expect(Setting::get('company_separation', false))->toBeFalse()
         ->and(Setting::get('format_nomor_bast', 'BAST/{NOMOR}', $this->companyA->id))->toBe('BAST/{NOMOR}');
 });
@@ -32,6 +36,7 @@ test('super admin saves global and per-company settings without mixing companies
     livewire(Settings::class)
         ->fillForm([
             'company_separation' => true,
+            'email_notifikasi' => false,
             'telegram_enabled' => false,
             'company_id' => $this->companyA->id,
             'kop_bast' => 'PT Tangcity',
@@ -47,6 +52,7 @@ test('super admin saves global and per-company settings without mixing companies
         ->assertHasNoFormErrors();
 
     expect(Setting::get('company_separation'))->toBeTrue()
+        ->and(Setting::get('email_notifikasi'))->toBeFalse()
         ->and(Setting::get('telegram_enabled'))->toBeFalse()
         ->and(Setting::get('kop_bast', null, $this->companyA->id))->toBe('PT Tangcity')
         ->and(Setting::get('kop_bast', null, $this->companyB->id))->toBe('PT Lain')

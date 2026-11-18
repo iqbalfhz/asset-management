@@ -9,7 +9,9 @@ use App\Models\Scopes\ManagedCategoryScope;
 use Carbon\CarbonInterface;
 use Database\Factories\AssetFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Attributes\ScopedBy;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -35,6 +37,13 @@ class Asset extends Model
         'is_byod' => false,
         'requestable' => false,
     ];
+
+    // Batas hari pengingat di dashboard dan ringkasan harian.
+    public const int WARRANTY_WARNING_DAYS = 60;
+
+    public const int EOL_WARNING_DAYS = 90;
+
+    public const int AUDIT_WARNING_DAYS = 14;
 
     // Status hanya boleh berubah lewat method di model ini, bukan lewat form atau update biasa.
     private bool $statusChangeAllowed = false;
@@ -201,6 +210,30 @@ class Asset extends Model
         $elapsed = min($months, max(0, (int) floor($this->tgl_beli->diffInMonths($at ?? now()))));
 
         return (int) round($this->harga_beli * ($months - $elapsed) / $months);
+    }
+
+    #[Scope]
+    protected function warrantyEndingSoon(Builder $query): void
+    {
+        $query->whereDate('garansi_sampai', '>=', today())
+            ->whereDate('garansi_sampai', '<=', today()->addDays(static::WARRANTY_WARNING_DAYS))
+            ->whereRelation('status', 'nama', '!=', Status::DIHAPUSKAN);
+    }
+
+    #[Scope]
+    protected function eolSoon(Builder $query): void
+    {
+        $query->whereDate('eol_date', '>=', today())
+            ->whereDate('eol_date', '<=', today()->addDays(static::EOL_WARNING_DAYS))
+            ->whereRelation('status', 'nama', '!=', Status::DIHAPUSKAN);
+    }
+
+    // Termasuk audit yang sudah terlambat; aset Hilang dan Dihapuskan tidak diaudit.
+    #[Scope]
+    protected function auditDueSoon(Builder $query): void
+    {
+        $query->whereDate('next_audit_date', '<=', today()->addDays(static::AUDIT_WARNING_DAYS))
+            ->whereDoesntHave('status', fn (Builder $query) => $query->whereIn('nama', [Status::HILANG, Status::DIHAPUSKAN]));
     }
 
     /**

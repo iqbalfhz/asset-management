@@ -70,6 +70,9 @@ class Settings extends Page
                         Toggle::make('company_separation')
                             ->label(__('Pemisahan perusahaan'))
                             ->helperText(__('Kalau nyala, user hanya melihat data perusahaannya, kecuali yang punya izin lihat semua perusahaan.')),
+                        Toggle::make('email_notifikasi')
+                            ->label(__('Kirim notifikasi email'))
+                            ->helperText(__('Laporan kerusakan, permintaan aset, dan ringkasan harian jam 07:00. Email kode lupa password tetap terkirim.')),
                         Toggle::make('telegram_enabled')
                             ->label(__('Notifikasi Telegram')),
                     ]),
@@ -140,6 +143,7 @@ class Settings extends Page
         $data = $this->form->getState();
 
         Setting::put('company_separation', (bool) $data['company_separation']);
+        Setting::put('email_notifikasi', (bool) $data['email_notifikasi']);
         Setting::put('telegram_enabled', (bool) $data['telegram_enabled']);
 
         foreach (['logo', 'kop_bast', 'format_nomor_bast', 'label_ukuran', 'label_isi'] as $key) {
@@ -156,6 +160,7 @@ class Settings extends Page
     {
         $this->form->fill([
             'company_separation' => $this->data['company_separation'] ?? (bool) Setting::get('company_separation', false),
+            'email_notifikasi' => $this->data['email_notifikasi'] ?? (bool) Setting::get('email_notifikasi', true),
             'telegram_enabled' => $this->data['telegram_enabled'] ?? (bool) Setting::get('telegram_enabled', false),
             'company_id' => $companyId,
             'logo' => Setting::get('logo', null, $companyId),

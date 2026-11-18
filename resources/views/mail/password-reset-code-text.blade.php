@@ -1,6 +1,6 @@
-{{-- Versi teks biasa; {!! !!} karena isinya bukan HTML. --}}
-{!! $name ? __('Halo :name,', ['name' => $name]) : __('Halo,') !!}
+@extends('mail.layout-text')
 
+@section('content')
 {{ __('Kami menerima permintaan atur ulang kata sandi untuk akun Anda. Masukkan kode berikut di halaman Lupa password:') }}
 
 {{ $code }}
@@ -9,8 +9,4 @@
 
 {{ __('Kalau Anda tidak meminta atur ulang kata sandi, abaikan email ini. Kata sandi Anda tidak berubah.') }}
 
-{{ __('Salam,') }}
-{!! $appName !!}
-
---
-{{ __('Email ini dikirim otomatis, jadi balasan ke alamat ini tidak dibaca. Butuh bantuan? Hubungi tim IT kantor Anda.') }}
+@endsection

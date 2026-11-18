@@ -20,5 +20,8 @@ Schedule::command('backup:clean')->dailyAt('01:00')->onOneServer()->runInBackgro
 Schedule::command('backup:run')->dailyAt('01:30')->onOneServer()->runInBackground();
 Schedule::command('backup:monitor')->dailyAt('03:00')->onOneServer();
 
+// Email ringkasan harian sebelum jam kantor (waktu Asia/Jakarta).
+Schedule::command('notifikasi:harian')->dailyAt('07:00')->onOneServer();
+
 // Riwayat batch job import/export yang sudah selesai tidak perlu disimpan lama.
 Schedule::command('queue:prune-batches --hours=168')->daily();

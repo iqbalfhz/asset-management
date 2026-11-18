@@ -15,8 +15,8 @@ class WarrantyEnding extends TableWidget
     public function table(Table $table): Table
     {
         return $table
-            ->heading(__('Garansi habis dalam 60 hari'))
-            ->query(AssetOverview::warrantyEndingSoon()->with('category'))
+            ->heading(__('Garansi habis dalam :hari hari', ['hari' => Asset::WARRANTY_WARNING_DAYS]))
+            ->query(Asset::query()->warrantyEndingSoon()->with('category'))
             ->defaultSort('garansi_sampai')
             ->paginated([5])
             ->emptyStateHeading(__('Tidak ada garansi yang segera habis'))

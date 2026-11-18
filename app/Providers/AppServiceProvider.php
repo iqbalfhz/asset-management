@@ -16,10 +16,12 @@ use Filament\Actions\Imports\Importer;
 use Filament\Actions\Imports\Models\Import;
 use Filament\Auth\Http\Responses\Contracts\LoginResponse as LoginResponseContract;
 use Filament\Notifications\Notification;
+use Illuminate\Contracts\View\View as ViewContract;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Livewire\Livewire;
@@ -46,6 +48,12 @@ class AppServiceProvider extends ServiceProvider
 
         // Breezy mendaftarkan nama 'personal_info' untuk komponennya; arahkan ke versi kita (email boleh kosong).
         Livewire::component('personal_info', PersonalInfo::class);
+
+        // Semua email Kertas: nama aplikasi dan huruf yang ditulis inline (Outlook tidak mewarisi huruf ke tabel di dalamnya).
+        View::composer('mail.*', fn (ViewContract $view) => $view->with([
+            'appName' => config('app.name'),
+            'sans' => "'Plus Jakarta Sans','Segoe UI',Arial,sans-serif",
+        ]));
 
         $this->explainDeletingRecordsStillInUse();
         $this->limitImports();

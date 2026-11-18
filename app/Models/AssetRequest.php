@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\AssetRequestStatus;
 use App\Models\Concerns\LocksStatus;
 use App\Models\Concerns\LogsChanges;
+use App\Notifications\Notice;
 use Database\Factories\AssetRequestFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -13,6 +14,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use LogicException;
 
 #[Fillable(['employee_id', 'category_id', 'alasan', 'status', 'catatan', 'diputuskan_oleh', 'assignment_id'])]
@@ -53,12 +55,16 @@ class AssetRequest extends Model
                 throw new LogicException(__('Anda masih punya permintaan :kategori yang belum selesai.', ['kategori' => $category->nama]));
             }
 
-            return static::query()->create([
+            $request = static::query()->create([
                 'employee_id' => $employee->getKey(),
                 'category_id' => $category->getKey(),
                 'alasan' => $alasan,
                 'status' => AssetRequestStatus::Diajukan,
             ]);
+
+            Notification::send(User::managersOf($category->role_id, $employee->company_id), Notice::assetRequested($employee, $category, $alasan));
+
+            return $request;
         });
     }
 
@@ -129,6 +135,12 @@ class AssetRequest extends Model
             $this->ensureStatus(AssetRequestStatus::Diajukan);
 
             $this->update(['status' => $status, 'catatan' => $catatan, 'diputuskan_oleh' => auth()->id()]);
+
+            $requester = $this->employee->user;
+
+            if ($requester?->canReceiveEmail()) {
+                $requester->notify(Notice::assetRequestDecided($this));
+            }
         });
     }
 
