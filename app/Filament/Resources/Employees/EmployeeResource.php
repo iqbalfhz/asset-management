@@ -5,14 +5,13 @@ namespace App\Filament\Resources\Employees;
 use App\Filament\Actions\DomainAction;
 use App\Filament\Resources\Employees\Pages\ManageEmployees;
 use App\Filament\Resources\Employees\Pages\ViewEmployee;
+use App\Filament\Resources\Employees\RelationManagers\AccessoryCheckoutsRelationManager;
 use App\Filament\Resources\Employees\RelationManagers\AssetsRelationManager;
 use App\Filament\Resources\Employees\RelationManagers\ConsumableTransactionsRelationManager;
 use App\Filament\Resources\Employees\RelationManagers\LicenseSeatsRelationManager;
 use App\Filament\Schemas\Components\CompanySelect;
 use App\Filament\Tables\Columns\CompanyColumn;
-use App\Models\Asset;
 use App\Models\Employee;
-use App\Models\LicenseSeat;
 use App\Models\User;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -173,12 +172,12 @@ class EmployeeResource extends Resource
     }
 
     /**
-     * Offboarding: ditolak selama karyawan masih memegang aset atau seat lisensi; hanya Super Admin yang bisa memaksa dengan alasan.
+     * Offboarding: ditolak selama karyawan masih memegang barang; hanya Super Admin yang bisa memaksa dengan alasan.
      */
     private static function deactivateAction(): Action
     {
         $isSuperAdmin = fn (): bool => auth()->user()?->hasRole('super_admin') ?? false;
-        $holdsSomething = fn (Employee $record): bool => $record->heldAssets()->exists() || $record->activeLicenseSeats()->exists();
+        $holdsSomething = fn (Employee $record): bool => $record->heldItemLabels()->isNotEmpty();
 
         return Action::make('deactivate')
             ->label(__('Nonaktifkan'))
@@ -188,21 +187,15 @@ class EmployeeResource extends Resource
             ->authorize('update')
             ->modalHeading(fn (Employee $record): string => __('Nonaktifkan :nama', ['nama' => $record->nama]))
             ->modalDescription(function (Employee $record) use ($isSuperAdmin): string {
-                $held = $record->heldAssets()->get();
-                $seats = $record->activeLicenseSeats()->get();
+                $list = $record->heldItemLabels()->implode(', ');
 
-                if ($held->isEmpty() && $seats->isEmpty()) {
-                    return __('Tidak ada aset atau seat lisensi yang masih dipegang. Akun login karyawan ini ikut dinonaktifkan.');
+                if ($list === '') {
+                    return __('Tidak ada barang yang masih dipegang. Akun login karyawan ini ikut dinonaktifkan.');
                 }
 
-                $list = $held->toBase()->map(fn (Asset $asset): string => "{$asset->kode} ({$asset->nama})")
-                    ->merge($seats->toBase()->map(fn (LicenseSeat $seat): string => __('seat :software', ['software' => $seat->license->nama_software])))
-                    ->implode(', ');
-                $holdings = Employee::describeHoldings($held->count(), $seats->count());
-
                 return $isSuperAdmin()
-                    ? __('Masih memegang :barang: :list. Kalau dipaksa, aset itu ditandai Hilang, seat lisensinya dilepas, dan alasannya dicatat.', ['barang' => $holdings, 'list' => $list])
-                    : __('Masih memegang :barang: :list. Proses pengembaliannya dulu di halaman Aset dan Lisensi.', ['barang' => $holdings, 'list' => $list]);
+                    ? __('Masih memegang: :list. Kalau dipaksa, aset itu ditandai Hilang, seat lisensinya dilepas, aksesorinya dicatat hilang, dan alasannya dicatat.', ['list' => $list])
+                    : __('Masih memegang: :list. Proses pengembaliannya dulu.', ['list' => $list]);
             })
             ->schema(fn (Employee $record): array => $isSuperAdmin() && $holdsSomething($record)
                 ? [
@@ -226,6 +219,7 @@ class EmployeeResource extends Resource
         return [
             AssetsRelationManager::class,
             LicenseSeatsRelationManager::class,
+            AccessoryCheckoutsRelationManager::class,
             ConsumableTransactionsRelationManager::class,
         ];
     }

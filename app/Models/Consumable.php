@@ -61,11 +61,7 @@ class Consumable extends Model
      */
     public function issue(int $jumlah, Employee $penerima, array $data = []): ConsumableTransaction
     {
-        $penerima->ensureActive();
-
-        if ((int) $penerima->company_id !== (int) $this->company_id) {
-            throw new LogicException(__(':nama berada di perusahaan lain.', ['nama' => $penerima->nama]));
-        }
+        $penerima->ensureCanReceive($this);
 
         return $this->move(fn (): array => [StockMovement::Keluar, $jumlah], ['employee_id' => $penerima->getKey()] + $data);
     }

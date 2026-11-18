@@ -25,6 +25,7 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Livewire\Livewire;
+use LogicException;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -90,11 +91,16 @@ class AppServiceProvider extends ServiceProvider
     private function explainDeletingRecordsStillInUse(): void
     {
         DeleteAction::configureUsing(fn (DeleteAction $action) => $action->using(function (Model $record): bool {
+            $reason = __('Data ini masih dipakai oleh data lain. Ubah atau hapus dulu data yang memakainya.');
+
             try {
                 // false = ditolak model, misalnya karyawan yang punya riwayat serah-terima.
                 if ($record->delete()) {
                     return true;
                 }
+            } catch (LogicException $exception) {
+                // Aturan bisnis di model menyebut alasannya sendiri, misalnya lisensi yang pernah dipakai.
+                $reason = $exception->getMessage();
             } catch (QueryException $exception) {
                 // 23000 (MySQL/SQLite) dan 23503 (PostgreSQL): pelanggaran foreign key.
                 if (! in_array($exception->getCode(), ['23000', '23503'], true)) {
@@ -105,7 +111,7 @@ class AppServiceProvider extends ServiceProvider
             Notification::make()
                 ->danger()
                 ->title(__('Data tidak bisa dihapus'))
-                ->body(__('Data ini masih dipakai oleh data lain. Ubah atau hapus dulu data yang memakainya.'))
+                ->body($reason)
                 ->send();
 
             return false;

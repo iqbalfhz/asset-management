@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Support\Facades\DB;
 use LogicException;
 
@@ -28,7 +29,7 @@ class Employee extends Model
         'is_active' => true,
     ];
 
-    // Karyawan nonaktif tidak menerima apa pun lagi: aset, barang habis pakai, atau seat lisensi.
+    // Karyawan nonaktif tidak menerima apa pun lagi: aset, barang habis pakai, aksesori, atau seat lisensi.
     public function ensureActive(): void
     {
         if (! $this->is_active) {
@@ -36,18 +37,32 @@ class Employee extends Model
         }
     }
 
+    // Barang berperusahaan hanya diterima karyawan aktif di perusahaan yang sama.
+    public function ensureCanReceive(Model $item): void
+    {
+        $this->ensureActive();
+
+        if ((int) $this->company_id !== (int) $item->getAttribute('company_id')) {
+            throw new LogicException(__(':nama berada di perusahaan lain.', ['nama' => $this->nama]));
+        }
+    }
+
     /**
-     * Nonaktifkan karyawan yang resign. Ditolak selama masih memegang aset, kecuali dipaksa dengan alasan.
+     * Nonaktifkan karyawan yang resign. Ditolak selama masih memegang barang, kecuali dipaksa dengan alasan.
      */
     public function deactivate(?string $forcedReason = null): void
     {
         DB::transaction(function () use ($forcedReason): void {
             $held = $this->heldAssets()->lockForUpdate()->get();
             $seats = $this->activeLicenseSeats()->lockForUpdate()->get();
+            $accessories = $this->activeAccessoryCheckouts()->lockForUpdate()->get();
 
-            if ($held->isNotEmpty() || $seats->isNotEmpty()) {
+            if ($held->isNotEmpty() || $seats->isNotEmpty() || $accessories->isNotEmpty()) {
                 if (blank($forcedReason)) {
-                    throw new LogicException(__(':nama masih memegang :barang. Proses pengembaliannya dulu.', ['nama' => $this->nama, 'barang' => static::describeHoldings($held->count(), $seats->count())]));
+                    throw new LogicException(__(':nama masih memegang :barang. Proses pengembaliannya dulu.', [
+                        'nama' => $this->nama,
+                        'barang' => static::describeHoldings($held->count(), $seats->count(), (int) $accessories->sum('jumlah')),
+                    ]));
                 }
 
                 foreach ($held as $asset) {
@@ -55,6 +70,7 @@ class Employee extends Model
                 }
 
                 LicenseSeat::releaseAllFor($this);
+                $accessories->each(fn (AccessoryCheckout $checkout) => $checkout->writeOff());
 
                 activity()
                     ->performedOn($this)
@@ -63,6 +79,7 @@ class Employee extends Model
                         'alasan' => $forcedReason,
                         'aset' => $held->pluck('kode')->all(),
                         'seat_lisensi' => $seats->map(fn (LicenseSeat $seat): string => $seat->license->nama_software)->all(),
+                        'aksesori' => $accessories->map(fn (AccessoryCheckout $checkout): string => static::accessoryLabel($checkout))->all(),
                     ])
                     ->log(__('Karyawan dinonaktifkan paksa'));
             }
@@ -70,6 +87,23 @@ class Employee extends Model
             $this->update(['is_active' => false]);
             $this->user?->update(['is_active' => false]);
         });
+    }
+
+    /**
+     * Barang yang masih dipegang, untuk ditampilkan sebelum menonaktifkan.
+     *
+     * @return SupportCollection<int, string>
+     */
+    public function heldItemLabels(): SupportCollection
+    {
+        return $this->heldAssets()->get()->toBase()->map(fn (Asset $asset): string => "{$asset->kode} ({$asset->nama})")
+            ->merge($this->activeLicenseSeats()->get()->toBase()->map(fn (LicenseSeat $seat): string => __('seat :software', ['software' => $seat->license->nama_software])))
+            ->merge($this->activeAccessoryCheckouts()->get()->toBase()->map(fn (AccessoryCheckout $checkout): string => static::accessoryLabel($checkout)));
+    }
+
+    private static function accessoryLabel(AccessoryCheckout $checkout): string
+    {
+        return "{$checkout->jumlah} × {$checkout->accessory->nama}";
     }
 
     /**
@@ -95,6 +129,27 @@ class Employee extends Model
             ->withoutGlobalScope('license')
             ->with(['license' => fn ($query) => $query->withoutGlobalScopes()])
             ->whereNull('dilepas_pada');
+    }
+
+    /**
+     * Aksesori yang masih dipegang, dari role pengelola mana pun, supaya offboarding tidak melewatkannya.
+     *
+     * @return HasMany<AccessoryCheckout, $this>
+     */
+    public function activeAccessoryCheckouts(): HasMany
+    {
+        return $this->hasMany(AccessoryCheckout::class)
+            ->withoutGlobalScope('accessory')
+            ->with(['accessory' => fn ($query) => $query->withoutGlobalScopes()])
+            ->open();
+    }
+
+    /**
+     * @return HasMany<AccessoryCheckout, $this>
+     */
+    public function accessoryCheckouts(): HasMany
+    {
+        return $this->hasMany(AccessoryCheckout::class);
     }
 
     /**
@@ -126,11 +181,12 @@ class Employee extends Model
     }
 
     // Contoh: "2 aset dan 1 seat lisensi".
-    public static function describeHoldings(int $assets, int $seats): string
+    public static function describeHoldings(int $assets, int $seats, int $accessories = 0): string
     {
         return collect([
             $assets > 0 ? __(':count aset', ['count' => $assets]) : null,
             $seats > 0 ? __(':count seat lisensi', ['count' => $seats]) : null,
+            $accessories > 0 ? __(':count aksesori', ['count' => $accessories]) : null,
         ])->filter()->implode(' '.__('dan').' ');
     }
 
