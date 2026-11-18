@@ -89,3 +89,11 @@ test('the activity log can be narrowed to one asset', function () {
         ->assertCanNotSeeTableRecords(Activity::query()->where('subject_id', $desk->id)->where('subject_type', $desk->getMorphClass())->get())
         ->assertSee('nama: Laptop Lama → Laptop Baru');
 });
+
+test('the dashboard is called Dashboard, which users know better than Dasbor', function () {
+    $this->actingAs(userWithRole('admin_it', attributes: ['company_id' => $this->tcm->id]))
+        ->get('/admin')
+        ->assertOk()
+        ->assertSeeInOrder(['<title>', 'Dashboard'], false)
+        ->assertDontSee('Dasbor');
+});
