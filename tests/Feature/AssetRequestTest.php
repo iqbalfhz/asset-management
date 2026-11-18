@@ -21,6 +21,7 @@ use Database\Seeders\StatusSeeder;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Storage;
 
 use function Pest\Livewire\livewire;
 
@@ -154,6 +155,7 @@ test('a rejection needs a reason, which the employee then reads', function () {
 });
 
 test('handing over an approved request issues a BAST, and accepting it completes the request', function () {
+    Storage::fake(Assignment::SIGNATURE_DISK);
     $request = laptopRequest(AssetRequestStatus::Disetujui);
     $this->actingAs($this->adminIt);
 
@@ -172,7 +174,7 @@ test('handing over an approved request issues a BAST, and accepting it completes
 
     actAsRequester($this->rinaUser);
 
-    livewire(MyAssets::class)->callAction(TestAction::make('accept')->table($this->spareLaptop), data: ['setuju' => true]);
+    livewire(MyAssets::class)->callAction(TestAction::make('accept')->table($this->spareLaptop), data: ['setuju' => true, 'tanda_tangan' => signatureDataUrl()]);
 
     expect($request->refresh()->status)->toBe(AssetRequestStatus::Selesai);
 });

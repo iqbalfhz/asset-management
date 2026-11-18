@@ -4,6 +4,7 @@
     $target = $first->targetLabel();
     $giver = $isReturn ? $target : $admin;
     $receiver = $isReturn ? $admin : $target;
+    $signature = $isReturn ? null : $first->signatureDataUri();
 @endphp
 <!doctype html>
 <html lang="id">
@@ -30,6 +31,7 @@
         .signatures { width: 100%; margin-top: 28pt; }
         .signatures td { width: 50%; text-align: center; vertical-align: top; }
         .sign-space { height: 58pt; }
+        .sign-space img { max-height: 56pt; max-width: 170pt; }
         .footer { position: fixed; bottom: -8mm; left: 0; right: 0; font-size: 7.5pt; color: #8a8a7d; }
     </style>
 </head>
@@ -104,7 +106,7 @@
         </tr>
         <tr>
             <td class="sign-space"></td>
-            <td class="sign-space"></td>
+            <td class="sign-space">@if ($signature)<img src="{{ $signature }}" alt="">@endif</td>
         </tr>
         <tr>
             <td>( {{ $isReturn ? $target : $first->createdBy->name }} )</td>

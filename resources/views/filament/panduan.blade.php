@@ -57,8 +57,8 @@
                 <ol>
                     <li>{!! __('Saat admin menyerahkan aset, menu :menu menampilkan angka di sampingnya.', ['menu' => '<strong>'.e(__('Aset saya')).'</strong>']) !!}</li>
                     <li>{{ __('Buka Aset saya dan cocokkan kode serta nomor seri dengan barang yang Anda terima.') }}</li>
-                    <li>{!! __('Tekan :tombol, baca syarat penggunaannya, centang persetujuan, lalu tekan Terima lagi.', ['tombol' => '<strong>'.e(__('Terima')).'</strong>']) !!}</li>
-                    <li>{!! __('Berita acara (BAST) bisa diunduh kapan saja di menu :menu.', ['menu' => '<strong>'.e(__('Riwayat')).'</strong>']) !!}</li>
+                    <li>{!! __('Tekan :tombol, baca syarat penggunaannya, tanda tangani di kotak yang tersedia, centang persetujuan, lalu tekan Terima lagi.', ['tombol' => '<strong>'.e(__('Terima')).'</strong>']) !!}</li>
+                    <li>{!! __('Berita acara (BAST) beserta tanda tangan Anda bisa diunduh kapan saja di menu :menu.', ['menu' => '<strong>'.e(__('Riwayat')).'</strong>']) !!}</li>
                 </ol>
                 <p class="note">{{ __('Kalau barangnya tidak sesuai, jangan tekan Terima. Hubungi admin yang menyerahkan.') }}</p>
             </div>

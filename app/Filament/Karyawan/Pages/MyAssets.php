@@ -3,6 +3,7 @@
 namespace App\Filament\Karyawan\Pages;
 
 use App\Enums\AssignmentStatus;
+use App\Filament\Forms\Components\SignaturePad;
 use App\Filament\Karyawan\Actions\ReportDamageAction;
 use App\Filament\Karyawan\EmployeeTablePage;
 use App\Filament\Support\BadgeColor;
@@ -113,13 +114,16 @@ class MyAssets extends EmployeeTablePage
                         ->schema([Text::make(new HtmlString(nl2br(e($category->eula))))->key("eula-{$category->id}")]))
                     ->values()
                     ->all(),
+                SignaturePad::make('tanda_tangan')
+                    ->label(__('Tanda tangan'))
+                    ->required(),
                 Checkbox::make('setuju')
                     ->label(__('Saya sudah menerima aset di atas dan menyetujui syarat penggunaannya.'))
                     ->accepted(),
             ])
             ->modalSubmitActionLabel(__('Terima'))
-            ->action(function (Asset $record): void {
-                $count = Assignment::accept(auth()->user()->employee, static::pendingFor($record)->no_bast);
+            ->action(function (Asset $record, array $data): void {
+                $count = Assignment::accept(auth()->user()->employee, static::pendingFor($record)->no_bast, SignaturePad::png($data['tanda_tangan']));
 
                 Notification::make()
                     ->success()

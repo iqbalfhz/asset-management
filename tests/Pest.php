@@ -40,3 +40,16 @@ function availableAsset(Company $company, Category $category, array $attributes 
         'status_id' => Status::named(Status::TERSEDIA)->id,
     ]);
 }
+
+/**
+ * A PNG data URL like the one the signature pad sends.
+ */
+function signatureDataUrl(): string
+{
+    $image = imagecreatetruecolor(300, 100);
+    imageline($image, 20, 70, 280, 30, imagecolorallocate($image, 255, 255, 255));
+    ob_start();
+    imagepng($image);
+
+    return 'data:image/png;base64,'.base64_encode(ob_get_clean());
+}

@@ -1,5 +1,6 @@
 <?php
 
+use App\Filament\Forms\Components\SignaturePad;
 use App\Models\Asset;
 use App\Models\Assignment;
 use App\Models\Category;
@@ -10,6 +11,7 @@ use App\Models\Status;
 use Database\Seeders\RoleSeeder;
 use Database\Seeders\StatusSeeder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Testing\TestView;
 
 beforeEach(function () {
@@ -91,4 +93,14 @@ test('the letterhead text is printed as text, not as HTML', function () {
     renderBast($this->assignment, '<b>PT Tangcity</b><img src="http://contoh.test/x.png">')
         ->assertDontSee('<img src="http://contoh.test/x.png">', false)
         ->assertSee('&lt;b&gt;PT Tangcity&lt;/b&gt;', false);
+});
+
+test('a signed BAST shows the receiver\'s signature and still downloads as a PDF', function () {
+    Storage::fake(Assignment::SIGNATURE_DISK);
+    renderBast($this->assignment)->assertDontSee('data:image/png', false);
+
+    Assignment::accept($this->employee, $this->assignment->no_bast, SignaturePad::png(signatureDataUrl()));
+
+    renderBast($this->assignment->refresh())->assertSee('<img src="data:image/png;base64,', false);
+    $this->get(route('filament.admin.bast.download', $this->assignment))->assertOk()->assertDownload();
 });

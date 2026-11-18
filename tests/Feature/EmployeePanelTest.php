@@ -2,6 +2,7 @@
 
 use App\Enums\AssignmentStatus;
 use App\Enums\MaintenanceStatus;
+use App\Filament\Forms\Components\SignaturePad;
 use App\Filament\Karyawan\Pages\MyAssets;
 use App\Filament\Karyawan\Pages\MyConsumables;
 use App\Filament\Karyawan\Pages\MyDamageReports;
@@ -24,6 +25,8 @@ use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
 use Filament\Schemas\Components\Text;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 use function Pest\Livewire\livewire;
 
@@ -92,7 +95,8 @@ test('an employee sees only the assets, history and reports that are theirs', fu
     livewire(MyDamageReports::class)->assertCountTableRecords(0);
 });
 
-test('accepting one asset accepts the whole BAST once the terms are agreed to', function () {
+test('accepting one asset accepts the whole BAST once the terms are agreed to and signed', function () {
+    Storage::fake(Assignment::SIGNATURE_DISK);
     [$first, $second] = handOverLaptops(2, $this->rina)->all();
     actAsEmployee($this->rinaUser);
 
@@ -103,25 +107,58 @@ test('accepting one asset accepts the whole BAST once the terms are agreed to', 
             checkComponentUsing: fn (Text $component): bool => str_contains((string) $component->getContent(), 'Laptop hanya untuk pekerjaan kantor.'),
         )
         ->callMountedAction()
-        ->assertHasFormErrors(['setuju' => 'accepted']);
+        ->assertHasFormErrors(['setuju' => 'accepted', 'tanda_tangan' => 'required']);
 
     expect(Assignment::withoutGlobalScopes()->where('status', AssignmentStatus::Menunggu)->count())->toBe(2);
 
     livewire(MyAssets::class)
-        ->callAction(TestAction::make('accept')->table($first), data: ['setuju' => true])
+        ->callAction(TestAction::make('accept')->table($first), data: ['setuju' => true, 'tanda_tangan' => signatureDataUrl()])
         ->assertNotified('Serah-terima diterima');
 
     $rows = Assignment::withoutGlobalScopes()->whereIn('asset_id', [$first->id, $second->id])->get();
 
-    expect($rows->every(fn (Assignment $row): bool => $row->status === AssignmentStatus::Diterima && $row->accepted_at !== null))->toBeTrue();
+    expect($rows->every(fn (Assignment $row): bool => $row->status === AssignmentStatus::Diterima && $row->accepted_at !== null))->toBeTrue()
+        ->and($rows->pluck('signature_path')->unique())->toHaveCount(1);
+
+    Storage::disk(Assignment::SIGNATURE_DISK)->assertExists($rows->first()->signature_path);
+});
+
+test('a signature that is not a PNG image is rejected', function (string $signature) {
+    handOverLaptops(1, $this->rina);
+    actAsEmployee($this->rinaUser);
+
+    livewire(MyAssets::class)
+        ->callAction(TestAction::make('accept')->table(Asset::query()->withoutGlobalScopes()->sole()), data: ['setuju' => true, 'tanda_tangan' => $signature])
+        ->assertHasFormErrors(['tanda_tangan']);
+
+    expect(Assignment::withoutGlobalScopes()->value('status'))->toBe(AssignmentStatus::Menunggu);
+})->with([
+    'text' => 'data:image/png;base64,'.base64_encode('bukan gambar'),
+    'a JPEG' => function (): string {
+        ob_start();
+        imagejpeg(imagecreatetruecolor(10, 10));
+
+        return 'data:image/png;base64,'.base64_encode(ob_get_clean());
+    },
+    'another file type' => 'data:image/svg+xml;base64,'.base64_encode('<svg xmlns="http://www.w3.org/2000/svg"/>'),
+]);
+
+test('a signature is redrawn before it is stored, so nothing but the image is kept', function () {
+    $png = base64_decode(Str::after(signatureDataUrl(), ','));
+
+    expect(SignaturePad::png('data:image/png;base64,'.base64_encode($png.'<?php echo "x";')))
+        ->toStartWith("\x89PNG")
+        ->not->toContain('<?php');
 });
 
 test('an employee cannot accept a BAST addressed to someone else', function () {
+    Storage::fake(Assignment::SIGNATURE_DISK);
     handOverLaptops(1, $this->rina);
     $noBast = Assignment::withoutGlobalScopes()->value('no_bast');
 
-    expect(Assignment::accept($this->budi, $noBast))->toBe(0)
-        ->and(Assignment::withoutGlobalScopes()->value('status'))->toBe(AssignmentStatus::Menunggu);
+    expect(Assignment::accept($this->budi, $noBast, SignaturePad::png(signatureDataUrl())))->toBe(0)
+        ->and(Assignment::withoutGlobalScopes()->value('status'))->toBe(AssignmentStatus::Menunggu)
+        ->and(Storage::disk(Assignment::SIGNATURE_DISK)->allFiles())->toBe([]);
 });
 
 test('the menu counts BASTs still waiting to be accepted', function () {

@@ -15,11 +15,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use LogicException;
 
 #[Fillable([
     'asset_id', 'target_type', 'target_id', 'jenis', 'tanggal', 'kondisi', 'catatan', 'no_bast',
-    'expected_return_at', 'status', 'accepted_at', 'created_by',
+    'expected_return_at', 'status', 'accepted_at', 'signature_path', 'created_by',
 ])]
 class Assignment extends Model
 {
@@ -30,6 +32,9 @@ class Assignment extends Model
     public const int RETURN_WARNING_DAYS = 3;
 
     public const int UNACCEPTED_REMINDER_DAYS = 2;
+
+    // Tanda tangan penerima di disk privat; hanya tampil di BAST yang diunduh lewat route berizin.
+    public const string SIGNATURE_DISK = 'local';
 
     protected static function booted(): void
     {
@@ -158,14 +163,25 @@ class Assignment extends Model
     }
 
     /**
-     * Karyawan menerima serah-terima dalam satu BAST; hanya aset yang masih dipegangnya. Permintaan aset yang terkait ikut selesai.
+     * Karyawan menerima serah-terima dalam satu BAST dengan tanda tangannya; hanya aset yang masih dipegangnya. Permintaan aset yang terkait ikut selesai.
      */
-    public static function accept(Employee $employee, string $noBast): int
+    public static function accept(Employee $employee, string $noBast, string $signaturePng): int
     {
-        return DB::transaction(function () use ($employee, $noBast): int {
+        return DB::transaction(function () use ($employee, $noBast, $signaturePng): int {
             $ids = static::query()->waitingFor($employee)->where('no_bast', $noBast)->pluck('id')->all();
 
-            static::withoutGlobalScope('asset')->whereKey($ids)->update(['status' => AssignmentStatus::Diterima, 'accepted_at' => now()]);
+            if ($ids === []) {
+                return 0;
+            }
+
+            $signaturePath = 'signatures/'.Str::uuid().'.png';
+            Storage::disk(static::SIGNATURE_DISK)->put($signaturePath, $signaturePng);
+
+            static::withoutGlobalScope('asset')->whereKey($ids)->update([
+                'status' => AssignmentStatus::Diterima,
+                'accepted_at' => now(),
+                'signature_path' => $signaturePath,
+            ]);
             AssetRequest::completeFor($ids);
 
             return count($ids);
@@ -303,6 +319,20 @@ class Assignment extends Model
         $target = $this->target()->withoutGlobalScopes()->first();
 
         return $target ? static::labelFor($target) : '—';
+    }
+
+    /**
+     * Tanda tangan penerima sebagai data URI untuk dokumen PDF.
+     */
+    public function signatureDataUri(): ?string
+    {
+        $disk = Storage::disk(static::SIGNATURE_DISK);
+
+        if ($this->signature_path === null || ! $disk->exists($this->signature_path)) {
+            return null;
+        }
+
+        return 'data:image/png;base64,'.base64_encode($disk->get($this->signature_path));
     }
 
     public static function labelFor(Model $target): string
