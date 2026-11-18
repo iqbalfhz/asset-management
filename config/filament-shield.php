@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+use App\Filament\Pages\Calendar;
 use App\Filament\Resources\Roles\RoleResource;
 use Filament\Pages\Dashboard;
 use Filament\Widgets\AccountWidget;
@@ -217,6 +218,8 @@ return [
         'prefix' => 'view',
         'exclude' => [
             Dashboard::class,
+            // Isi kalender sudah dibatasi izin lihat tiap jenis datanya.
+            Calendar::class,
         ],
     ],
 

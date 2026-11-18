@@ -240,12 +240,18 @@ class Asset extends Model
             ->whereRelation('status', 'nama', '!=', Status::DIHAPUSKAN);
     }
 
-    // Termasuk audit yang sudah terlambat; aset Hilang dan Dihapuskan tidak diaudit.
+    // Aset Hilang dan Dihapuskan tidak diaudit.
+    #[Scope]
+    protected function auditable(Builder $query): void
+    {
+        $query->whereDoesntHave('status', fn (Builder $query) => $query->whereIn('nama', [Status::HILANG, Status::DIHAPUSKAN]));
+    }
+
+    // Termasuk audit yang sudah terlambat.
     #[Scope]
     protected function auditDueSoon(Builder $query): void
     {
-        $query->whereDate('next_audit_date', '<=', today()->addDays(static::AUDIT_WARNING_DAYS))
-            ->whereDoesntHave('status', fn (Builder $query) => $query->whereIn('nama', [Status::HILANG, Status::DIHAPUSKAN]));
+        $query->whereDate('next_audit_date', '<=', today()->addDays(static::AUDIT_WARNING_DAYS))->auditable();
     }
 
     /**
