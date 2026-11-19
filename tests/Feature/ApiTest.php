@@ -52,6 +52,7 @@ function handOverPayload(array $overrides = []): array
 
 test('without a valid token the API answers 401', function () {
     $this->getJson('/api/v1/assets')->assertUnauthorized();
+    $this->get('/api/v1/assets', ['Accept' => 'text/html'])->assertUnauthorized();
     $this->withToken('1|bukan-token')->getJson('/api/v1/assets')->assertUnauthorized();
 });
 

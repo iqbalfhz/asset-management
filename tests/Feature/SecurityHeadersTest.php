@@ -14,12 +14,17 @@ test('every page carries the basic security headers', function () {
     $this->get('/login')
         ->assertHeader('X-Content-Type-Options', 'nosniff')
         ->assertHeader('X-Frame-Options', 'SAMEORIGIN')
-        ->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+        ->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
+        ->assertHeader('Content-Security-Policy', "base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'");
 });
 
-test('HSTS is sent only over HTTPS', function () {
+test('HSTS is sent over HTTPS, and always in production where the tunnel reaches the app over plain HTTP', function () {
     $this->get('https://localhost/login')->assertHeader('Strict-Transport-Security', 'max-age=31536000');
     $this->get('http://localhost/login')->assertHeaderMissing('Strict-Transport-Security');
+
+    $this->app['env'] = 'production';
+
+    $this->get('http://localhost/login')->assertHeader('Strict-Transport-Security', 'max-age=31536000');
 });
 
 test('a damage photo is served in a sandbox so a planted script cannot run', function () {

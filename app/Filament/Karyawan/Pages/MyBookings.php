@@ -81,6 +81,7 @@ class MyBookings extends EmployeeTablePage
                     ->required()
                     ->live(),
                 Text::make(fn (Get $get): string => static::scheduleOf($get('asset_id')))
+                    ->key('schedule')
                     ->visible(fn (Get $get): bool => filled($get('asset_id'))),
                 DateTimePicker::make('mulai')
                     ->label(__('Mulai'))
@@ -129,9 +130,10 @@ class MyBookings extends EmployeeTablePage
 
     private static function scheduleOf(mixed $assetId): string
     {
+        // Nilai pilihan dikirim browser, jadi hanya jadwal barang yang boleh dipesan karyawan ini yang dibaca.
         $bookings = AssetBooking::withoutGlobalScopes()
             ->active()
-            ->where('asset_id', $assetId)
+            ->where('asset_id', static::bookableAssets()->find($assetId)?->getKey() ?? 0)
             ->where('selesai', '>', now())
             ->orderBy('mulai')
             ->limit(10)

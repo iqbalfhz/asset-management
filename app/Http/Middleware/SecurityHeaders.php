@@ -23,9 +23,11 @@ class SecurityHeaders
             'Referrer-Policy' => 'strict-origin-when-cross-origin',
             // Kamera dibiarkan untuk scan QR (Fase 7); fitur lain dimatikan.
             'Permissions-Policy' => 'camera=(self), microphone=(), geolocation=(), payment=()',
+            'Content-Security-Policy' => "base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'",
         ];
 
-        if ($request->isSecure()) {
+        // Di produksi Cloudflare Tunnel meneruskan HTTPS ke aplikasi lewat HTTP biasa.
+        if ($request->isSecure() || app()->isProduction()) {
             $headers['Strict-Transport-Security'] = 'max-age=31536000';
         }
 

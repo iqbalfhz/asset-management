@@ -15,6 +15,7 @@ use Database\Seeders\RoleSeeder;
 use Database\Seeders\StatusSeeder;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
+use Filament\Schemas\Components\Text;
 use Illuminate\Support\Carbon;
 
 use function Pest\Livewire\livewire;
@@ -58,6 +59,23 @@ test('an employee books a free slot from the employee panel, and sees it with it
         ->and($this->projector->refresh()->status->nama)->toBe(Status::TERSEDIA);
 
     livewire(MyBookings::class)->assertCanSeeTableRecords([$booking])->assertSee('20 Nov 2026, 09:00–12:00');
+});
+
+test('the booking form shows the schedule only of items the employee may book', function () {
+    bookProjector($this->budi, '2026-11-20 09:00', '2026-11-20 12:00');
+    $elsewhere = availableAsset(Company::factory()->create(), $this->gadgets, ['bookable' => true]);
+    AssetBooking::factory()->create(['asset_id' => $elsewhere->id, 'mulai' => '2026-11-21 14:00', 'selesai' => '2026-11-21 15:00']);
+    $this->actingAs($this->rinaUser);
+    Filament::setCurrentPanel('karyawan');
+
+    $scheduleIs = fn (string $expected): Closure => fn (Text $schedule): bool => (string) $schedule->getContent() === $expected;
+
+    livewire(MyBookings::class)
+        ->mountAction('book')
+        ->fillForm(['asset_id' => $this->projector->id])
+        ->assertSchemaComponentExists('schedule', checkComponentUsing: $scheduleIs('Sudah dipesan: 20 Nov 2026, 09:00–12:00'))
+        ->fillForm(['asset_id' => $elsewhere->id])
+        ->assertSchemaComponentExists('schedule', checkComponentUsing: $scheduleIs('Belum ada jadwal; semua jam masih kosong.'));
 });
 
 test('a booking that overlaps another one is refused, while back-to-back, cancelled, and other-item bookings are fine', function () {

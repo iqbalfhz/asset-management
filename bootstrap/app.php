@@ -25,6 +25,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: SetUserLocale::class);
 
         $middleware->alias(['abilities' => CheckAbilities::class]);
+
+        // Halaman masuk ada di panel auth; tanpa ini, tamu di route API dari browser memicu error 500.
+        $middleware->redirectGuestsTo(fn (): string => route('filament.auth.auth.login'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

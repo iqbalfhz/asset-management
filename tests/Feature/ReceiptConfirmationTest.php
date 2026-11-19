@@ -105,6 +105,20 @@ test('an admin confirms a waiting hand-over with a photo of the signed BAST, whi
     $this->get(route('filament.admin.bast.download', $assignment))->assertOk()->assertDownload();
 });
 
+test('a receipt photo must really be an image, whatever its file name says', function () {
+    $assignment = waitingHandOver();
+
+    livewire(ListAssignments::class)
+        ->callAction(TestAction::make('confirmReceipt')->table($assignment), data: [
+            'bukti' => ReceiptMethod::Kertas->value,
+            'foto' => UploadedFile::fake()->createWithContent('bast.jpg', '<script>alert(1)</script>')->mimeType('text/html'),
+        ])
+        ->assertHasActionErrors(['foto']);
+
+    expect($assignment->refresh()->status)->toBe(AssignmentStatus::Menunggu)
+        ->and(Storage::disk(Assignment::PROOF_DISK)->allFiles('receipts'))->toBe([]);
+});
+
 test('an admin can instead have the employee sign a waiting hand-over on the admin\'s screen', function () {
     $assignment = waitingHandOver();
 
