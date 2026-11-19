@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Http\Controllers\DownloadAssetReportController;
 use App\Http\Controllers\DownloadAttachmentController;
 use App\Http\Controllers\DownloadAuditReportController;
 use App\Http\Controllers\DownloadBastController;
@@ -49,6 +50,7 @@ class AdminPanelProvider extends PanelProvider
                 Route::get('scan/{kode}', [ScanAssetController::class, 'admin'])->where('kode', '[A-Za-z0-9-]+')->name('assets.scan');
                 Route::get('label', PrintAssetLabelsController::class)->middleware(UseIndonesianForDocuments::class)->name('labels');
                 Route::get('stock-opname/{audit}/laporan', DownloadAuditReportController::class)->whereNumber('audit')->middleware(UseIndonesianForDocuments::class)->name('audits.report');
+                Route::get('laporan/unduh', DownloadAssetReportController::class)->middleware(UseIndonesianForDocuments::class)->name('reports.assets');
             })
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
