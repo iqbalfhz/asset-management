@@ -128,7 +128,18 @@
 
 /* ---------- Header tabel: label lebih tenang ---------- */
 .fi-ta-header-cell {
-    @apply font-medium text-gray-500 dark:text-gray-400;
+    @apply font-medium text-gray-700 dark:text-gray-300;
+
+    & .fi-ta-header-cell-sort-btn,
+    & .fi-ta-header-cell-label {
+        @apply text-gray-700 dark:text-gray-300;
+    }
+}
+
+/* Kontras teks bantu di tabel (hasil Lighthouse) */
+.fi-ta-placeholder,
+.fi-ta-ctn .fi-input-wrp-label {
+    @apply text-gray-600 dark:text-gray-300;
 }
 
 /* Latar halaman masuk (milik project): kertas buku inventaris, garis baris hijau pinus dan margin ganda merah bata. */
