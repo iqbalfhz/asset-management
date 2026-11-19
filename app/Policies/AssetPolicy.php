@@ -19,7 +19,7 @@ class AssetPolicy
 
     public function view(AuthUser $authUser, Asset $asset): bool
     {
-        return $authUser->can('View:Asset');
+        return $authUser->can('View:Asset') && $this->managesCategoryOf($authUser, $asset);
     }
 
     public function create(AuthUser $authUser): bool
@@ -29,12 +29,12 @@ class AssetPolicy
 
     public function update(AuthUser $authUser, Asset $asset): bool
     {
-        return $authUser->can('Update:Asset');
+        return $authUser->can('Update:Asset') && $this->managesCategoryOf($authUser, $asset);
     }
 
     public function delete(AuthUser $authUser, Asset $asset): bool
     {
-        return $authUser->can('Delete:Asset');
+        return $authUser->can('Delete:Asset') && $this->managesCategoryOf($authUser, $asset);
     }
 
     public function deleteAny(AuthUser $authUser): bool
@@ -64,7 +64,20 @@ class AssetPolicy
 
     public function replicate(AuthUser $authUser, Asset $asset): bool
     {
-        return $authUser->can('Replicate:Asset');
+        return $authUser->can('Replicate:Asset') && $this->managesCategoryOf($authUser, $asset);
+    }
+
+    // Pertahanan berlapis selain global scope: admin hanya boleh menyentuh aset dari kategori yang dikelola role-nya.
+    // Super admin dan pemegang izin lihat semua aset lolos (sama seperti ManagedCategoryScope).
+    private function managesCategoryOf(AuthUser $authUser, Asset $asset): bool
+    {
+        if ($authUser->can('view_all_assets')) {
+            return true;
+        }
+
+        return $authUser->roles()
+            ->whereKey($asset->loadMissing('category')->category->role_id)
+            ->exists();
     }
 
     public function reorder(AuthUser $authUser): bool
