@@ -7,6 +7,7 @@ use App\Models\Maintenance;
 use App\Models\Role;
 use Database\Seeders\RoleSeeder;
 use Database\Seeders\StatusSeeder;
+use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
@@ -25,6 +26,17 @@ test('HSTS is sent over HTTPS, and always in production where the tunnel reaches
     $this->app['env'] = 'production';
 
     $this->get('http://localhost/login')->assertHeader('Strict-Transport-Security', 'max-age=31536000');
+});
+
+test('in production only the app domain and localhost are served, so links cannot point to a forged host', function () {
+    $this->app['env'] = 'production';
+    config(['app.url' => 'https://asset.iqbalfhz.my.id']);
+
+    $this->get('https://asset.iqbalfhz.my.id/login')->assertOk();
+    $this->get('http://localhost/up')->assertOk();
+    $this->get('https://palsu.example/login')->assertBadRequest();
+
+    Request::setTrustedHosts([]);
 });
 
 test('a damage photo is served in a sandbox so a planted script cannot run', function () {

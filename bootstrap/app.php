@@ -19,6 +19,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // Hanya alamat privat Cloudflare Tunnel yang dipercaya, supaya IP klien tidak bisa dipalsukan lewat header.
         $middleware->trustProxies(at: ['127.0.0.1', '10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16']);
 
+        // Selain domain APP_URL ditolak, supaya tautan di email tidak bisa diarahkan ke host palsu; localhost untuk healthcheck.
+        $middleware->trustHosts(at: ['^localhost$', '^127\.0\.0\.1$']);
+
         $middleware->append(SecurityHeaders::class);
 
         // Request Livewire dan halaman di luar panel (panduan) ikut bahasa user.
