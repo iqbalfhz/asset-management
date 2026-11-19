@@ -24,6 +24,9 @@ Schedule::command('backup:monitor')->dailyAt('03:00')->onOneServer();
 // Ringkasan email sebelum jam kantor (waktu Asia/Jakarta), ke user yang jadwal pilihannya jatuh hari itu.
 Schedule::command('notifikasi:ringkasan')->dailyAt('07:00')->onOneServer();
 
+// Email pengingat tanggal penting aset (pajak/STNK, servis, kontrak sewa) H-30 dan H-7.
+Schedule::command('pengingat:kirim')->dailyAt('07:00')->onOneServer();
+
 // Log masuk disimpan satu tahun (LoginLog::prunable).
 Schedule::command('model:prune', ['--model' => [LoginLog::class]])->dailyAt('02:00')->onOneServer();
 

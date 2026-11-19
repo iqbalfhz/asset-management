@@ -493,6 +493,14 @@ class Asset extends Model
     }
 
     /**
+     * @return HasMany<AssetReminder, $this>
+     */
+    public function reminders(): HasMany
+    {
+        return $this->hasMany(AssetReminder::class);
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>

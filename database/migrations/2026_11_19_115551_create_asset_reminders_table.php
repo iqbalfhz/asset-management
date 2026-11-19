@@ -1,0 +1,34 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        // Tanggal penting per aset (pajak/STNK, servis, akhir kontrak sewa); yang berulang maju setelah ditandai selesai.
+        Schema::create('asset_reminders', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('asset_id')->constrained()->restrictOnDelete();
+            $table->string('jenis');
+            $table->date('tanggal')->index();
+            $table->unsignedSmallInteger('ulangi_bulan')->nullable();
+            $table->text('catatan')->nullable();
+            $table->timestamp('selesai_pada')->nullable();
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('asset_reminders');
+    }
+};

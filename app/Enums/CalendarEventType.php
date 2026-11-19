@@ -5,6 +5,7 @@ namespace App\Enums;
 use App\Filament\Resources\Assets\AssetResource;
 use App\Filament\Resources\Licenses\LicenseResource;
 use App\Models\Asset;
+use App\Models\AssetReminder;
 use App\Models\Assignment;
 use App\Models\License;
 use App\Models\Maintenance;
@@ -20,6 +21,7 @@ enum CalendarEventType: string implements HasColor, HasLabel
     case Perbaikan = 'perbaikan';
     case Audit = 'audit';
     case Lisensi = 'lisensi';
+    case Pengingat = 'pengingat';
 
     public function getLabel(): string
     {
@@ -28,6 +30,7 @@ enum CalendarEventType: string implements HasColor, HasLabel
             self::Perbaikan => __('Perbaikan'),
             self::Audit => __('Jadwal audit'),
             self::Lisensi => __('Lisensi habis'),
+            self::Pengingat => __('Pengingat'),
         };
     }
 
@@ -38,6 +41,7 @@ enum CalendarEventType: string implements HasColor, HasLabel
             self::Perbaikan => 'info',
             self::Audit => 'gray',
             self::Lisensi => 'danger',
+            self::Pengingat => 'primary',
         };
     }
 
@@ -53,6 +57,7 @@ enum CalendarEventType: string implements HasColor, HasLabel
             self::Perbaikan => Maintenance::class,
             self::Audit => Asset::class,
             self::Lisensi => License::class,
+            self::Pengingat => Asset::class,
         };
     }
 
@@ -94,6 +99,12 @@ enum CalendarEventType: string implements HasColor, HasLabel
                     'detail' => $this->getLabel(),
                     'url' => LicenseResource::getUrl('view', ['record' => $license]),
                 ]),
+            self::Pengingat => AssetReminder::query()
+                ->with('asset')
+                ->whereNull('selesai_pada')
+                ->whereBetween('tanggal', $range)
+                ->get()
+                ->map(fn (AssetReminder $reminder): array => $this->entry($reminder->tanggal, $reminder->asset, $reminder->jenis)),
         };
     }
 

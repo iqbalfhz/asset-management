@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Enums\DigestFrequency;
 use App\Models\Asset;
+use App\Models\AssetReminder;
 use App\Models\Assignment;
 use App\Models\Category;
 use App\Models\Consumable;
@@ -82,8 +83,13 @@ class SendDigest extends Command
         $eol = $this->until(Asset::EOL_WARNING_DAYS, $periodEnd);
         $audit = $this->until(Asset::AUDIT_WARNING_DAYS, $periodEnd);
         $return = $this->until(Assignment::RETURN_WARNING_DAYS, $periodEnd);
+        $reminder = $this->until(AssetReminder::WARNING_DAYS, $periodEnd);
 
         return [
+            __('Pengingat jatuh tempo sampai :tanggal', ['tanggal' => $this->date($reminder)]) => $this->lines(
+                AssetReminder::query()->dueBy($reminder)->with('asset')->orderBy('tanggal'),
+                fn (AssetReminder $item): string => "{$item->jenis}: ".Assignment::labelFor($item->asset).', '.$this->date($item->tanggal),
+            ),
             __('Garansi habis sampai :tanggal', ['tanggal' => $this->date($warranty)]) => $this->lines(
                 Asset::query()->warrantyEndingSoon($warranty)->orderBy('garansi_sampai'),
                 fn (Asset $asset): string => Assignment::labelFor($asset).': '.$this->date($asset->garansi_sampai),

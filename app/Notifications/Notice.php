@@ -6,9 +6,12 @@ use App\Enums\AssetRequestStatus;
 use App\Enums\DigestFrequency;
 use App\Filament\Karyawan\Pages\MyAssetRequests;
 use App\Filament\Resources\AssetRequests\AssetRequestResource;
+use App\Filament\Resources\Assets\AssetResource;
 use App\Filament\Resources\Maintenances\MaintenanceResource;
 use App\Models\Asset;
+use App\Models\AssetReminder;
 use App\Models\AssetRequest;
+use App\Models\Assignment;
 use App\Models\Category;
 use App\Models\Employee;
 use App\Models\Setting;
@@ -53,6 +56,24 @@ final class Notice extends Notification implements ShouldQueue
             [__('Alasan') => [$alasan]],
             __('Buka permintaan aset'),
             AssetRequestResource::getUrl(panel: 'admin'),
+        );
+    }
+
+    public static function reminderDue(AssetReminder $reminder, Asset $asset): self
+    {
+        $tanggal = $reminder->tanggal->translatedFormat('j F Y');
+
+        return new self(
+            __(':jenis: :kode, :tanggal', ['jenis' => $reminder->jenis, 'kode' => $asset->kode, 'tanggal' => $tanggal]),
+            __(':jenis untuk :aset jatuh tempo :tanggal, :hari hari lagi.', [
+                'jenis' => $reminder->jenis,
+                'aset' => Assignment::labelFor($asset),
+                'tanggal' => $tanggal,
+                'hari' => (int) today()->diffInDays($reminder->tanggal),
+            ]),
+            filled($reminder->catatan) ? [__('Catatan') => [$reminder->catatan]] : [],
+            __('Buka aset'),
+            AssetResource::getUrl('view', ['record' => $asset], panel: 'admin'),
         );
     }
 
