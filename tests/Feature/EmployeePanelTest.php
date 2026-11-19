@@ -96,7 +96,7 @@ test('an employee sees only the assets, history and reports that are theirs', fu
 });
 
 test('accepting one asset accepts the whole BAST once the terms are agreed to and signed', function () {
-    Storage::fake(Assignment::SIGNATURE_DISK);
+    Storage::fake(Assignment::PROOF_DISK);
     [$first, $second] = handOverLaptops(2, $this->rina)->all();
     actAsEmployee($this->rinaUser);
 
@@ -120,7 +120,7 @@ test('accepting one asset accepts the whole BAST once the terms are agreed to an
     expect($rows->every(fn (Assignment $row): bool => $row->status === AssignmentStatus::Diterima && $row->accepted_at !== null))->toBeTrue()
         ->and($rows->pluck('signature_path')->unique())->toHaveCount(1);
 
-    Storage::disk(Assignment::SIGNATURE_DISK)->assertExists($rows->first()->signature_path);
+    Storage::disk(Assignment::PROOF_DISK)->assertExists($rows->first()->signature_path);
 });
 
 test('a signature that is not a PNG image is rejected', function (string $signature) {
@@ -152,13 +152,13 @@ test('a signature is redrawn before it is stored, so nothing but the image is ke
 });
 
 test('an employee cannot accept a BAST addressed to someone else', function () {
-    Storage::fake(Assignment::SIGNATURE_DISK);
+    Storage::fake(Assignment::PROOF_DISK);
     handOverLaptops(1, $this->rina);
     $noBast = Assignment::withoutGlobalScopes()->value('no_bast');
 
     expect(Assignment::accept($this->budi, $noBast, SignaturePad::png(signatureDataUrl())))->toBe(0)
         ->and(Assignment::withoutGlobalScopes()->value('status'))->toBe(AssignmentStatus::Menunggu)
-        ->and(Storage::disk(Assignment::SIGNATURE_DISK)->allFiles())->toBe([]);
+        ->and(Storage::disk(Assignment::PROOF_DISK)->allFiles())->toBe([]);
 });
 
 test('the menu counts BASTs still waiting to be accepted', function () {

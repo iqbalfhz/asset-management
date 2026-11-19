@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Assets\Actions;
 
 use App\Filament\Actions\DomainAction;
+use App\Filament\Forms\Components\SignaturePad;
 use App\Models\Asset;
 use App\Models\Assignment;
 use App\Models\Company;
@@ -17,6 +18,7 @@ use Filament\Forms\Components\Field;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Resources\Pages\ViewRecord;
@@ -183,12 +185,15 @@ class AssetTransactionActions
     }
 
     /**
-     * Isian BAST serah-terima; dipakai juga saat menyerahkan aset untuk permintaan karyawan.
+     * Isian BAST serah-terima; dipakai juga saat menyerahkan aset untuk permintaan karyawan dan paket.
      *
      * @return array<int, Field>
      */
     public static function handOverDetailFields(): array
     {
+        // Form permintaan dan paket tidak punya pilihan tujuan karena selalu ke karyawan.
+        $toEmployee = fn (Get $get): bool => in_array($get('target_type'), [null, Employee::class], true);
+
         return [
             static::dateInput(),
             static::conditionInput(),
@@ -200,6 +205,17 @@ class AssetTransactionActions
                 ->label(__('Catatan'))
                 ->rows(2)
                 ->maxLength(1000),
+            Toggle::make('tanda_tangan_sekarang')
+                ->label(__('Karyawan tanda tangan sekarang'))
+                ->helperText(__('Matikan kalau karyawan menandatangani BAST cetak; fotonya diunggah lewat Konfirmasi penerimaan di menu Serah-terima. Karyawan yang punya akun juga bisa menekan Terima di aplikasinya.'))
+                ->default(true)
+                ->live()
+                ->dehydrated(false)
+                ->visible($toEmployee),
+            SignaturePad::make('tanda_tangan')
+                ->label(__('Tanda tangan karyawan'))
+                ->required()
+                ->visible(fn (Get $get): bool => $toEmployee($get) && $get('tanda_tangan_sekarang')),
         ];
     }
 

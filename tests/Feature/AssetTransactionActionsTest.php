@@ -14,6 +14,7 @@ use Database\Seeders\StatusSeeder;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Storage;
 
 use function Pest\Livewire\livewire;
 
@@ -38,6 +39,7 @@ function laptops(Company $company, Category $category, int $count, string $statu
 }
 
 test('three assets handed over at once to one employee share one BAST and get three history rows', function () {
+    Storage::fake(Assignment::PROOF_DISK);
     $assets = laptops($this->tcm, $this->laptop, 3);
 
     livewire(ListAssets::class)
@@ -47,6 +49,7 @@ test('three assets handed over at once to one employee share one BAST and get th
             'target_id' => $this->employee->id,
             'tanggal' => '2026-11-11',
             'kondisi' => 'Baik',
+            'tanda_tangan' => signatureDataUrl(),
         ])
         ->assertHasNoFormErrors()
         ->assertNotified('Serah-terima tersimpan');
@@ -65,6 +68,7 @@ test('a refused hand over tells why and changes nothing', function () {
             'target_id' => $this->employee->id,
             'tanggal' => '2026-11-11',
             'kondisi' => 'Baik',
+            'tanda_tangan_sekarang' => false,
         ])
         ->assertNotified('Serah-terima dibatalkan');
 

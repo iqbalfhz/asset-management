@@ -4,12 +4,18 @@ namespace App\Filament\Resources\Assignments;
 
 use App\Enums\AssignmentStatus;
 use App\Enums\AssignmentType;
+use App\Enums\ReceiptMethod;
+use App\Filament\Actions\DomainAction;
+use App\Filament\Forms\Components\SignaturePad;
 use App\Filament\Resources\Assignments\Pages\ListAssignments;
 use App\Models\Assignment;
 use BackedEnum;
 use Filament\Actions\Action;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\ToggleButtons;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -93,12 +99,63 @@ class AssignmentResource extends Resource
                     ->options(AssignmentType::class),
             ])
             ->recordActions([
+                static::confirmReceiptAction(),
                 Action::make('bast')
                     ->label(__('BAST'))
                     ->icon(Heroicon::OutlinedDocumentArrowDown)
                     ->url(fn (Assignment $record): string => route('filament.admin.bast.download', $record))
                     ->openUrlInNewTab(),
             ]);
+    }
+
+    // Admin mencatat penerimaan atas nama karyawan yang belum atau tidak bisa menekan Terima di aplikasinya.
+    private static function confirmReceiptAction(): Action
+    {
+        return Action::make('confirmReceipt')
+            ->label(__('Konfirmasi penerimaan'))
+            ->icon(Heroicon::OutlinedCheckBadge)
+            ->visible(fn (Assignment $record): bool => $record->status === AssignmentStatus::Menunggu)
+            ->authorize(fn (Assignment $record): bool => auth()->user()->can('update', $record->asset))
+            ->modalHeading(fn (Assignment $record): string => __('Konfirmasi penerimaan BAST :nomor', ['nomor' => $record->no_bast]))
+            ->modalDescription(__('Berlaku untuk semua aset dalam BAST ini yang masih dipegang karyawan. Foto ikut dicetak sebagai lampiran BAST.'))
+            ->schema([
+                ToggleButtons::make('bukti')
+                    ->label(__('Bukti penerimaan'))
+                    ->options([
+                        ReceiptMethod::Kertas->value => __('Foto BAST yang sudah ditandatangani'),
+                        ReceiptMethod::Layar->value => __('Tanda tangan di layar ini'),
+                    ])
+                    ->default(ReceiptMethod::Kertas->value)
+                    ->inline()
+                    ->required()
+                    ->live()
+                    ->dehydrated(false),
+                FileUpload::make('foto')
+                    ->label(__('Foto BAST yang sudah ditandatangani'))
+                    ->helperText(__('Foto seluruh halaman BAST sampai tanda tangannya terbaca.'))
+                    ->image()
+                    // Tanpa SVG: SVG bisa membawa skrip saat dibuka di browser.
+                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                    // Diperkecil di browser supaya BAST tetap ringan; data lokasi foto ikut terbuang.
+                    ->automaticallyResizeImagesMode('contain')
+                    ->automaticallyResizeImagesToWidth('1600')
+                    ->automaticallyResizeImagesToHeight('1600')
+                    ->automaticallyUpscaleImagesWhenResizing(false)
+                    ->maxSize(5120)
+                    ->storeFiles(false)
+                    ->required()
+                    ->visible(fn (Get $get): bool => $get('bukti') === ReceiptMethod::Kertas->value),
+                SignaturePad::make('tanda_tangan')
+                    ->label(__('Tanda tangan karyawan'))
+                    ->required()
+                    ->visible(fn (Get $get): bool => $get('bukti') === ReceiptMethod::Layar->value),
+            ])
+            ->modalSubmitActionLabel(__('Simpan'))
+            ->action(fn (Assignment $record, array $data, Action $action) => DomainAction::run(
+                $action,
+                fn () => $record->confirmReceipt($data['tanda_tangan'] ?? null, $data['foto'] ?? null),
+                __('Penerimaan tercatat'),
+            ));
     }
 
     public static function getPages(): array

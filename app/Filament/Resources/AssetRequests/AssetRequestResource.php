@@ -125,7 +125,7 @@ class AssetRequestResource extends Resource
         return DomainAction::transition('handOver', __('Serahkan'), Heroicon::OutlinedArrowUpRight, AssetRequestStatus::Disetujui)
             ->hidden(fn (AssetRequest $record): bool => $record->isWaitingForAcceptance())
             ->modalHeading(__('Serah-terima aset'))
-            ->modalDescription(fn (AssetRequest $record): string => __('Aset diserahkan ke :nama. Permintaan selesai saat karyawan menekan Terima.', ['nama' => $record->employee->nama]))
+            ->modalDescription(fn (AssetRequest $record): string => __('Aset diserahkan ke :nama. Permintaan selesai begitu penerimaannya tercatat.', ['nama' => $record->employee->nama]))
             ->schema([
                 Select::make('asset_id')
                     ->label(__('Aset'))

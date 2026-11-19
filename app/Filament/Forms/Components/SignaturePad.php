@@ -29,6 +29,9 @@ class SignaturePad extends Field
                 $fail(__('Tanda tangan tidak terbaca. Hapus, lalu tanda tangani lagi.'));
             }
         });
+
+        // Data form berisi PNG yang sudah dibersihkan, bukan data URL dari browser.
+        $this->dehydrateStateUsing(fn (mixed $state): ?string => static::png($state));
     }
 
     /**

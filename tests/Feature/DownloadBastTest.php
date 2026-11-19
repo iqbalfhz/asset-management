@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\ReceiptMethod;
 use App\Filament\Forms\Components\SignaturePad;
 use App\Models\Asset;
 use App\Models\Assignment;
@@ -12,7 +13,6 @@ use Database\Seeders\RoleSeeder;
 use Database\Seeders\StatusSeeder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Testing\TestView;
 
 beforeEach(function () {
     $this->seed([RoleSeeder::class, StatusSeeder::class]);
@@ -33,17 +33,6 @@ beforeEach(function () {
     $this->assignment = $this->asset->assignments()->sole();
 });
 
-function renderBast(Assignment $assignment, ?string $kop = null): TestView
-{
-    return test()->view('pdf.bast', [
-        'first' => $assignment,
-        'rows' => Assignment::where('no_bast', $assignment->no_bast)->get(),
-        'company' => $assignment->asset->company,
-        'kop' => $kop,
-        'logo' => null,
-    ]);
-}
-
 test('an admin who may see the asset downloads its BAST as a PDF', function () {
     $this->get(route('filament.admin.bast.download', $this->assignment))
         ->assertOk()
@@ -63,7 +52,7 @@ test('a guest is sent to the login page instead of the BAST', function () {
     $this->get(route('filament.admin.bast.download', $this->assignment))->assertRedirect('/admin/login');
 });
 
-test('a hand over BAST names both parties, lists the assets and says it awaits acceptance', function () {
+test('a hand over BAST names both parties and lists the assets, with no receipt note while it waits', function () {
     renderBast($this->assignment)
         ->assertSee('BERITA ACARA SERAH TERIMA ASET')
         ->assertSee('BAST/TCM/2026/0001')
@@ -72,11 +61,11 @@ test('a hand over BAST names both parties, lists the assets and says it awaits a
         ->assertSee('Rina Wulandari (2026001)')
         ->assertSee($this->asset->kode)
         ->assertSee('Laptop Keuangan')
-        ->assertSee('Menunggu konfirmasi penerimaan dari Pihak Kedua di aplikasi.');
+        ->assertDontSee('Pihak Kedua melalui aplikasi');
 });
 
 test('an accepted BAST shows when the employee accepted it', function () {
-    $this->assignment->update(['accepted_at' => now()]);
+    $this->assignment->update(['accepted_at' => now(), 'receipt_method' => ReceiptMethod::Aplikasi]);
 
     renderBast($this->assignment)->assertSee('Diterima oleh Pihak Kedua melalui aplikasi pada 11 November 2026, 10:00.');
 });
@@ -96,7 +85,7 @@ test('the letterhead text is printed as text, not as HTML', function () {
 });
 
 test('a signed BAST shows the receiver\'s signature and still downloads as a PDF', function () {
-    Storage::fake(Assignment::SIGNATURE_DISK);
+    Storage::fake(Assignment::PROOF_DISK);
     renderBast($this->assignment)->assertDontSee('data:image/png', false);
 
     Assignment::accept($this->employee, $this->assignment->no_bast, SignaturePad::png(signatureDataUrl()));

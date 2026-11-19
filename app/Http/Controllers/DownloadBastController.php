@@ -46,7 +46,7 @@ class DownloadBastController extends Controller
     {
         // Satu BAST adalah satu dokumen: semua baris ikut, termasuk aset menempel dari kategori lain.
         $rows = Assignment::withoutGlobalScope('asset')
-            ->with(['asset' => fn (BelongsTo $query) => $query->withoutGlobalScopes()->with('company'), 'createdBy'])
+            ->with(['asset' => fn (BelongsTo $query) => $query->withoutGlobalScopes()->with('company'), 'createdBy', 'confirmedBy'])
             ->where('no_bast', $first->no_bast)
             ->orderBy('id')
             ->get();

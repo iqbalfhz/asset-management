@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Asset;
+use App\Models\Assignment;
 use App\Models\Building;
 use App\Models\Category;
 use App\Models\Company;
@@ -10,6 +11,7 @@ use App\Models\Room;
 use App\Models\Status;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Testing\TestView;
 use Tests\TestCase;
 
 pest()->extend(TestCase::class)
@@ -52,6 +54,20 @@ function roomOf(Company $company): Room
     $floor = Floor::factory()->create(['building_id' => Building::factory()->create(['company_id' => $company->id])->id]);
 
     return Room::factory()->create(['floor_id' => $floor->id]);
+}
+
+/**
+ * The BAST template rendered for the given row, without the PDF step.
+ */
+function renderBast(Assignment $assignment, ?string $kop = null): TestView
+{
+    return test()->view('pdf.bast', [
+        'first' => $assignment,
+        'rows' => Assignment::where('no_bast', $assignment->no_bast)->get(),
+        'company' => $assignment->asset->company,
+        'kop' => $kop,
+        'logo' => null,
+    ]);
 }
 
 /**

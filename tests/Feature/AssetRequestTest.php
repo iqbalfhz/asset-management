@@ -155,12 +155,12 @@ test('a rejection needs a reason, which the employee then reads', function () {
 });
 
 test('handing over an approved request issues a BAST, and accepting it completes the request', function () {
-    Storage::fake(Assignment::SIGNATURE_DISK);
+    Storage::fake(Assignment::PROOF_DISK);
     $request = laptopRequest(AssetRequestStatus::Disetujui);
     $this->actingAs($this->adminIt);
 
     livewire(ListAssetRequests::class)
-        ->callAction(TestAction::make('handOver')->table($request), data: ['asset_id' => $this->spareLaptop->id] + $this->details)
+        ->callAction(TestAction::make('handOver')->table($request), data: ['asset_id' => $this->spareLaptop->id, 'tanda_tangan_sekarang' => false] + $this->details)
         ->assertNotified('Serah-terima tersimpan');
 
     $assignment = Assignment::query()->sole();
@@ -177,6 +177,19 @@ test('handing over an approved request issues a BAST, and accepting it completes
     livewire(MyAssets::class)->callAction(TestAction::make('accept')->table($this->spareLaptop), data: ['setuju' => true, 'tanda_tangan' => signatureDataUrl()]);
 
     expect($request->refresh()->status)->toBe(AssetRequestStatus::Selesai);
+});
+
+test('a request handed over with the employee signing on the admin\'s screen is completed right away', function () {
+    Storage::fake(Assignment::PROOF_DISK);
+    $request = laptopRequest(AssetRequestStatus::Disetujui);
+    $this->actingAs($this->adminIt);
+
+    livewire(ListAssetRequests::class)
+        ->callAction(TestAction::make('handOver')->table($request), data: ['asset_id' => $this->spareLaptop->id, 'tanda_tangan' => signatureDataUrl()] + $this->details)
+        ->assertNotified('Serah-terima tersimpan');
+
+    expect($request->refresh()->status)->toBe(AssetRequestStatus::Selesai)
+        ->and(Assignment::query()->sole()->status)->toBe(AssignmentStatus::Diterima);
 });
 
 test('a hand-over needs an asset of the requested category and waits while the last one is unaccepted', function () {

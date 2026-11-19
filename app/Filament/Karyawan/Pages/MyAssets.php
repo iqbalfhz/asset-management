@@ -122,7 +122,7 @@ class MyAssets extends EmployeeTablePage
             ])
             ->modalSubmitActionLabel(__('Terima'))
             ->action(function (Asset $record, array $data): void {
-                $count = Assignment::accept(auth()->user()->employee, static::pendingFor($record)->no_bast, SignaturePad::png($data['tanda_tangan']));
+                $count = Assignment::accept(auth()->user()->employee, static::pendingFor($record)->no_bast, $data['tanda_tangan']);
 
                 Notification::make()
                     ->success()

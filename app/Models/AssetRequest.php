@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\AssetRequestStatus;
+use App\Enums\AssignmentStatus;
 use App\Models\Concerns\LocksStatus;
 use App\Models\Concerns\LogsChanges;
 use App\Notifications\Notice;
@@ -83,7 +84,7 @@ class AssetRequest extends Model
     }
 
     /**
-     * Serahkan satu aset dari kategori yang diminta; permintaan selesai saat karyawan menekan Terima.
+     * Serahkan satu aset dari kategori yang diminta; permintaan selesai begitu penerimaannya tercatat.
      *
      * @param  array{tanggal: string, kondisi: string, catatan?: ?string, expected_return_at?: ?string}  $details
      */
@@ -101,8 +102,13 @@ class AssetRequest extends Model
             }
 
             $noBast = Assignment::handOver(new Collection([$asset]), $this->employee, $details);
+            $assignment = Assignment::query()->where('no_bast', $noBast)->sole();
 
-            $this->update(['assignment_id' => Assignment::query()->where('no_bast', $noBast)->value('id')]);
+            // Karyawan yang tanda tangan di layar admin sudah menerima, jadi permintaannya langsung selesai.
+            $this->update([
+                'assignment_id' => $assignment->getKey(),
+                'status' => $assignment->status === AssignmentStatus::Diterima ? AssetRequestStatus::Selesai : $this->status,
+            ]);
 
             return $noBast;
         });

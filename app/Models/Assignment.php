@@ -4,7 +4,9 @@ namespace App\Models;
 
 use App\Enums\AssignmentStatus;
 use App\Enums\AssignmentType;
+use App\Enums\ReceiptMethod;
 use Carbon\CarbonInterface;
+use Closure;
 use Database\Factories\AssignmentFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -15,6 +17,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -22,7 +25,7 @@ use LogicException;
 
 #[Fillable([
     'asset_id', 'target_type', 'target_id', 'jenis', 'tanggal', 'kondisi', 'catatan', 'no_bast',
-    'expected_return_at', 'status', 'accepted_at', 'signature_path', 'created_by',
+    'expected_return_at', 'status', 'accepted_at', 'signature_path', 'receipt_method', 'receipt_path', 'confirmed_by', 'created_by',
 ])]
 class Assignment extends Model
 {
@@ -34,8 +37,8 @@ class Assignment extends Model
 
     public const int UNACCEPTED_REMINDER_DAYS = 2;
 
-    // Tanda tangan penerima di disk privat; hanya tampil di BAST yang diunduh lewat route berizin.
-    public const string SIGNATURE_DISK = 'local';
+    // Tanda tangan dan foto tanda terima di disk privat; hanya tampil di BAST yang diunduh lewat route berizin.
+    public const string PROOF_DISK = 'local';
 
     // Nama jenis tujuan serah-terima di API.
     public const array TARGET_TYPES = [
@@ -52,10 +55,11 @@ class Assignment extends Model
     }
 
     /**
-     * Serahkan aset ke karyawan, ruang, departemen, atau aset lain dalam satu BAST.
+     * Serahkan aset ke karyawan, ruang, departemen, atau aset lain dalam satu BAST. Karyawan yang tanda tangan
+     * di layar admin langsung tercatat menerima; tanpa tanda tangan, serah-terima menunggu konfirmasi.
      *
      * @param  Collection<int, Asset>  $assets
-     * @param  array{tanggal: string, kondisi: string, catatan?: ?string, expected_return_at?: ?string}  $details
+     * @param  array{tanggal: string, kondisi: string, catatan?: ?string, expected_return_at?: ?string, tanda_tangan?: ?string}  $details  tanda_tangan berisi PNG
      */
     public static function handOver(Collection $assets, Model $target, array $details): string
     {
@@ -82,7 +86,9 @@ class Assignment extends Model
             }
 
             $noBast = static::nextBastNumber($assets->first()->company_id);
-            $waitsForAcceptance = $target instanceof Employee;
+            $signedOnScreen = $target instanceof Employee && filled($details['tanda_tangan'] ?? null);
+            $waitsForAcceptance = $target instanceof Employee && ! $signedOnScreen;
+            $signaturePath = $signedOnScreen ? static::storeSignature($details['tanda_tangan']) : null;
             $roomId = match (true) {
                 $target instanceof Room => $target->getKey(),
                 $target instanceof Asset => $target->room_id,
@@ -108,6 +114,9 @@ class Assignment extends Model
                     'expected_return_at' => $details['expected_return_at'] ?? null,
                     'status' => $waitsForAcceptance ? AssignmentStatus::Menunggu : AssignmentStatus::Diterima,
                     'accepted_at' => $waitsForAcceptance ? null : now(),
+                    'signature_path' => $signaturePath,
+                    'receipt_method' => $signedOnScreen ? ReceiptMethod::Layar : null,
+                    'confirmed_by' => $signedOnScreen ? auth()->id() : null,
                     'created_by' => auth()->id(),
                 ]);
             }
@@ -172,29 +181,62 @@ class Assignment extends Model
     }
 
     /**
-     * Karyawan menerima serah-terima dalam satu BAST dengan tanda tangannya; hanya aset yang masih dipegangnya. Permintaan aset yang terkait ikut selesai.
+     * Karyawan menerima serah-terima dalam satu BAST dengan tanda tangan di aplikasinya.
      */
     public static function accept(Employee $employee, string $noBast, string $signaturePng): int
     {
-        return DB::transaction(function () use ($employee, $noBast, $signaturePng): int {
+        return static::recordReceipt($employee, $noBast, fn (): array => [
+            'receipt_method' => ReceiptMethod::Aplikasi,
+            'signature_path' => static::storeSignature($signaturePng),
+        ]);
+    }
+
+    /**
+     * Admin mencatat penerimaan BAST ini atas nama karyawan: tanda tangan di layar admin, atau foto BAST cetak yang sudah ditandatangani.
+     */
+    public function confirmReceipt(?string $signaturePng, ?UploadedFile $receiptPhoto): void
+    {
+        $count = static::recordReceipt($this->target()->withoutGlobalScopes()->first(), $this->no_bast, fn (): array => $signaturePng !== null
+            ? ['receipt_method' => ReceiptMethod::Layar, 'signature_path' => static::storeSignature($signaturePng)]
+            : ['receipt_method' => ReceiptMethod::Kertas, 'receipt_path' => $receiptPhoto->store('receipts', static::PROOF_DISK)]);
+
+        if ($count === 0) {
+            throw new LogicException(__('BAST :nomor sudah diterima, atau asetnya sudah tidak dipegang karyawan.', ['nomor' => $this->no_bast]));
+        }
+    }
+
+    /**
+     * Tandai diterima semua baris BAST yang masih dipegang karyawan; buktinya baru disimpan kalau ada yang ditandai.
+     * Permintaan aset yang terkait ikut selesai.
+     *
+     * @param  Closure(): array<string, mixed>  $proof
+     */
+    private static function recordReceipt(Employee $employee, string $noBast, Closure $proof): int
+    {
+        return DB::transaction(function () use ($employee, $noBast, $proof): int {
             $ids = static::query()->waitingFor($employee)->where('no_bast', $noBast)->pluck('id')->all();
 
             if ($ids === []) {
                 return 0;
             }
 
-            $signaturePath = 'signatures/'.Str::uuid().'.png';
-            Storage::disk(static::SIGNATURE_DISK)->put($signaturePath, $signaturePng);
-
-            static::withoutGlobalScope('asset')->whereKey($ids)->update([
+            static::withoutGlobalScope('asset')->whereKey($ids)->update($proof() + [
                 'status' => AssignmentStatus::Diterima,
                 'accepted_at' => now(),
-                'signature_path' => $signaturePath,
+                'confirmed_by' => auth()->id(),
             ]);
             AssetRequest::completeFor($ids);
 
             return count($ids);
         });
+    }
+
+    private static function storeSignature(string $png): string
+    {
+        $path = 'signatures/'.Str::uuid().'.png';
+        Storage::disk(static::PROOF_DISK)->put($path, $png);
+
+        return $path;
     }
 
     // Serah-terima ke karyawan yang belum diterima, untuk aset yang masih dipegangnya; tanpa batas kategori admin.
@@ -351,13 +393,26 @@ class Assignment extends Model
      */
     public function signatureDataUri(): ?string
     {
-        $disk = Storage::disk(static::SIGNATURE_DISK);
+        return static::proofDataUri($this->signature_path);
+    }
 
-        if ($this->signature_path === null || ! $disk->exists($this->signature_path)) {
+    /**
+     * Foto BAST cetak yang ditandatangani penerima, sebagai data URI untuk lampiran BAST.
+     */
+    public function receiptDataUri(): ?string
+    {
+        return static::proofDataUri($this->receipt_path);
+    }
+
+    private static function proofDataUri(?string $path): ?string
+    {
+        $disk = Storage::disk(static::PROOF_DISK);
+
+        if ($path === null || ! $disk->exists($path)) {
             return null;
         }
 
-        return 'data:image/png;base64,'.base64_encode($disk->get($this->signature_path));
+        return 'data:'.$disk->mimeType($path).';base64,'.base64_encode($disk->get($path));
     }
 
     public static function labelFor(Model $target): string
@@ -396,6 +451,16 @@ class Assignment extends Model
     }
 
     /**
+     * User yang mencatat penerimaan: karyawan sendiri lewat aplikasi, atau admin.
+     *
+     * @return BelongsTo<User, $this>
+     */
+    public function confirmedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'confirmed_by');
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
@@ -408,6 +473,7 @@ class Assignment extends Model
             'tanggal' => 'date',
             'expected_return_at' => 'date',
             'accepted_at' => 'datetime',
+            'receipt_method' => ReceiptMethod::class,
         ];
     }
 }

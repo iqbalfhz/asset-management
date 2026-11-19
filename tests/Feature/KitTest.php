@@ -69,6 +69,7 @@ test('handing over a kit records each item on its own, with one BAST for the cho
             'assets' => [$this->laptopLine->id => [$this->secondLaptop->id]],
             'tanggal' => today()->toDateString(),
             'kondisi' => 'Baik',
+            'tanda_tangan_sekarang' => false,
         ])
         ->assertNotified('Paket diserahkan');
 

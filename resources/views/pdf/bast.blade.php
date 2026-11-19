@@ -1,10 +1,21 @@
 @php
+    use App\Enums\ReceiptMethod;
+
     $isReturn = $first->jenis === \App\Enums\AssignmentType::Kembali;
     $admin = $first->createdBy->name.', '.__('atas nama').' '.$company->nama;
     $target = $first->targetLabel();
     $giver = $isReturn ? $target : $admin;
     $receiver = $isReturn ? $admin : $target;
     $signature = $isReturn ? null : $first->signatureDataUri();
+    $receipt = $isReturn ? null : $first->receiptDataUri();
+    $receivedBy = ['waktu' => $first->accepted_at?->translatedFormat('j F Y, H:i'), 'nama' => $first->confirmedBy?->name ?? '—'];
+    // Belum diterima: tanpa catatan, kotak tanda tangan dibiarkan kosong untuk ditandatangani di BAST cetak.
+    $receiptNote = $isReturn ? null : match ($first->receipt_method) {
+        ReceiptMethod::Aplikasi => __('Diterima oleh Pihak Kedua melalui aplikasi pada :waktu.', $receivedBy),
+        ReceiptMethod::Layar => __('Ditandatangani Pihak Kedua di hadapan :nama pada :waktu.', $receivedBy),
+        ReceiptMethod::Kertas => __('Ditandatangani Pihak Kedua di BAST cetak. Fotonya diunggah oleh :nama pada :waktu dan terlampir di halaman berikut.', $receivedBy),
+        null => null,
+    };
 @endphp
 <!doctype html>
 <html lang="id">
@@ -32,6 +43,8 @@
         .signatures td { width: 50%; text-align: center; vertical-align: top; }
         .sign-space { height: 58pt; }
         .sign-space img { max-height: 56pt; max-width: 170pt; }
+        .receipt { page-break-before: always; text-align: center; }
+        .receipt img { max-width: 170mm; max-height: 215mm; }
         .footer { position: fixed; bottom: -8mm; left: 0; right: 0; font-size: 7.5pt; color: #8a8a7d; }
     </style>
 </head>
@@ -87,14 +100,8 @@
         <p class="note"><span class="muted">{{ __('Catatan') }}:</span> {{ $first->catatan }}</p>
     @endif
 
-    @if (! $isReturn && $first->target_type === (new \App\Models\Employee)->getMorphClass())
-        <p class="note muted">
-            @if ($first->accepted_at)
-                {{ __('Diterima oleh Pihak Kedua melalui aplikasi pada :waktu.', ['waktu' => $first->accepted_at->translatedFormat('j F Y, H:i')]) }}
-            @else
-                {{ __('Menunggu konfirmasi penerimaan dari Pihak Kedua di aplikasi.') }}
-            @endif
-        </p>
+    @if ($receiptNote)
+        <p class="note muted">{{ $receiptNote }}</p>
     @endif
 
     <p>{{ __('Demikian berita acara ini dibuat untuk dipergunakan sebagaimana mestinya.') }}</p>
@@ -113,6 +120,14 @@
             <td>( {{ $isReturn ? $first->createdBy->name : $target }} )</td>
         </tr>
     </table>
+
+    @if ($receipt)
+        <div class="receipt">
+            <h1>{{ __('LAMPIRAN: FOTO BAST YANG DITANDATANGANI') }}</h1>
+            <div class="nomor">{{ __('Nomor') }}: {{ $first->no_bast }}</div>
+            <img src="{{ $receipt }}" alt="">
+        </div>
+    @endif
 
     <div class="footer">{{ $first->no_bast }} · {{ __('Dicetak dari Asset Management pada :waktu', ['waktu' => now()->translatedFormat('j F Y, H:i')]) }}</div>
 </body>
