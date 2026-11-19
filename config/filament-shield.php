@@ -260,6 +260,7 @@ return [
     'custom_permissions' => [
         'view_all_assets' => 'Lihat aset dari semua pengelola',
         'view_all_companies' => 'Lihat data semua perusahaan',
+        'transfer_assets_between_companies' => 'Pindahkan aset ke perusahaan lain',
     ],
 
     /*

@@ -97,7 +97,7 @@ class Employee extends Model
     public function heldItemLabels(): SupportCollection
     {
         return $this->heldAssets()->get()->toBase()->map(fn (Asset $asset): string => "{$asset->kode} ({$asset->nama})")
-            ->merge($this->activeLicenseSeats()->get()->toBase()->map(fn (LicenseSeat $seat): string => __('seat :software', ['software' => $seat->license->nama_software])))
+            ->merge($this->activeLicenseSeats()->get()->toBase()->map(fn (LicenseSeat $seat): string => $seat->label()))
             ->merge($this->activeAccessoryCheckouts()->get()->toBase()->map(fn (AccessoryCheckout $checkout): string => static::accessoryLabel($checkout)));
     }
 

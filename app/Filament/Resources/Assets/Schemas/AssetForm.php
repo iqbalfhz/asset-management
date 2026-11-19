@@ -70,7 +70,9 @@ class AssetForm
             ->columns(2)
             ->columnSpanFull()
             ->schema([
-                CompanySelect::make(),
+                CompanySelect::make()
+                    ->disabledOn('edit')
+                    ->helperText(fn (string $operation): ?string => $operation === 'edit' ? __('Diubah lewat tombol Pindah perusahaan oleh user yang punya izinnya.') : null),
                 TextInput::make('nama')
                     ->label(__('Nama'))
                     ->required()

@@ -36,13 +36,13 @@ class RoleSeeder extends Seeder
             Role::firstOrCreate(['name' => $name, 'guard_name' => 'web'], ['panel' => $panel]);
         }
 
-        // Admin IT dan GA: semua izin menu, kecuali Roles, User, Perusahaan, dan izin lihat semua.
+        // Admin IT dan GA: semua izin menu, kecuali Roles, User, Perusahaan, izin lihat semua, dan pindah aset antar perusahaan.
         $adminPermissions = Permission::query()
             ->where('name', 'not like', '%:Role')
             ->where('name', 'not like', '%:User')
             ->where('name', 'not like', '%:Company')
             ->where('name', '!=', 'View:Settings')
-            ->whereNotIn('name', ['view_all_assets', 'view_all_companies'])
+            ->whereNotIn('name', ['view_all_assets', 'view_all_companies', 'transfer_assets_between_companies'])
             ->get();
 
         Role::findByName('admin_it')->syncPermissions($adminPermissions);

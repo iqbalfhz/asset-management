@@ -3,14 +3,11 @@
 use App\Enums\AssignmentStatus;
 use App\Enums\AssignmentType;
 use App\Models\Assignment;
-use App\Models\Building;
 use App\Models\Category;
 use App\Models\Company;
 use App\Models\Department;
 use App\Models\Employee;
-use App\Models\Floor;
 use App\Models\Role;
-use App\Models\Room;
 use App\Models\Setting;
 use App\Models\Status;
 use Database\Seeders\RoleSeeder;
@@ -29,13 +26,6 @@ beforeEach(function () {
     $this->employee = Employee::factory()->create(['company_id' => $this->tcm->id]);
     $this->details = ['tanggal' => '2026-11-11', 'kondisi' => 'Baik'];
 });
-
-function roomOf(Company $company): Room
-{
-    $floor = Floor::factory()->create(['building_id' => Building::factory()->create(['company_id' => $company->id])->id]);
-
-    return Room::factory()->create(['floor_id' => $floor->id]);
-}
 
 test('handing over to an employee puts the asset in use with that holder, waiting for acceptance', function () {
     $asset = availableAsset($this->tcm, $this->laptop);

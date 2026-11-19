@@ -1,9 +1,12 @@
 <?php
 
 use App\Models\Asset;
+use App\Models\Building;
 use App\Models\Category;
 use App\Models\Company;
+use App\Models\Floor;
 use App\Models\Role;
+use App\Models\Room;
 use App\Models\Status;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -39,6 +42,16 @@ function availableAsset(Company $company, Category $category, array $attributes 
         'category_id' => $category->id,
         'status_id' => Status::named(Status::TERSEDIA)->id,
     ]);
+}
+
+/**
+ * A room in a new building and floor of the given company.
+ */
+function roomOf(Company $company): Room
+{
+    $floor = Floor::factory()->create(['building_id' => Building::factory()->create(['company_id' => $company->id])->id]);
+
+    return Room::factory()->create(['floor_id' => $floor->id]);
 }
 
 /**

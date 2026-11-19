@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Support\Facades\DB;
 use LogicException;
 
@@ -47,6 +48,9 @@ class Asset extends Model
 
     // Status hanya boleh berubah lewat method di model ini, bukan lewat form atau update biasa.
     private bool $statusChangeAllowed = false;
+
+    // Perusahaan juga, lewat transferTo(), supaya pemegang, ruang, dan barang yang menempel ikut dicek.
+    private bool $companyChangeAllowed = false;
 
     protected static function booted(): void
     {
@@ -79,6 +83,10 @@ class Asset extends Model
 
             if ($asset->isDirty('status_id') && ! $asset->statusChangeAllowed) {
                 throw new LogicException(__('Status aset hanya berubah lewat transaksi.'));
+            }
+
+            if ($asset->isDirty('company_id') && ! $asset->companyChangeAllowed) {
+                throw new LogicException(__('Perusahaan aset hanya berubah lewat Pindah perusahaan.'));
             }
         });
 
@@ -174,6 +182,84 @@ class Asset extends Model
         });
 
         $this->refresh();
+    }
+
+    /**
+     * Pindahkan aset ke perusahaan lain dalam grup. Kodenya tetap (label tidak perlu dicetak ulang); riwayatnya dicatat.
+     * Hanya aset yang tidak sedang dipakai dan tidak membawa barang lain, karena barang itu milik perusahaan asal.
+     */
+    public function transferTo(Company $company, Room $room, string $tanggal, string $alasan): void
+    {
+        DB::transaction(function () use ($company, $room, $tanggal, $alasan): void {
+            $asset = static::query()->with(['status', 'company'])->whereKey($this->getKey())->lockForUpdate()->firstOrFail();
+
+            if (! in_array($asset->status->nama, [Status::DISIAPKAN, Status::TERSEDIA], true)) {
+                throw new LogicException(__('Hanya aset Disiapkan atau Tersedia yang bisa dipindah ke perusahaan lain. Kembalikan dulu kalau sedang dipakai.'));
+            }
+
+            if ($company->is($asset->company)) {
+                throw new LogicException(__('Aset :kode sudah milik :perusahaan.', ['kode' => $asset->kode, 'perusahaan' => $company->nama]));
+            }
+
+            if (! $company->is_active) {
+                throw new LogicException(__('Perusahaan :perusahaan sudah nonaktif.', ['perusahaan' => $company->nama]));
+            }
+
+            if (Assignment::companyIdOf($room) !== $company->getKey()) {
+                throw new LogicException(__('Ruang :ruang berada di perusahaan lain.', ['ruang' => $room->nama]));
+            }
+
+            $attached = $asset->attachedItemLabels();
+
+            if ($attached->isNotEmpty()) {
+                throw new LogicException(__('Aset :kode masih membawa :list. Lepas dulu sebelum dipindah.', ['kode' => $asset->kode, 'list' => $attached->implode(', ')]));
+            }
+
+            AssetTransfer::query()->create([
+                'asset_id' => $asset->getKey(),
+                'from_company_id' => $asset->company_id,
+                'to_company_id' => $company->getKey(),
+                'from_room_id' => $asset->room_id,
+                'to_room_id' => $room->getKey(),
+                'tanggal' => $tanggal,
+                'alasan' => $alasan,
+                'created_by' => auth()->id(),
+            ]);
+
+            $asset->companyChangeAllowed = true;
+
+            try {
+                $asset->update(['company_id' => $company->getKey(), 'room_id' => $room->getKey(), 'default_room_id' => $room->getKey()]);
+            } finally {
+                $asset->companyChangeAllowed = false;
+            }
+        });
+
+        $this->refresh();
+    }
+
+    /**
+     * Barang yang menempel di aset ini, dari pengelola mana pun: aset lain, seat lisensi, dan komponen terpasang.
+     *
+     * @return SupportCollection<int, string>
+     */
+    public function attachedItemLabels(): SupportCollection
+    {
+        $attachedAssets = static::withoutGlobalScopes()
+            ->where('assigned_type', $this->getMorphClass())
+            ->where('assigned_id', $this->getKey())
+            ->whereRelation('status', 'nama', Status::DIPAKAI)
+            ->get();
+        $seats = LicenseSeat::withoutGlobalScopes()->where('asset_id', $this->getKey())->whereNull('dilepas_pada')
+            ->with(['license' => fn (BelongsTo $query) => $query->withoutGlobalScopes()])
+            ->get();
+        $components = ComponentInstallation::withoutGlobalScopes()->open()->where('asset_id', $this->getKey())
+            ->with(['component' => fn (BelongsTo $query) => $query->withoutGlobalScopes()])
+            ->get();
+
+        return $attachedAssets->toBase()->map(fn (Asset $asset): string => Assignment::labelFor($asset))
+            ->merge($seats->toBase()->map(fn (LicenseSeat $seat): string => $seat->label()))
+            ->merge($components->toBase()->map(fn (ComponentInstallation $installation): string => "{$installation->jumlah} × {$installation->component->nama}"));
     }
 
     // Barang berperusahaan (seat lisensi, komponen) hanya dipasang ke aset yang belum dihapuskan di perusahaan yang sama.
@@ -396,6 +482,14 @@ class Asset extends Model
     public function auditItems(): HasMany
     {
         return $this->hasMany(AuditItem::class);
+    }
+
+    /**
+     * @return HasMany<AssetTransfer, $this>
+     */
+    public function transfers(): HasMany
+    {
+        return $this->hasMany(AssetTransfer::class);
     }
 
     /**

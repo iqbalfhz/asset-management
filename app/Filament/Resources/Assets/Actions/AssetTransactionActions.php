@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Assets\Actions;
 use App\Filament\Actions\DomainAction;
 use App\Models\Asset;
 use App\Models\Assignment;
+use App\Models\Company;
 use App\Models\Department;
 use App\Models\Employee;
 use App\Models\Room;
@@ -95,6 +96,47 @@ class AssetTransactionActions
                 $action,
                 fn () => $record->recover(Room::query()->findOrFail($data['room_id']), $data['alasan']),
                 __('Aset kembali Tersedia'),
+            ))
+            ->after(fn (Component $livewire) => static::refreshEditPage($livewire));
+    }
+
+    /**
+     * Pindah ke perusahaan lain dalam grup; kode aset tetap, riwayatnya dicatat.
+     */
+    public static function transferCompany(): Action
+    {
+        return Action::make('transferCompany')
+            ->label(__('Pindah perusahaan'))
+            ->icon(Heroicon::OutlinedBuildingOffice2)
+            ->visible(fn (Asset $record): bool => in_array($record->status->nama, [Status::DISIAPKAN, Status::TERSEDIA], true)
+                && Company::query()->active()->whereKeyNot($record->company_id)->exists())
+            ->authorize(fn (Asset $record): bool => auth()->user()->can('transfer_assets_between_companies') && auth()->user()->can('update', $record))
+            ->modalHeading(__('Pindah ke perusahaan lain'))
+            ->modalDescription(fn (Asset $record): string => __('Kode aset tetap :kode, jadi label tidak perlu dicetak ulang. Riwayat pindahnya tercatat di halaman aset.', ['kode' => $record->kode]))
+            ->modalSubmitActionLabel(__('Pindahkan'))
+            ->schema([
+                Select::make('company_id')
+                    ->label(__('Perusahaan tujuan'))
+                    ->options(fn (Asset $record): array => Company::query()->active()->whereKeyNot($record->company_id)->orderBy('nama')->pluck('nama', 'id')->all())
+                    ->required()
+                    ->live()
+                    ->afterStateUpdated(fn (Set $set) => $set('room_id', null)),
+                Select::make('room_id')
+                    ->label(__('Ruang tujuan'))
+                    ->options(fn (Get $get): array => filled($get('company_id')) ? Room::pathOptions((int) $get('company_id')) : [])
+                    ->searchable()
+                    ->required(),
+                static::dateInput(),
+                Textarea::make('alasan')
+                    ->label(__('Alasan'))
+                    ->rows(2)
+                    ->required()
+                    ->maxLength(1000),
+            ])
+            ->action(fn (Asset $record, array $data, Action $action) => DomainAction::run(
+                $action,
+                fn () => $record->transferTo(Company::query()->findOrFail($data['company_id']), Room::query()->findOrFail($data['room_id']), $data['tanggal'], $data['alasan']),
+                __('Aset dipindah ke perusahaan lain'),
             ))
             ->after(fn (Component $livewire) => static::refreshEditPage($livewire));
     }

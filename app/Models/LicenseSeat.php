@@ -62,6 +62,12 @@ class LicenseSeat extends Model
         return static::labelFor($this->employee ?? $this->asset);
     }
 
+    // Nama seat di daftar barang yang masih dipegang; lisensinya perlu dimuat tanpa scope oleh pemanggil.
+    public function label(): string
+    {
+        return __('seat :software', ['software' => $this->license->nama_software]);
+    }
+
     /**
      * @return BelongsTo<License, $this>
      */

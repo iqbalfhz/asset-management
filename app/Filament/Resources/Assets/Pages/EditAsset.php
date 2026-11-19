@@ -16,6 +16,7 @@ class EditAsset extends EditRecord
         return [
             AssetTransactionActions::handOver(),
             AssetTransactionActions::takeBack(),
+            AssetTransactionActions::transferCompany(),
         ];
     }
 }

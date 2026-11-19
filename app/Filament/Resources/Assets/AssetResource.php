@@ -13,6 +13,7 @@ use App\Filament\Resources\Assets\RelationManagers\AuditItemsRelationManager;
 use App\Filament\Resources\Assets\RelationManagers\ComponentsRelationManager;
 use App\Filament\Resources\Assets\RelationManagers\LicenseSeatsRelationManager;
 use App\Filament\Resources\Assets\RelationManagers\MaintenancesRelationManager;
+use App\Filament\Resources\Assets\RelationManagers\TransfersRelationManager;
 use App\Filament\Resources\Assets\Schemas\AssetForm;
 use App\Filament\Resources\Assets\Schemas\AssetInfolist;
 use App\Filament\Resources\Assets\Tables\AssetsTable;
@@ -67,6 +68,7 @@ class AssetResource extends Resource
             LicenseSeatsRelationManager::class,
             ComponentsRelationManager::class,
             AuditItemsRelationManager::class,
+            TransfersRelationManager::class,
             ActivitiesRelationManager::class,
         ];
     }
