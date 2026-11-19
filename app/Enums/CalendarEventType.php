@@ -5,6 +5,7 @@ namespace App\Enums;
 use App\Filament\Resources\Assets\AssetResource;
 use App\Filament\Resources\Licenses\LicenseResource;
 use App\Models\Asset;
+use App\Models\AssetBooking;
 use App\Models\AssetReminder;
 use App\Models\Assignment;
 use App\Models\License;
@@ -22,6 +23,7 @@ enum CalendarEventType: string implements HasColor, HasLabel
     case Audit = 'audit';
     case Lisensi = 'lisensi';
     case Pengingat = 'pengingat';
+    case Peminjaman = 'peminjaman';
 
     public function getLabel(): string
     {
@@ -31,6 +33,7 @@ enum CalendarEventType: string implements HasColor, HasLabel
             self::Audit => __('Jadwal audit'),
             self::Lisensi => __('Lisensi habis'),
             self::Pengingat => __('Pengingat'),
+            self::Peminjaman => __('Peminjaman'),
         };
     }
 
@@ -42,6 +45,7 @@ enum CalendarEventType: string implements HasColor, HasLabel
             self::Audit => 'gray',
             self::Lisensi => 'danger',
             self::Pengingat => 'primary',
+            self::Peminjaman => 'success',
         };
     }
 
@@ -58,6 +62,7 @@ enum CalendarEventType: string implements HasColor, HasLabel
             self::Audit => Asset::class,
             self::Lisensi => License::class,
             self::Pengingat => Asset::class,
+            self::Peminjaman => AssetBooking::class,
         };
     }
 
@@ -105,6 +110,12 @@ enum CalendarEventType: string implements HasColor, HasLabel
                 ->whereBetween('tanggal', $range)
                 ->get()
                 ->map(fn (AssetReminder $reminder): array => $this->entry($reminder->tanggal, $reminder->asset, $reminder->jenis)),
+            self::Peminjaman => AssetBooking::query()
+                ->with(['asset', 'employee'])
+                ->active()
+                ->whereBetween('mulai', [$start->copy()->startOfDay(), $end->copy()->endOfDay()])
+                ->get()
+                ->map(fn (AssetBooking $booking): array => $this->entry($booking->mulai, $booking->asset, "{$booking->employee->nama}, {$booking->period()}")),
         };
     }
 

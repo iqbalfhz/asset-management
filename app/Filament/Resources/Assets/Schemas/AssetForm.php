@@ -49,6 +49,9 @@ class AssetForm
                         Toggle::make('requestable')
                             ->label(__('Boleh diminta'))
                             ->helperText(__('Kategori aset ini muncul di pilihan permintaan aset karyawan.')),
+                        Toggle::make('bookable')
+                            ->label(__('Bisa dipesan'))
+                            ->helperText(__('Barang yang dipakai bergantian, misalnya proyektor; karyawan memesannya per jam di menu Pinjam barang.')),
                         Textarea::make('notes')
                             ->label(__('Catatan'))
                             ->rows(3),

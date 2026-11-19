@@ -25,7 +25,7 @@ use LogicException;
 #[Fillable([
     'company_id', 'nama', 'category_id', 'asset_model_id', 'no_seri', 'foto', 'room_id', 'default_room_id',
     'supplier_id', 'tgl_beli', 'harga_beli', 'depreciation_id', 'order_number', 'garansi_sampai', 'eol_date',
-    'spesifikasi', 'is_byod', 'requestable', 'next_audit_date', 'notes',
+    'spesifikasi', 'is_byod', 'requestable', 'bookable', 'next_audit_date', 'notes',
 ])]
 #[ScopedBy([CompanyScope::class, ManagedCategoryScope::class])]
 class Asset extends Model
@@ -37,6 +37,7 @@ class Asset extends Model
     protected $attributes = [
         'is_byod' => false,
         'requestable' => false,
+        'bookable' => false,
     ];
 
     // Batas hari pengingat bawaan di dashboard dan ringkasan email.
@@ -515,6 +516,7 @@ class Asset extends Model
             'spesifikasi' => 'array',
             'is_byod' => 'boolean',
             'requestable' => 'boolean',
+            'bookable' => 'boolean',
             'next_audit_date' => 'date',
         ];
     }
