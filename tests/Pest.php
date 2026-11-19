@@ -63,7 +63,7 @@ function renderBast(Assignment $assignment, ?string $kop = null): TestView
 {
     return test()->view('pdf.bast', [
         'first' => $assignment,
-        'rows' => Assignment::where('no_bast', $assignment->no_bast)->get(),
+        'rows' => Assignment::with('asset')->where('no_bast', $assignment->no_bast)->get(),
         'company' => $assignment->asset->company,
         'kop' => $kop,
         'logo' => null,

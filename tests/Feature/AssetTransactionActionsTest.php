@@ -55,7 +55,7 @@ test('three assets handed over at once to one employee share one BAST and get th
         ->assertNotified('Serah-terima tersimpan');
 
     expect(Assignment::where('no_bast', 'BAST/TCM/2026/0001')->count())->toBe(3)
-        ->and($assets->fresh()->every(fn (Asset $asset): bool => $asset->status->nama === Status::DIPAKAI))->toBeTrue();
+        ->and($assets->fresh('status')->every(fn (Asset $asset): bool => $asset->status->nama === Status::DIPAKAI))->toBeTrue();
 });
 
 test('a refused hand over tells why and changes nothing', function () {

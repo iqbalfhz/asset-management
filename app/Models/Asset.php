@@ -66,6 +66,11 @@ class Asset extends Model
         });
 
         static::saving(function (Asset $asset): void {
+            // Hanya saat model atau data pembelian berubah, supaya ganti status massal tidak memuat model aset satu per satu.
+            if ($asset->exists && ! $asset->isDirty(['asset_model_id', 'tgl_beli', 'depreciation_id', 'eol_date'])) {
+                return;
+            }
+
             $model = $asset->assetModel;
 
             if ($model && blank($asset->depreciation_id)) {

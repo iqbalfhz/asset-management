@@ -51,6 +51,9 @@ class AppServiceProvider extends ServiceProvider
     {
         Password::defaults(fn () => Password::min(12)->letters()->numbers());
 
+        // Relasi yang dimuat satu per satu di dalam daftar (N+1) langsung gagal di lokal dan test, bukan diam-diam lambat.
+        Model::preventLazyLoading(! $this->app->isProduction());
+
         // Produksi selalu lewat HTTPS (Cloudflare); link yang dibuat aplikasi ikut HTTPS.
         URL::forceHttps($this->app->isProduction());
 
