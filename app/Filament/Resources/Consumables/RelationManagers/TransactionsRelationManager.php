@@ -38,21 +38,26 @@ class TransactionsRelationManager extends RelationManager
             ->columns([
                 TextColumn::make('tanggal')
                     ->label(__('Tanggal'))
+                    ->sortable()
                     ->date('j M Y'),
                 TextColumn::make('jenis')
                     ->label(__('Jenis'))
+                    ->sortable()
                     ->badge(),
                 TextColumn::make('jumlah')
                     ->label(__('Jumlah'))
+                    ->sortable()
                     ->formatStateUsing(fn (int $state, ConsumableTransaction $record): string => ($record->jenis->isIncoming() ? '+' : '−').$state),
                 TextColumn::make('stok_sesudah')
-                    ->label(__('Stok sesudah')),
+                    ->label(__('Stok sesudah'))
+                    ->sortable(),
                 TextColumn::make('pihak')
                     ->label(__('Penerima / supplier'))
                     ->state(fn (ConsumableTransaction $record): ?string => $record->employee?->nama ?? $record->supplier?->nama)
                     ->placeholder('—'),
                 TextColumn::make('creator.name')
                     ->label(__('Dicatat oleh'))
+                    ->sortable()
                     ->placeholder('—')
                     ->toggleable(),
                 TextColumn::make('catatan')

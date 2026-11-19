@@ -67,16 +67,21 @@ class MyAssets extends EmployeeTablePage
                 ->where('assigned_type', (new Employee)->getMorphClass())
                 ->where('assigned_id', $employee?->getKey() ?? 0)
                 ->whereHas('status', fn (Builder $query) => $query->whereIn('nama', [Status::DIPAKAI, Status::DALAM_PERBAIKAN])))
+            ->defaultSort('kode')
             ->columns([
                 TextColumn::make('kode')
-                    ->label(__('Kode')),
+                    ->label(__('Kode'))
+                    ->sortable(),
                 TextColumn::make('nama')
                     ->label(__('Nama'))
+                    ->sortable()
                     ->description(fn (Asset $record): ?string => $record->assetModel?->fullName()),
                 TextColumn::make('category.nama')
-                    ->label(__('Kategori')),
+                    ->label(__('Kategori'))
+                    ->sortable(),
                 TextColumn::make('no_seri')
                     ->label(__('Nomor seri'))
+                    ->sortable()
                     ->placeholder('—'),
                 AssetStatusColumn::make(),
                 TextColumn::make('penerimaan')
@@ -90,9 +95,6 @@ class MyAssets extends EmployeeTablePage
             ]);
     }
 
-    /**
-     * Terima satu BAST sekaligus, setelah membaca syarat penggunaan kategorinya.
-     */
     private function acceptAction(): Action
     {
         return Action::make('accept')

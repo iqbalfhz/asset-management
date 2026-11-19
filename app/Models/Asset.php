@@ -122,7 +122,7 @@ class Asset extends Model
     }
 
     /**
-     * Fase 2: hanya Disiapkan <-> Tersedia. Status lain berubah lewat transaksi di fase berikutnya.
+     * Hanya Disiapkan <-> Tersedia; status lain berubah lewat transaksi.
      */
     public function markAs(Status $target): void
     {
@@ -186,8 +186,7 @@ class Asset extends Model
     }
 
     /**
-     * Pindahkan aset ke perusahaan lain dalam grup. Kodenya tetap (label tidak perlu dicetak ulang); riwayatnya dicatat.
-     * Hanya aset yang tidak sedang dipakai dan tidak membawa barang lain, karena barang itu milik perusahaan asal.
+     * Kode tetap; hanya aset yang tidak dipakai dan tidak membawa barang lain, karena barang itu milik perusahaan asal.
      */
     public function transferTo(Company $company, Room $room, string $tanggal, string $alasan): void
     {
@@ -295,8 +294,7 @@ class Asset extends Model
     }
 
     /**
-     * Nilai buku garis lurus: harga beli dikurangi penyusutan per bulan sejak tanggal beli, minimal 0.
-     * Null untuk BYOD atau data pembelian yang belum lengkap.
+     * Garis lurus per bulan sejak tanggal beli, minimal 0; null untuk BYOD atau data pembelian yang belum lengkap.
      */
     public function bookValue(?CarbonInterface $at = null): ?int
     {
@@ -502,8 +500,6 @@ class Asset extends Model
     }
 
     /**
-     * Get the attributes that should be cast.
-     *
      * @return array<string, string>
      */
     protected function casts(): array

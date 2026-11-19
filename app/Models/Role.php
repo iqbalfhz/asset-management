@@ -8,8 +8,7 @@ use Spatie\Permission\Models\Role as SpatieRole;
 class Role extends SpatieRole
 {
     /**
-     * Server yang sudah berjalan: izin menu baru diberikan ke Admin IT dan GA lewat migrasi, tanpa menjalankan seeder lagi.
-     * Database baru dilewati; di sana RoleSeeder yang memberi izin.
+     * Untuk migrasi di server yang sudah berjalan; database baru dilewati karena RoleSeeder yang memberi izin.
      */
     public static function grantMenuToAdmins(string $model): void
     {

@@ -59,35 +59,43 @@ class AssignmentResource extends Resource
                     ->sortable(),
                 TextColumn::make('asset.kode')
                     ->label(__('Aset'))
+                    ->sortable()
                     ->description(fn (Assignment $record): string => $record->asset->nama)
                     ->searchable()
                     ->hidden(fn (Component $livewire): bool => $livewire instanceof RelationManager),
                 TextColumn::make('jenis')
                     ->label(__('Jenis'))
+                    ->sortable()
                     ->badge(),
                 TextColumn::make('pemegang')
                     ->label(__('Pemegang'))
                     ->state(fn (Assignment $record): string => $record->targetLabel()),
                 TextColumn::make('kondisi')
-                    ->label(__('Kondisi')),
+                    ->label(__('Kondisi'))
+                    ->sortable(),
                 TextColumn::make('no_bast')
                     ->label(__('Nomor BAST'))
+                    ->sortable()
                     ->searchable(),
                 TextColumn::make('expected_return_at')
                     ->label(__('Tanggal kembali'))
+                    ->sortable()
                     ->date('j M Y')
                     ->placeholder('—')
                     ->toggleable(),
                 TextColumn::make('status')
                     ->label(__('Status'))
+                    ->sortable()
                     ->badge(),
                 TextColumn::make('accepted_at')
                     ->label(__('Diterima pada'))
+                    ->sortable()
                     ->dateTime('j M Y H:i')
                     ->placeholder('—')
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('createdBy.name')
                     ->label(__('Dicatat oleh'))
+                    ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
@@ -108,7 +116,6 @@ class AssignmentResource extends Resource
             ]);
     }
 
-    // Admin mencatat penerimaan atas nama karyawan yang belum atau tidak bisa menekan Terima di aplikasinya.
     private static function confirmReceiptAction(): Action
     {
         return Action::make('confirmReceipt')

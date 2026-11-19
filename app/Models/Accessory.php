@@ -50,8 +50,6 @@ class Accessory extends Model
     }
 
     /**
-     * Role admin yang mengelola aksesori ini.
-     *
      * @return BelongsTo<Role, $this>
      */
     public function role(): BelongsTo
@@ -68,8 +66,6 @@ class Accessory extends Model
     }
 
     /**
-     * Get the attributes that should be cast.
-     *
      * @return array<string, string>
      */
     protected function casts(): array

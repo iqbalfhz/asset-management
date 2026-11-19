@@ -16,13 +16,15 @@ class LicenseSeatTable
     public static function software(): TextColumn
     {
         return TextColumn::make('license.nama_software')
-            ->label(__('Software'));
+            ->label(__('Software'))
+            ->sortable();
     }
 
     public static function expiresAt(): TextColumn
     {
         return TextColumn::make('license.tgl_habis')
             ->label(__('Berlaku sampai'))
+            ->sortable()
             ->date('j M Y')
             ->placeholder(__('Tanpa batas'))
             ->color(fn (LicenseSeat $record): ?string => $record->license->isExpired() ? 'danger' : null);
@@ -32,6 +34,7 @@ class LicenseSeatTable
     {
         return TextColumn::make('dipasang_pada')
             ->label(__('Dipasang'))
+            ->sortable()
             ->dateTime('j M Y, H:i');
     }
 
@@ -39,6 +42,7 @@ class LicenseSeatTable
     {
         return TextColumn::make('dilepas_pada')
             ->label(__('Dilepas'))
+            ->sortable()
             ->dateTime('j M Y, H:i')
             ->placeholder(__('Masih dipakai'));
     }

@@ -31,7 +31,6 @@ use Illuminate\Database\Eloquent\Model;
 use Livewire\Component;
 use LogicException;
 
-// Serah-terima dan pengembalian, dipakai di tabel aset (satuan dan massal) dan di halaman edit aset.
 class AssetTransactionActions
 {
     public static function handOver(): Action
@@ -102,9 +101,6 @@ class AssetTransactionActions
             ->after(fn (Component $livewire) => static::refreshEditPage($livewire));
     }
 
-    /**
-     * Pindah ke perusahaan lain dalam grup; kode aset tetap, riwayatnya dicatat.
-     */
     public static function transferCompany(): Action
     {
         return Action::make('transferCompany')
@@ -328,8 +324,7 @@ class AssetTransactionActions
             ->all() ?? [];
     }
 
-    // Halaman lihat dan edit memegang salinan aset sendiri; muat ulang supaya status dan lokasi baru tampil
-    // (dan form edit tidak menimpa lokasi baru).
+    // Halaman lihat dan edit menyimpan salinan aset sendiri; dimuat ulang supaya status dan lokasi baru tampil dan tidak tertimpa form.
     private static function refreshEditPage(Component $livewire): void
     {
         if ($livewire instanceof EditRecord || $livewire instanceof ViewRecord) {

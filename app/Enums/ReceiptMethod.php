@@ -2,7 +2,6 @@
 
 namespace App\Enums;
 
-// Cara karyawan menyatakan sudah menerima serah-terima.
 enum ReceiptMethod: string
 {
     // Karyawan menekan Terima dan tanda tangan di aplikasinya.

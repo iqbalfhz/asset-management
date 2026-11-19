@@ -105,14 +105,17 @@ class MaintenanceResource extends Resource
             ->columns([
                 TextColumn::make('created_at')
                     ->label(__('Tanggal masuk'))
+                    ->sortable()
                     ->date('j M Y'),
                 TextColumn::make('asset.kode')
                     ->label(__('Aset'))
+                    ->sortable()
                     ->description(fn (Maintenance $record): string => $record->asset->nama)
                     ->searchable()
                     ->hidden(fn (Component $livewire): bool => $livewire instanceof RelationManager),
                 TextColumn::make('reporter.nama')
                     ->label(__('Pelapor'))
+                    ->sortable()
                     ->placeholder(__('Admin')),
                 TextColumn::make('keluhan')
                     ->label(__('Keluhan'))
@@ -120,13 +123,16 @@ class MaintenanceResource extends Resource
                     ->wrap(),
                 TextColumn::make('status')
                     ->label(__('Status'))
+                    ->sortable()
                     ->badge(),
                 TextColumn::make('supplier.nama')
                     ->label(__('Vendor'))
+                    ->sortable()
                     ->placeholder('—')
                     ->toggleable(),
                 TextColumn::make('biaya')
                     ->label(__('Biaya'))
+                    ->sortable()
                     ->money('IDR', locale: 'id')
                     ->placeholder('—')
                     ->toggleable(),

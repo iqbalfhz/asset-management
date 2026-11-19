@@ -29,12 +29,15 @@ class LicensesExpiring extends TableWidget
             ->recordUrl(fn (License $record): string => LicenseResource::getUrl('view', ['record' => $record]))
             ->columns([
                 TextColumn::make('nama_software')
-                    ->label(__('Software')),
+                    ->label(__('Software'))
+                    ->sortable(),
                 TextColumn::make('active_seats_count')
                     ->label(__('Seat terpakai'))
+                    ->sortable()
                     ->formatStateUsing(fn (int $state, License $record): string => "{$state} / {$record->jumlah_seat}"),
                 TextColumn::make('tgl_habis')
                     ->label(__('Tanggal habis'))
+                    ->sortable()
                     ->date('j M Y')
                     ->color(fn (License $record): ?string => LicensesTable::expiryColor($record)),
             ]);

@@ -18,7 +18,6 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Builder;
 
-// Ringkasan jumlah dan nilai aset satu perusahaan untuk pimpinan, diunduh sebagai PDF.
 class AssetReport extends Page
 {
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentChartBar;

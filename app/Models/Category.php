@@ -20,8 +20,6 @@ class Category extends Model
     use HasFactory, LogsChanges;
 
     /**
-     * Role admin yang mengelola aset kategori ini.
-     *
      * @return BelongsTo<Role, $this>
      */
     public function role(): BelongsTo
@@ -58,8 +56,6 @@ class Category extends Model
     }
 
     /**
-     * Get the attributes that should be cast.
-     *
      * @return array<string, string>
      */
     protected function casts(): array

@@ -41,24 +41,30 @@ class ItemsRelationManager extends RelationManager
             ->columns([
                 TextColumn::make('asset.kode')
                     ->label(__('Aset'))
+                    ->sortable()
                     ->description(fn (AuditItem $record): string => $record->asset->nama)
                     ->searchable(),
                 TextColumn::make('hasil')
                     ->label(__('Hasil'))
+                    ->sortable()
                     ->badge(),
                 TextColumn::make('recordedRoom.nama')
                     ->label(__('Tercatat di'))
+                    ->sortable()
                     ->placeholder('—'),
                 TextColumn::make('discan_pada')
                     ->label(__('Discan'))
+                    ->sortable()
                     ->dateTime('j M Y, H:i')
                     ->placeholder('—'),
                 TextColumn::make('scanner.name')
                     ->label(__('Oleh'))
+                    ->sortable()
                     ->placeholder('—')
                     ->toggleable(),
                 TextColumn::make('dipindahkan_pada')
                     ->label(__('Lokasi diperbarui'))
+                    ->sortable()
                     ->dateTime('j M Y, H:i')
                     ->placeholder('—')
                     ->toggleable(),

@@ -50,8 +50,6 @@ class Component extends Model
     }
 
     /**
-     * Role admin yang mengelola komponen ini.
-     *
      * @return BelongsTo<Role, $this>
      */
     public function role(): BelongsTo
@@ -68,8 +66,6 @@ class Component extends Model
     }
 
     /**
-     * Get the attributes that should be cast.
-     *
      * @return array<string, string>
      */
     protected function casts(): array

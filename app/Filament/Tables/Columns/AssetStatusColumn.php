@@ -14,6 +14,7 @@ class AssetStatusColumn
     {
         return TextColumn::make('status.nama')
             ->label(__('Status'))
+            ->sortable()
             ->badge()
             ->formatStateUsing(fn (string $state): string => Status::labelFor($state))
             ->color(fn (Asset $record): ?array => BadgeColor::fromHex($record->status->warna));

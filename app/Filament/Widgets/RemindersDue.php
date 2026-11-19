@@ -23,13 +23,17 @@ class RemindersDue extends TableWidget
             ->recordUrl(fn (AssetReminder $record): string => AssetResource::getUrl('view', ['record' => $record->asset]))
             ->columns([
                 TextColumn::make('jenis')
-                    ->label(__('Jenis')),
+                    ->label(__('Jenis'))
+                    ->sortable(),
                 TextColumn::make('asset.kode')
-                    ->label(__('Kode')),
+                    ->label(__('Kode'))
+                    ->sortable(),
                 TextColumn::make('asset.nama')
-                    ->label(__('Nama')),
+                    ->label(__('Nama'))
+                    ->sortable(),
                 TextColumn::make('tanggal')
                     ->label(__('Jatuh tempo'))
+                    ->sortable()
                     ->date('j M Y')
                     ->color(fn (AssetReminder $record): ?string => $record->isOverdue() ? 'danger' : null),
             ]);

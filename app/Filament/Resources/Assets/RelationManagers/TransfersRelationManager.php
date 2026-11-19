@@ -48,6 +48,7 @@ class TransfersRelationManager extends RelationManager
                     ->wrap(),
                 TextColumn::make('createdBy.name')
                     ->label(__('Oleh'))
+                    ->sortable()
                     ->placeholder('—'),
             ]);
     }

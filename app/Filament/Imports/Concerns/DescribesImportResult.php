@@ -10,8 +10,6 @@ use Illuminate\Support\Number;
 trait DescribesImportResult
 {
     /**
-     * Jumlah baris berhasil, ditambah jumlah yang gagal kalau ada.
-     *
      * @param  Closure(): string  $noun
      */
     protected static function importResult(Import $import, Closure $noun): string

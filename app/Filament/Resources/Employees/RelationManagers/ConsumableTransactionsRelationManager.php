@@ -34,14 +34,18 @@ class ConsumableTransactionsRelationManager extends RelationManager
             ->columns([
                 TextColumn::make('tanggal')
                     ->label(__('Tanggal'))
+                    ->sortable()
                     ->date('j M Y'),
                 TextColumn::make('consumable.nama')
-                    ->label(__('Barang')),
+                    ->label(__('Barang'))
+                    ->sortable(),
                 TextColumn::make('jumlah')
                     ->label(__('Jumlah'))
-                    ->formatStateUsing(fn (int $state, ConsumableTransaction $record): string => "{$state} {$record->consumable->satuan}"),
+                    ->sortable()
+                    ->formatStateUsing(fn (int $state, ConsumableTransaction $record): string => $record->consumable->quantity($state)),
                 TextColumn::make('creator.name')
                     ->label(__('Dicatat oleh'))
+                    ->sortable()
                     ->placeholder('—')
                     ->toggleable(),
                 TextColumn::make('catatan')

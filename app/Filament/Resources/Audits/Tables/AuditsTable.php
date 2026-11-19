@@ -34,19 +34,25 @@ class AuditsTable
                     ->sortable(),
                 TextColumn::make('room.nama')
                     ->label(__('Ruang'))
+                    ->sortable()
                     ->description(fn (Audit $record): string => $record->room->floor->path())
                     ->searchable(),
                 TextColumn::make('status')
                     ->label(__('Status'))
+                    ->sortable()
                     ->badge(),
                 TextColumn::make('items_count')
-                    ->label(__('Aset')),
+                    ->label(__('Aset'))
+                    ->sortable(),
                 TextColumn::make('found_count')
-                    ->label(__('Ditemukan')),
+                    ->label(__('Ditemukan'))
+                    ->sortable(),
                 TextColumn::make('missing_count')
-                    ->label(__('Tidak ditemukan')),
+                    ->label(__('Tidak ditemukan'))
+                    ->sortable(),
                 TextColumn::make('creator.name')
                     ->label(__('Dibuat oleh'))
+                    ->sortable()
                     ->toggleable(),
             ])
             ->filters([

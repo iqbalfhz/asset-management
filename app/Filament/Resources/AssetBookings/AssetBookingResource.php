@@ -45,8 +45,7 @@ class AssetBookingResource extends Resource
             ->defaultSort('mulai', 'desc')
             ->columns([
                 AssetBookingTable::item()
-                    ->searchable()
-                    ->sortable(),
+                    ->searchable(),
                 TextColumn::make('employee.nama')
                     ->label(__('Pemesan'))
                     ->searchable()

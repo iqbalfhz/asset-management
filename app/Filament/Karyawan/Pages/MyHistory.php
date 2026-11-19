@@ -44,22 +44,29 @@ class MyHistory extends EmployeeTablePage
             ->columns([
                 TextColumn::make('tanggal')
                     ->label(__('Tanggal'))
+                    ->sortable()
                     ->date('j M Y'),
                 TextColumn::make('asset.kode')
                     ->label(__('Aset'))
+                    ->sortable()
                     ->description(fn (Assignment $record): string => $record->asset->nama),
                 TextColumn::make('jenis')
                     ->label(__('Jenis'))
+                    ->sortable()
                     ->badge(),
                 TextColumn::make('kondisi')
-                    ->label(__('Kondisi')),
+                    ->label(__('Kondisi'))
+                    ->sortable(),
                 TextColumn::make('no_bast')
-                    ->label(__('Nomor BAST')),
+                    ->label(__('Nomor BAST'))
+                    ->sortable(),
                 TextColumn::make('status')
                     ->label(__('Status'))
+                    ->sortable()
                     ->badge(),
                 TextColumn::make('accepted_at')
                     ->label(__('Diterima pada'))
+                    ->sortable()
                     ->dateTime('j M Y H:i')
                     ->placeholder('—'),
             ])

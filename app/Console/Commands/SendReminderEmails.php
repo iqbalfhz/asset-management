@@ -9,7 +9,6 @@ use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-// Email ke admin pengelola kategori aset, H-30 dan H-7 sebelum tanggal penting, dalam bahasa masing-masing.
 class SendReminderEmails extends Command
 {
     protected $signature = 'pengingat:kirim';

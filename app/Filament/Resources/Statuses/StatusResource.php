@@ -68,6 +68,7 @@ class StatusResource extends Resource
     {
         return $table
             ->recordTitleAttribute('nama')
+            ->defaultSort('nama')
             ->columns([
                 TextColumn::make('nama')
                     ->label(__('Nama'))
@@ -82,6 +83,7 @@ class StatusResource extends Resource
                     ->sortable(),
                 IconColumn::make('is_core')
                     ->label(__('Inti'))
+                    ->sortable()
                     ->boolean(),
                 TextColumn::make('updated_at')
                     ->label(__('Diperbarui'))

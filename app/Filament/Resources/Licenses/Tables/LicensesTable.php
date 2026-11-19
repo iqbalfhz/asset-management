@@ -26,6 +26,7 @@ class LicensesTable
                     ->sortable(),
                 TextColumn::make('active_seats_count')
                     ->label(__('Seat terpakai'))
+                    ->sortable()
                     ->formatStateUsing(fn (int $state, License $record): string => "{$state} / {$record->jumlah_seat}")
                     ->color(fn (int $state, License $record): ?string => $state >= $record->jumlah_seat ? 'warning' : null),
                 TextColumn::make('tgl_habis')
@@ -36,10 +37,12 @@ class LicensesTable
                     ->sortable(),
                 TextColumn::make('supplier.nama')
                     ->label(__('Supplier'))
+                    ->sortable()
                     ->placeholder('—')
                     ->toggleable(),
                 TextColumn::make('harga')
                     ->label(__('Harga'))
+                    ->sortable()
                     ->money('IDR', locale: 'id')
                     ->placeholder('—')
                     ->toggleable(isToggledHiddenByDefault: true),

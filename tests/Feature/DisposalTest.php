@@ -154,6 +154,6 @@ test('the report lists the asset, method, sale value and both signatories', func
         ->assertSee('Pada tanggal 11 November 2026')
         ->assertSee($this->broken->kode)
         ->assertSee('Dijual')
-        ->assertSee('Rp 500.000')
+        ->assertSee("Rp\u{a0}500.000")
         ->assertSeeInOrder(['Diajukan oleh', 'Disetujui oleh', 'Iqbal', 'Direktur']);
 });

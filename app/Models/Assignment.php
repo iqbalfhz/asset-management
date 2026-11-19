@@ -55,8 +55,7 @@ class Assignment extends Model
     }
 
     /**
-     * Serahkan aset ke karyawan, ruang, departemen, atau aset lain dalam satu BAST. Karyawan yang tanda tangan
-     * di layar admin langsung tercatat menerima; tanpa tanda tangan, serah-terima menunggu konfirmasi.
+     * Satu BAST; karyawan yang tanda tangan di layar admin langsung tercatat menerima, tanpa itu menunggu konfirmasi.
      *
      * @param  Collection<int, Asset>  $assets
      * @param  array{tanggal: string, kondisi: string, catatan?: ?string, expected_return_at?: ?string, tanda_tangan?: ?string}  $details  tanda_tangan berisi PNG
@@ -206,8 +205,7 @@ class Assignment extends Model
     }
 
     /**
-     * Tandai diterima semua baris BAST yang masih dipegang karyawan; buktinya baru disimpan kalau ada yang ditandai.
-     * Permintaan aset yang terkait ikut selesai.
+     * Bukti baru disimpan kalau ada baris yang masih dipegang karyawan; permintaan aset terkait ikut selesai.
      *
      * @param  Closure(): array<string, mixed>  $proof
      */
@@ -377,9 +375,6 @@ class Assignment extends Model
             : $target->company_id;
     }
 
-    /**
-     * Nama tujuan untuk tabel dan BAST.
-     */
     public function targetLabel(): string
     {
         // Tanpa scope, supaya induk dari kategori lain tetap tertulis di BAST.
@@ -461,8 +456,6 @@ class Assignment extends Model
     }
 
     /**
-     * Get the attributes that should be cast.
-     *
      * @return array<string, string>
      */
     protected function casts(): array

@@ -11,9 +11,6 @@ use RuntimeException;
 
 class UserSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         $password = config('app.seed_password');

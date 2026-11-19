@@ -49,9 +49,11 @@ class MyDamageReports extends EmployeeTablePage
             ->columns([
                 TextColumn::make('created_at')
                     ->label(__('Dilaporkan'))
+                    ->sortable()
                     ->dateTime('j M Y H:i'),
                 TextColumn::make('asset.kode')
                     ->label(__('Aset'))
+                    ->sortable()
                     ->description(fn (Maintenance $record): string => $record->asset->nama),
                 TextColumn::make('keluhan')
                     ->label(__('Keluhan'))
@@ -59,6 +61,7 @@ class MyDamageReports extends EmployeeTablePage
                     ->wrap(),
                 TextColumn::make('status')
                     ->label(__('Status'))
+                    ->sortable()
                     ->badge(),
                 TextColumn::make('catatan_admin')
                     ->label(__('Catatan admin'))

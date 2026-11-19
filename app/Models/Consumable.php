@@ -98,6 +98,11 @@ class Consumable extends Model
         return $this->stok_minimum > 0 && $this->stok <= $this->stok_minimum;
     }
 
+    public function quantity(int $jumlah): string
+    {
+        return "{$jumlah} {$this->satuan}";
+    }
+
     // Barang yang dipantau (minimum > 0) dengan stok sama dengan atau di bawah minimum.
     #[Scope]
     protected function lowStock(Builder $query): void
@@ -159,8 +164,6 @@ class Consumable extends Model
     }
 
     /**
-     * Role admin yang mengelola barang ini.
-     *
      * @return BelongsTo<Role, $this>
      */
     public function role(): BelongsTo
@@ -177,8 +180,6 @@ class Consumable extends Model
     }
 
     /**
-     * Get the attributes that should be cast.
-     *
      * @return array<string, string>
      */
     protected function casts(): array

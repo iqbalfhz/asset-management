@@ -66,13 +66,16 @@ class AssetRequestResource extends Resource
             ->columns([
                 TextColumn::make('created_at')
                     ->label(__('Diajukan'))
+                    ->sortable()
                     ->date('j M Y'),
                 TextColumn::make('employee.nama')
                     ->label(__('Karyawan'))
+                    ->sortable()
                     ->description(fn (AssetRequest $record): string => $record->employee->nik)
                     ->searchable(),
                 TextColumn::make('category.nama')
                     ->label(__('Kategori'))
+                    ->sortable()
                     ->badge()
                     ->color(fn (AssetRequest $record): ?array => BadgeColor::fromHex($record->category->warna)),
                 TextColumn::make('alasan')
@@ -81,9 +84,11 @@ class AssetRequestResource extends Resource
                     ->wrap(),
                 TextColumn::make('status')
                     ->label(__('Status'))
+                    ->sortable()
                     ->badge(),
                 TextColumn::make('assignment.asset.kode')
                     ->label(__('Aset diserahkan'))
+                    ->sortable()
                     ->placeholder('—'),
                 TextColumn::make('catatan')
                     ->label(__('Catatan'))
@@ -119,7 +124,6 @@ class AssetRequestResource extends Resource
             ]);
     }
 
-    // Disembunyikan selama aset yang sudah diserahkan menunggu diterima karyawan.
     private static function handOverAction(): Action
     {
         return DomainAction::transition('handOver', __('Serahkan'), Heroicon::OutlinedArrowUpRight, AssetRequestStatus::Disetujui)

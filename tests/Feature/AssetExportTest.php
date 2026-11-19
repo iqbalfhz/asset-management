@@ -114,7 +114,7 @@ test('an export file is refused to other users and to its owner before passing 2
     $this->actingAs(userWithRole('admin_it', attributes: ['company_id' => $this->tcm->id]));
     $this->get(route('filament.exports.download', ['export' => $export, 'format' => 'csv']))->assertForbidden();
 
-    // be() skips the 2FA session that actingAs() adds in TestCase.
+    // be() melewati sesi 2FA yang ditambahkan actingAs() di TestCase.
     $this->be($this->adminIt);
     $this->get(route('filament.exports.download', ['export' => $export, 'format' => 'csv']))->assertForbidden();
 });

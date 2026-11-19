@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Builder;
 
 class DateRangeFilter
 {
-    // Rentang tanggal kejadian (dari, sampai) di halaman log.
     public static function make(string $column = 'created_at'): Filter
     {
         return Filter::make('tanggal')

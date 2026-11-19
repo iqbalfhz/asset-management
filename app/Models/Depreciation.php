@@ -15,8 +15,6 @@ class Depreciation extends Model
     use HasFactory, LogsChanges;
 
     /**
-     * Get the attributes that should be cast.
-     *
      * @return array<string, string>
      */
     protected function casts(): array

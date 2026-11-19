@@ -55,17 +55,22 @@ class AttachmentsRelationManager extends RelationManager
             ->recordTitleAttribute('nama_file')
             ->modelLabel(__('Lampiran'))
             ->pluralModelLabel(trans_choice('Lampiran|Lampiran', 2))
+            ->defaultSort('created_at', 'desc')
             ->columns([
                 TextColumn::make('nama_file')
                     ->label(__('Nama file'))
+                    ->sortable()
                     ->searchable(),
                 TextColumn::make('ukuran')
                     ->label(__('Ukuran'))
+                    ->sortable()
                     ->formatStateUsing(fn (?int $state): string => Number::fileSize($state ?? 0)),
                 TextColumn::make('uploader.name')
-                    ->label(__('Diunggah oleh')),
+                    ->label(__('Diunggah oleh'))
+                    ->sortable(),
                 TextColumn::make('created_at')
                     ->label(__('Tanggal'))
+                    ->sortable()
                     ->dateTime(),
             ])
             ->headerActions([

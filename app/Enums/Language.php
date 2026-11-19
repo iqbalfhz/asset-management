@@ -4,7 +4,6 @@ namespace App\Enums;
 
 use Filament\Support\Contracts\HasLabel;
 
-// Bahasa antarmuka pilihan user di Profil.
 enum Language: string implements HasLabel
 {
     case Indonesia = 'id';

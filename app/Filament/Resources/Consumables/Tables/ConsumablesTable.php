@@ -27,12 +27,13 @@ class ConsumablesTable
                     ->sortable(),
                 TextColumn::make('stok')
                     ->label(__('Stok'))
-                    ->formatStateUsing(fn (int $state, Consumable $record): string => "{$state} {$record->satuan}")
+                    ->formatStateUsing(fn (int $state, Consumable $record): string => $record->quantity($state))
                     ->color(fn (Consumable $record): ?string => $record->isLow() ? 'danger' : null)
                     ->sortable(),
                 TextColumn::make('stok_minimum')
                     ->label(__('Minimum'))
-                    ->formatStateUsing(fn (int $state, Consumable $record): string => $state > 0 ? "{$state} {$record->satuan}" : '—'),
+                    ->sortable()
+                    ->formatStateUsing(fn (int $state, Consumable $record): string => $state > 0 ? $record->quantity($state) : '—'),
             ])
             ->filters([
                 Filter::make('menipis')

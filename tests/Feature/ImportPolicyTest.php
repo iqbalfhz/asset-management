@@ -39,7 +39,7 @@ test('another admin cannot download the failed rows', function () {
 });
 
 test('the owner cannot download before passing 2FA in this session', function () {
-    // be() skips the 2FA session that actingAs() adds in TestCase.
+    // be() melewati sesi 2FA yang ditambahkan actingAs() di TestCase.
     $this->be($this->owner);
 
     $this->get(route('filament.imports.failed-rows.download', $this->import))->assertForbidden();

@@ -95,30 +95,33 @@ class RoleResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('name')
             ->columns([
                 TextColumn::make('name')
                     ->weight(FontWeight::Medium)
                     ->label(__('filament-shield::filament-shield.column.name'))
+                    ->sortable()
                     ->formatStateUsing(fn (string $state): string => Str::headline($state))
                     ->searchable(),
                 TextColumn::make('panel')
                     ->label(__('Panel'))
+                    ->sortable()
                     ->badge(),
                 TextColumn::make('guard_name')
                     ->badge()
                     ->color('warning')
-                    ->label(__('filament-shield::filament-shield.column.guard_name')),
+                    ->label(__('filament-shield::filament-shield.column.guard_name'))
+                    ->sortable(),
                 TextColumn::make('permissions_count')
                     ->badge()
                     ->label(__('filament-shield::filament-shield.column.permissions'))
+                    ->sortable()
                     ->counts('permissions')
                     ->color('primary'),
                 TextColumn::make('updated_at')
                     ->label(__('filament-shield::filament-shield.column.updated_at'))
+                    ->sortable()
                     ->dateTime(),
-            ])
-            ->filters([
-                //
             ])
             ->recordActions([
                 EditAction::make(),
@@ -132,9 +135,7 @@ class RoleResource extends Resource
     #[Override]
     public static function getRelations(): array
     {
-        return [
-            //
-        ];
+        return [];
     }
 
     public static function getPages(): array

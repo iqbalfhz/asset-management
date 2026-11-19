@@ -111,7 +111,7 @@ test('the report counts and values the company\'s assets per category, status an
         ]);
 
     (new TestView(view('pdf.laporan-aset', $data)))->assertSeeInOrder([
-        'LAPORAN ASET', 'nilai buku per 19 November 2026', 'Rp 113.000.000', 'Rp 72.000.000',
+        'LAPORAN ASET', 'nilai buku per 19 November 2026', "Rp\u{a0}113.000.000", "Rp\u{a0}72.000.000",
         'Per departemen', 'Tidak dipegang karyawan atau departemen', 'Keuangan',
         '2 aset belum punya harga beli, tanggal beli, atau kelas penyusutan',
     ]);

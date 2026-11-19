@@ -47,15 +47,18 @@ class MyAssetRequests extends EmployeeTablePage
             ->columns([
                 TextColumn::make('created_at')
                     ->label(__('Diajukan'))
+                    ->sortable()
                     ->dateTime('j M Y H:i'),
                 TextColumn::make('category.nama')
-                    ->label(__('Kategori')),
+                    ->label(__('Kategori'))
+                    ->sortable(),
                 TextColumn::make('alasan')
                     ->label(__('Alasan'))
                     ->limit(80)
                     ->wrap(),
                 TextColumn::make('status')
                     ->label(__('Status'))
+                    ->sortable()
                     ->badge(),
                 TextColumn::make('catatan')
                     ->label(__('Catatan admin'))

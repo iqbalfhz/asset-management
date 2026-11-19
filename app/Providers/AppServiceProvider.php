@@ -42,17 +42,11 @@ use LogicException;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
         $this->app->bind(LoginResponseContract::class, LoginResponse::class);
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
         Password::defaults(fn () => Password::min(12)->letters()->numbers());

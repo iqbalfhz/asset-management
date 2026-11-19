@@ -114,8 +114,6 @@ class License extends Model
     }
 
     /**
-     * Role admin yang mengelola lisensi ini.
-     *
      * @return BelongsTo<Role, $this>
      */
     public function role(): BelongsTo
@@ -148,8 +146,6 @@ class License extends Model
     }
 
     /**
-     * Get the attributes that should be cast.
-     *
      * @return array<string, string>
      */
     protected function casts(): array

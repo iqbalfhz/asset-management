@@ -114,7 +114,7 @@ class AssetRequest extends Model
         });
     }
 
-    // Aset sudah diserahkan untuk permintaan ini dan karyawan belum menekan Terima.
+    // Aset sudah diserahkan untuk permintaan ini dan penerimaannya belum tercatat.
     public function isWaitingForAcceptance(): bool
     {
         return $this->assignment_id !== null
@@ -122,7 +122,7 @@ class AssetRequest extends Model
     }
 
     /**
-     * Karyawan menekan Terima: permintaan yang asetnya ada di serah-terima itu selesai.
+     * Penerimaan tercatat: permintaan yang asetnya ada di serah-terima itu selesai.
      *
      * @param  array<int, int>  $assignmentIds
      */
@@ -177,8 +177,6 @@ class AssetRequest extends Model
     }
 
     /**
-     * Serah-terima aset untuk permintaan ini.
-     *
      * @return BelongsTo<Assignment, $this>
      */
     public function assignment(): BelongsTo
@@ -187,8 +185,6 @@ class AssetRequest extends Model
     }
 
     /**
-     * Get the attributes that should be cast.
-     *
      * @return array<string, string>
      */
     protected function casts(): array

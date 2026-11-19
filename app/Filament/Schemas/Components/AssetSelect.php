@@ -11,7 +11,6 @@ use Illuminate\Database\Eloquent\Builder;
 
 class AssetSelect
 {
-    // Aset di perusahaan yang sama yang belum dihapuskan, dicari lewat kode atau nama.
     public static function make(string $label, int|Closure $companyId): Select
     {
         return Select::make('asset_id')

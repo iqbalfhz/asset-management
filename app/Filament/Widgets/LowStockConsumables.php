@@ -28,14 +28,17 @@ class LowStockConsumables extends TableWidget
             ->recordUrl(fn (Consumable $record): string => ConsumableResource::getUrl('view', ['record' => $record]))
             ->columns([
                 TextColumn::make('nama')
-                    ->label(__('Nama')),
+                    ->label(__('Nama'))
+                    ->sortable(),
                 TextColumn::make('stok')
                     ->label(__('Stok'))
-                    ->formatStateUsing(fn (int $state, Consumable $record): string => "{$state} {$record->satuan}")
+                    ->sortable()
+                    ->formatStateUsing(fn (int $state, Consumable $record): string => $record->quantity($state))
                     ->color('danger'),
                 TextColumn::make('stok_minimum')
                     ->label(__('Minimum'))
-                    ->formatStateUsing(fn (int $state, Consumable $record): string => "{$state} {$record->satuan}"),
+                    ->sortable()
+                    ->formatStateUsing(fn (int $state, Consumable $record): string => $record->quantity($state)),
             ]);
     }
 }

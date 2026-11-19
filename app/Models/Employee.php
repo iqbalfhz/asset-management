@@ -171,8 +171,6 @@ class Employee extends Model
     }
 
     /**
-     * Barang habis pakai yang diterima karyawan ini.
-     *
      * @return HasMany<ConsumableTransaction, $this>
      */
     public function consumableTransactions(): HasMany
@@ -217,8 +215,6 @@ class Employee extends Model
     }
 
     /**
-     * Get the attributes that should be cast.
-     *
      * @return array<string, string>
      */
     protected function casts(): array

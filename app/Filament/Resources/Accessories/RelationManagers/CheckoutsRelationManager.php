@@ -43,12 +43,15 @@ class CheckoutsRelationManager extends RelationManager
             ->columns([
                 TextColumn::make('employee.nama')
                     ->label(__('Karyawan'))
+                    ->sortable()
                     ->description(fn (AccessoryCheckout $record): string => $record->employee->nik),
                 TextColumn::make('jumlah')
-                    ->label(__('Jumlah')),
+                    ->label(__('Jumlah'))
+                    ->sortable(),
                 AllocatableStock::openedAt(AccessoryCheckout::class, __('Diserahkan')),
                 TextColumn::make('giver.name')
                     ->label(__('Oleh'))
+                    ->sortable()
                     ->placeholder('—')
                     ->toggleable(),
                 AllocatableStock::releasedAt(AccessoryCheckout::class, __('Dikembalikan')),

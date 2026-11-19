@@ -22,7 +22,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\Models\Activity;
 
-// Hanya baca: isi log tidak bisa diubah atau dihapus dari panel.
 class ActivityLog extends Page implements HasTable
 {
     use InteractsWithTable;
@@ -66,6 +65,7 @@ class ActivityLog extends Page implements HasTable
             ->columns([
                 TextColumn::make('created_at')
                     ->label(__('Waktu'))
+                    ->sortable()
                     ->dateTime('j M Y H:i:s'),
                 TextColumn::make('causer.name')
                     ->label(__('Oleh'))
@@ -73,6 +73,7 @@ class ActivityLog extends Page implements HasTable
                 ActivityColumns::event(),
                 TextColumn::make('subject_type')
                     ->label(__('Data'))
+                    ->sortable()
                     ->formatStateUsing(fn (Activity $record): string => static::subjectLabel($record)),
                 ActivityColumns::changes(),
             ])

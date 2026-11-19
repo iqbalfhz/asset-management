@@ -31,6 +31,7 @@ class ActivitiesRelationManager extends RelationManager
             ->columns([
                 TextColumn::make('created_at')
                     ->label(__('Waktu'))
+                    ->sortable()
                     ->dateTime('j M Y H:i'),
                 ActivityColumns::event(),
                 TextColumn::make('causer.name')

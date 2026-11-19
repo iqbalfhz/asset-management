@@ -23,8 +23,7 @@ class Kit extends Model
     use HasFactory, LogsChanges;
 
     /**
-     * Serahkan seluruh isi paket ke karyawan; setiap barang memakai aturannya sendiri dan punya catatannya sendiri.
-     * Kalau satu barang gagal, tidak ada yang tersimpan. Mengembalikan nomor BAST kalau paket berisi aset.
+     * Kalau satu barang gagal, tidak ada yang tersimpan; nomor BAST dikembalikan kalau paket berisi aset.
      *
      * @param  array<int|string, array<int, int|string>>  $assetIds  aset terpilih per baris model aset (id baris => id aset)
      * @param  array{tanggal: string, kondisi: string, catatan?: ?string, expected_return_at?: ?string}  $details  isian BAST aset

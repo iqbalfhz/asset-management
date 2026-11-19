@@ -75,8 +75,7 @@ class Login extends BaseLogin
         ];
     }
 
-    // Pengganti batas bawaan Filament (per IP, semua percobaan dihitung): satu kantor keluar lewat satu IP,
-    // jadi batas dihitung per akun dan IP, dan hanya percobaan gagal yang menambah hitungan.
+    // Satu kantor keluar lewat satu IP, jadi batas bawaan Filament (per IP) diganti batas per akun dan IP yang hanya menghitung percobaan gagal.
     protected function rateLimit($maxAttempts, $decaySeconds = 60, $method = null, $component = null): void
     {
         $seconds = $this->secondsUntilUnlocked();

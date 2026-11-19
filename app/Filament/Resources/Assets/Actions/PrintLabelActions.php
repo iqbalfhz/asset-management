@@ -10,7 +10,6 @@ use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Component;
 
-// Cetak label QR/barcode: satu aset (tab baru) atau banyak sekaligus.
 class PrintLabelActions
 {
     public const int MAX_LABELS = 500;

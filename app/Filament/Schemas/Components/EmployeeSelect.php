@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\Builder;
 
 class EmployeeSelect
 {
-    // Karyawan aktif di perusahaan yang sama, dicari lewat nama atau NIK.
     public static function make(string $label, int|Closure $companyId): Select
     {
         return Select::make('employee_id')

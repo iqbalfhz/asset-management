@@ -20,7 +20,6 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
-// Hanya baca: siapa yang masuk, gagal, terkunci, atau keluar, dari IP dan lokasi mana.
 class LoginLogs extends Page implements HasTable
 {
     use InteractsWithTable;
@@ -72,13 +71,16 @@ class LoginLogs extends Page implements HasTable
                     ->sortable(),
                 TextColumn::make('user.name')
                     ->label(__('Akun'))
+                    ->sortable()
                     ->placeholder(__('Tidak ada akun')),
                 TextColumn::make('login')
                     ->label(__('Yang diketik'))
+                    ->sortable()
                     ->placeholder('—')
                     ->searchable(),
                 TextColumn::make('ip_address')
                     ->label(__('Alamat IP'))
+                    ->sortable()
                     ->copyable()
                     ->searchable(),
                 TextColumn::make('lokasi')

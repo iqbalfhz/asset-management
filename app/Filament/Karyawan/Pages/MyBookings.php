@@ -23,7 +23,6 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
-// Pesan barang yang dipakai bergantian (proyektor, kamera); langsung terpesan kalau jadwalnya kosong.
 class MyBookings extends EmployeeTablePage
 {
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCalendarDays;
@@ -116,8 +115,6 @@ class MyBookings extends EmployeeTablePage
     }
 
     /**
-     * Barang yang bisa dipesan karyawan yang login: milik perusahaannya, ditandai bisa dipesan, dan sedang Tersedia.
-     *
      * @return Collection<int, Asset>
      */
     private static function bookableAssets(): Collection
@@ -130,7 +127,6 @@ class MyBookings extends EmployeeTablePage
             ->get();
     }
 
-    // Jadwal yang sudah terisi, supaya karyawan memilih jam yang kosong.
     private static function scheduleOf(mixed $assetId): string
     {
         $bookings = AssetBooking::withoutGlobalScopes()

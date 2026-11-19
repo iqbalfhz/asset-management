@@ -34,9 +34,11 @@ class AccessoryCheckoutsRelationManager extends RelationManager
             ->emptyStateHeading(__('Tidak memegang aksesori'))
             ->columns([
                 TextColumn::make('accessory.nama')
-                    ->label(__('Aksesori')),
+                    ->label(__('Aksesori'))
+                    ->sortable(),
                 TextColumn::make('jumlah')
-                    ->label(__('Jumlah')),
+                    ->label(__('Jumlah'))
+                    ->sortable(),
                 AllocatableStock::openedAt(AccessoryCheckout::class, __('Diserahkan')),
             ])
             ->recordActions([

@@ -69,7 +69,6 @@ class AllocatableStock
         ];
     }
 
-    // Daftar barang di halaman resource-nya.
     public static function table(Table $table): Table
     {
         return $table
@@ -150,8 +149,6 @@ class AllocatableStock
     }
 
     /**
-     * Baris yang masih keluar saja, bisa dimatikan untuk melihat riwayat.
-     *
      * @param  class-string<Model>  $line
      */
     public static function openOnlyFilter(string $line): Filter
@@ -186,7 +183,6 @@ class AllocatableStock
             ->sortable();
     }
 
-    // Kembalikan atau lepas satu baris; hanya untuk yang boleh mengubah barangnya.
     public static function releaseAction(string $label, string $successTitle, string $itemRelation): Action
     {
         return Action::make('release')

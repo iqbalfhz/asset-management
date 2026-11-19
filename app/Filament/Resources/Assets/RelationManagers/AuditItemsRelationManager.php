@@ -37,18 +37,23 @@ class AuditItemsRelationManager extends RelationManager
             ->columns([
                 TextColumn::make('audit.mulai_pada')
                     ->label(__('Sesi'))
+                    ->sortable()
                     ->date('j M Y'),
                 TextColumn::make('audit.room.nama')
-                    ->label(__('Ruang diaudit')),
+                    ->label(__('Ruang diaudit'))
+                    ->sortable(),
                 TextColumn::make('hasil')
                     ->label(__('Hasil'))
+                    ->sortable()
                     ->badge(),
                 TextColumn::make('discan_pada')
                     ->label(__('Discan'))
+                    ->sortable()
                     ->dateTime('j M Y, H:i')
                     ->placeholder('—'),
                 TextColumn::make('scanner.name')
                     ->label(__('Oleh'))
+                    ->sortable()
                     ->placeholder('—'),
             ]);
     }

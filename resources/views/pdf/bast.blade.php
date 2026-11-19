@@ -22,37 +22,23 @@
 <head>
     <meta charset="utf-8">
     <title>{{ $first->no_bast }}</title>
+    @include('pdf.partials.styles')
     <style>
-        @page { margin: 22mm 20mm 20mm; }
-        body { font-family: "DejaVu Sans", sans-serif; font-size: 10pt; color: #26261f; line-height: 1.45; }
-        .kop { width: 100%; border-bottom: 1.5pt solid #26261f; padding-bottom: 8pt; margin-bottom: 18pt; }
-        .kop td { vertical-align: middle; }
-        .kop img { max-height: 46pt; max-width: 120pt; }
-        .kop-text { white-space: pre-line; font-size: 9pt; }
-        .kop-name { font-family: "DejaVu Serif", serif; font-size: 13pt; font-weight: bold; }
-        h1 { font-family: "DejaVu Serif", serif; font-size: 13pt; letter-spacing: 0.5pt; text-align: center; margin: 0; }
-        .nomor { text-align: center; margin: 2pt 0 16pt; font-size: 9.5pt; }
         .parties td { padding: 2pt 0; vertical-align: top; }
         .parties .label { width: 34%; color: #55554b; }
         table.items { width: 100%; border-collapse: collapse; margin: 8pt 0 12pt; }
         table.items th { text-align: left; font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.4pt; color: #55554b; border-bottom: 1pt solid #26261f; padding: 4pt 5pt; }
         table.items td { border-bottom: 0.5pt solid #c9c9bd; padding: 5pt; vertical-align: top; }
-        .muted { color: #55554b; }
         .note { margin: 6pt 0; }
-        .signatures { width: 100%; margin-top: 28pt; }
-        .signatures td { width: 50%; text-align: center; vertical-align: top; }
-        .sign-space { height: 58pt; }
-        .sign-space img { max-height: 56pt; max-width: 170pt; }
         .receipt { page-break-before: always; text-align: center; }
         .receipt img { max-width: 170mm; max-height: 215mm; }
-        .footer { position: fixed; bottom: -8mm; left: 0; right: 0; font-size: 7.5pt; color: #8a8a7d; }
     </style>
 </head>
 <body>
     @include('pdf.partials.kop')
 
     <h1>{{ $isReturn ? __('BERITA ACARA PENGEMBALIAN ASET') : __('BERITA ACARA SERAH TERIMA ASET') }}</h1>
-    <div class="nomor">{{ __('Nomor') }}: {{ $first->no_bast }}</div>
+    <div class="subtitle">{{ __('Nomor') }}: {{ $first->no_bast }}</div>
 
     <p>{{ __('Pada tanggal :tanggal, yang bertanda tangan di bawah ini:', ['tanggal' => $first->tanggal->translatedFormat('j F Y')]) }}</p>
 
@@ -124,7 +110,7 @@
     @if ($receipt)
         <div class="receipt">
             <h1>{{ __('LAMPIRAN: FOTO BAST YANG DITANDATANGANI') }}</h1>
-            <div class="nomor">{{ __('Nomor') }}: {{ $first->no_bast }}</div>
+            <div class="subtitle">{{ __('Nomor') }}: {{ $first->no_bast }}</div>
             <img src="{{ $receipt }}" alt="">
         </div>
     @endif

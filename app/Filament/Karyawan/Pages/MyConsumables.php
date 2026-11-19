@@ -11,7 +11,6 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-// Barang habis pakai yang dikeluarkan admin untuk karyawan yang login.
 class MyConsumables extends EmployeeTablePage
 {
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedInboxArrowDown;
@@ -37,12 +36,15 @@ class MyConsumables extends EmployeeTablePage
             ->columns([
                 TextColumn::make('tanggal')
                     ->label(__('Tanggal'))
+                    ->sortable()
                     ->date('j M Y'),
                 TextColumn::make('consumable.nama')
-                    ->label(__('Barang')),
+                    ->label(__('Barang'))
+                    ->sortable(),
                 TextColumn::make('jumlah')
                     ->label(__('Jumlah'))
-                    ->formatStateUsing(fn (ConsumableTransaction $record): string => "{$record->jumlah} {$record->consumable->satuan}"),
+                    ->sortable()
+                    ->formatStateUsing(fn (ConsumableTransaction $record): string => $record->consumable->quantity($record->jumlah)),
                 TextColumn::make('catatan')
                     ->label(__('Catatan'))
                     ->placeholder('—')

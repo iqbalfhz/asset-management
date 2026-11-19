@@ -10,8 +10,6 @@ use Illuminate\Support\Number;
 trait DescribesExportResult
 {
     /**
-     * Jumlah baris berhasil, ditambah jumlah yang gagal kalau ada.
-     *
      * @param  Closure(): string  $noun
      */
     protected static function exportResult(Export $export, Closure $noun): string

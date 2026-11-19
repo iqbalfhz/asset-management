@@ -7,8 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
 use LogicException;
 
-// Barang berjumlah yang keluar ke pemegang lalu kembali (aksesori ke karyawan, komponen ke aset).
-// Tersedia = jumlah dikurangi yang sedang keluar. Kolom barang: nama, jumlah, stok_minimum.
+// Barang berjumlah yang keluar lalu kembali (aksesori, komponen); tersedia = jumlah dikurangi yang sedang keluar.
 trait AllocatesStock
 {
     /**

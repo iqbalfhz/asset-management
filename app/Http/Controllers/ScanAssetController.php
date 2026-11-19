@@ -11,8 +11,7 @@ use Illuminate\Http\RedirectResponse;
 class ScanAssetController extends Controller
 {
     /**
-     * Tujuan QR di label: hanya mengarahkan ke panel yang sesuai, tanpa membaca data aset.
-     * Detail selalu dibuka di dalam panel, jadi login, 2FA, dan hak lihat tetap berlaku.
+     * Tujuan QR di label: hanya mengarahkan ke panel, jadi login, 2FA, dan hak lihat tetap berlaku.
      */
     public function __invoke(string $kode): RedirectResponse
     {

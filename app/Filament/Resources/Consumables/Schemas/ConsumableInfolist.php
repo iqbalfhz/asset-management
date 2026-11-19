@@ -27,11 +27,11 @@ class ConsumableInfolist
                             ->label(__('Perusahaan')),
                         TextEntry::make('stok')
                             ->label(__('Stok'))
-                            ->formatStateUsing(fn (int $state, Consumable $record): string => "{$state} {$record->satuan}")
+                            ->formatStateUsing(fn (int $state, Consumable $record): string => $record->quantity($state))
                             ->color(fn (Consumable $record): ?string => $record->isLow() ? 'danger' : null),
                         TextEntry::make('stok_minimum')
                             ->label(__('Batas minimum'))
-                            ->formatStateUsing(fn (int $state, Consumable $record): string => $state > 0 ? "{$state} {$record->satuan}" : __('Tidak dipantau')),
+                            ->formatStateUsing(fn (int $state, Consumable $record): string => $state > 0 ? $record->quantity($state) : __('Tidak dipantau')),
                         TextEntry::make('catatan')
                             ->label(__('Catatan'))
                             ->placeholder('—'),

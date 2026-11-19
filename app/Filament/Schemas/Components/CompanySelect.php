@@ -10,8 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class CompanySelect
 {
-    // Pilihan perusahaan untuk data yang punya company_id: perusahaan aktif, ditambah perusahaan data yang sedang diubah
-    // supaya data lama tetap bisa disimpan. User yang dibatasi hanya melihat perusahaannya.
+    // Perusahaan aktif ditambah perusahaan data yang sedang diubah, supaya data lama tetap bisa disimpan; user yang dibatasi hanya melihat perusahaannya.
     public static function make(): Select
     {
         return Select::make('company_id')

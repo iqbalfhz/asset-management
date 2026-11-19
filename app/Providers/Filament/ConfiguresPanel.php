@@ -87,7 +87,6 @@ trait ConfiguresPanel
         return fn (): RedirectResponse => redirect()->route('filament.auth.auth.login');
     }
 
-    // Profil Breezy panel admin dan karyawan.
     protected function profilePlugin(): BreezyCore
     {
         return BreezyCore::make()

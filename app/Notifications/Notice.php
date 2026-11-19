@@ -20,8 +20,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-// Email notifikasi bertema Kertas: pembuka, beberapa daftar, dan satu tombol. Isinya disusun saat dikirim,
-// jadi tidak dibaca ulang dengan hak lihat user lain.
+// Isi email disusun saat dikirim, jadi tidak dibaca ulang dengan hak lihat user lain.
 final class Notice extends Notification implements ShouldQueue
 {
     use Queueable;

@@ -46,10 +46,12 @@ class InstallationsRelationManager extends RelationManager
                     ->label(__('Aset'))
                     ->state(fn (ComponentInstallation $record): string => Assignment::labelFor($record->asset)),
                 TextColumn::make('jumlah')
-                    ->label(__('Jumlah')),
+                    ->label(__('Jumlah'))
+                    ->sortable(),
                 AllocatableStock::openedAt(ComponentInstallation::class, __('Dipasang')),
                 TextColumn::make('installer.name')
                     ->label(__('Oleh'))
+                    ->sortable()
                     ->placeholder('—')
                     ->toggleable(),
                 AllocatableStock::releasedAt(ComponentInstallation::class, __('Dilepas')),

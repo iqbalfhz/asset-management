@@ -51,6 +51,7 @@ class SeatsRelationManager extends RelationManager
                 LicenseSeatTable::installedAt(),
                 TextColumn::make('installer.name')
                     ->label(__('Oleh'))
+                    ->sortable()
                     ->placeholder('—')
                     ->toggleable(),
                 LicenseSeatTable::releasedAt(),

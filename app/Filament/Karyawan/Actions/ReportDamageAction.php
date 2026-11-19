@@ -18,7 +18,6 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Storage;
 use LogicException;
 
-// Lapor kerusakan dari panel karyawan: per aset di Aset saya, atau dengan memilih aset di halaman laporan.
 class ReportDamageAction
 {
     public static function forAsset(): Action

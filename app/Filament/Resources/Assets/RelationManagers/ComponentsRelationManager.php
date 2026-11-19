@@ -34,9 +34,11 @@ class ComponentsRelationManager extends RelationManager
             ->recordUrl(fn (ComponentInstallation $record): string => ComponentResource::getUrl('view', ['record' => $record->component_id]))
             ->columns([
                 TextColumn::make('component.nama')
-                    ->label(__('Komponen')),
+                    ->label(__('Komponen'))
+                    ->sortable(),
                 TextColumn::make('jumlah')
-                    ->label(__('Jumlah')),
+                    ->label(__('Jumlah'))
+                    ->sortable(),
                 AllocatableStock::openedAt(ComponentInstallation::class, __('Dipasang')),
                 AllocatableStock::releasedAt(ComponentInstallation::class, __('Dilepas')),
             ])

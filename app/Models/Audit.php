@@ -77,8 +77,7 @@ class Audit extends Model
     }
 
     /**
-     * Catat satu scan. Isinya boleh kode aset (barcode, ketikan) atau alamat QR label (.../a/KODE).
-     * Aset yang sudah discan dikembalikan apa adanya.
+     * Isinya boleh kode aset atau alamat QR label (.../a/KODE); aset yang sudah discan dikembalikan apa adanya.
      */
     public function scan(string $scanned): AuditItem
     {
@@ -229,8 +228,6 @@ class Audit extends Model
     }
 
     /**
-     * Get the attributes that should be cast.
-     *
      * @return array<string, string>
      */
     protected function casts(): array

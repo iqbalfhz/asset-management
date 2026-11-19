@@ -22,7 +22,6 @@ use Symfony\Component\HttpFoundation\Response;
 class DownloadAssetReportController extends Controller
 {
     /**
-     * Laporan aset untuk pimpinan: jumlah, harga beli, dan nilai buku per kategori, status, dan departemen.
      * Asetnya mengikuti hak lihat pengunduh; aset yang dihapuskan dan BYOD tidak ikut.
      */
     public function __invoke(Request $request): Response

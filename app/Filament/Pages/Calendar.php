@@ -14,7 +14,6 @@ use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Url;
 
-// Tanggal kembali, perbaikan, audit, dan lisensi habis dalam satu bulan; tiap jenis hanya untuk yang boleh melihatnya.
 class Calendar extends Page
 {
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCalendarDays;

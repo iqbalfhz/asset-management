@@ -16,6 +16,7 @@ class AssetBookingTable
     {
         return TextColumn::make('asset.kode')
             ->label(__('Barang'))
+            ->sortable()
             ->description(fn (AssetBooking $record): string => $record->asset->nama);
     }
 

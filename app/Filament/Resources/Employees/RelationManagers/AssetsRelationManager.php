@@ -35,12 +35,15 @@ class AssetsRelationManager extends RelationManager
             ->columns([
                 TextColumn::make('kode')
                     ->label(__('Kode'))
+                    ->sortable()
                     ->searchable(),
                 TextColumn::make('nama')
                     ->label(__('Nama'))
+                    ->sortable()
                     ->searchable(),
                 TextColumn::make('category.nama')
-                    ->label(__('Kategori')),
+                    ->label(__('Kategori'))
+                    ->sortable(),
                 AssetStatusColumn::make(),
             ]);
     }

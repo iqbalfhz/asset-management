@@ -22,18 +22,22 @@ class RecentAssignments extends TableWidget
             ->columns([
                 TextColumn::make('tanggal')
                     ->label(__('Tanggal'))
+                    ->sortable()
                     ->date('j M Y'),
                 TextColumn::make('asset.kode')
                     ->label(__('Aset'))
+                    ->sortable()
                     ->description(fn (Assignment $record): string => $record->asset->nama),
                 TextColumn::make('jenis')
                     ->label(__('Jenis'))
+                    ->sortable()
                     ->badge(),
                 TextColumn::make('pemegang')
                     ->label(__('Pemegang'))
                     ->state(fn (Assignment $record): string => $record->targetLabel()),
                 TextColumn::make('status')
                     ->label(__('Status'))
+                    ->sortable()
                     ->badge(),
             ]);
     }

@@ -83,25 +83,32 @@ class DisposalResource extends Resource
             ->columns([
                 TextColumn::make('created_at')
                     ->label(__('Diajukan'))
+                    ->sortable()
                     ->date('j M Y'),
                 TextColumn::make('asset.kode')
                     ->label(__('Aset'))
+                    ->sortable()
                     ->description(fn (Disposal $record): string => $record->asset->nama)
                     ->searchable(),
                 TextColumn::make('metode')
                     ->label(__('Metode'))
+                    ->sortable()
                     ->badge(),
                 TextColumn::make('nilai_jual')
                     ->label(__('Nilai jual'))
+                    ->sortable()
                     ->money('IDR', locale: 'id')
                     ->placeholder('—'),
                 TextColumn::make('status')
                     ->label(__('Status'))
+                    ->sortable()
                     ->badge(),
                 TextColumn::make('submitter.name')
-                    ->label(__('Pengaju')),
+                    ->label(__('Pengaju'))
+                    ->sortable(),
                 TextColumn::make('no_berita_acara')
                     ->label(__('Nomor berita acara'))
+                    ->sortable()
                     ->placeholder('—')
                     ->searchable(),
                 TextColumn::make('catatan')

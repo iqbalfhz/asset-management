@@ -23,13 +23,17 @@ class WarrantyEnding extends TableWidget
             ->recordUrl(fn (Asset $record): string => AssetResource::getUrl('edit', ['record' => $record]))
             ->columns([
                 TextColumn::make('kode')
-                    ->label(__('Kode')),
+                    ->label(__('Kode'))
+                    ->sortable(),
                 TextColumn::make('nama')
-                    ->label(__('Nama')),
+                    ->label(__('Nama'))
+                    ->sortable(),
                 TextColumn::make('category.nama')
-                    ->label(__('Kategori')),
+                    ->label(__('Kategori'))
+                    ->sortable(),
                 TextColumn::make('garansi_sampai')
                     ->label(__('Garansi sampai'))
+                    ->sortable()
                     ->date('j M Y'),
             ]);
     }

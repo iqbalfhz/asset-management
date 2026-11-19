@@ -120,6 +120,7 @@ class AssetModelResource extends Resource
                     ->sortable(),
                 TextColumn::make('depreciation.nama')
                     ->label(__('Kelas penyusutan'))
+                    ->sortable()
                     ->toggleable(),
             ])
             ->recordActions([

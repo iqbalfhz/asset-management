@@ -42,12 +42,15 @@ class FloorsRelationManager extends RelationManager
             ->recordTitleAttribute('nama')
             ->modelLabel(__('Lantai'))
             ->pluralModelLabel(trans_choice('Lantai|Lantai', 2))
+            ->defaultSort('nama')
             ->columns([
                 TextColumn::make('nama')
                     ->label(__('Nama'))
+                    ->sortable()
                     ->searchable(),
                 TextColumn::make('rooms_count')
                     ->label(__('Jumlah ruang'))
+                    ->sortable()
                     ->counts('rooms'),
             ])
             ->headerActions([

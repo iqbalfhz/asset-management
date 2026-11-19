@@ -39,6 +39,7 @@ class AssetsTable
     {
         return $table
             ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['category', 'status', 'room.floor.building', 'assetModel.manufacturer', 'assigned', 'depreciation']))
+            ->defaultSort('kode')
             ->columns(static::columns())
             ->filters(static::filters())
             ->recordActions([
@@ -75,9 +76,11 @@ class AssetsTable
                 ->copyable(),
             TextColumn::make('nama')
                 ->label(__('Nama'))
+                ->sortable()
                 ->searchable(),
             TextColumn::make('category.nama')
                 ->label(__('Kategori'))
+                ->sortable()
                 ->badge()
                 ->color(fn (Asset $record): ?array => BadgeColor::fromHex($record->category->warna)),
             AssetStatusColumn::make(),
@@ -87,17 +90,21 @@ class AssetsTable
                 ->placeholder('—'),
             TextColumn::make('room.nama')
                 ->label(__('Lokasi'))
+                ->sortable()
                 ->description(fn (Asset $record): ?string => $record->room?->floor->path()),
             TextColumn::make('assetModel.nama')
                 ->label(__('Model'))
+                ->sortable()
                 ->formatStateUsing(fn (Asset $record): string => $record->assetModel->fullName())
                 ->toggleable(),
             TextColumn::make('no_seri')
                 ->label(__('Nomor seri'))
+                ->sortable()
                 ->searchable()
                 ->toggleable(isToggledHiddenByDefault: true),
             TextColumn::make('order_number')
                 ->label(__('Nomor PO'))
+                ->sortable()
                 ->searchable()
                 ->toggleable(isToggledHiddenByDefault: true),
             TextColumn::make('harga_beli')
@@ -113,6 +120,7 @@ class AssetsTable
                 ->toggleable(isToggledHiddenByDefault: true),
             IconColumn::make('is_byod')
                 ->label(__('BYOD'))
+                ->sortable()
                 ->boolean()
                 ->toggleable(isToggledHiddenByDefault: true),
             TextColumn::make('next_audit_date')

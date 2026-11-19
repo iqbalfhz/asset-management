@@ -9,9 +9,6 @@ use Illuminate\Support\Facades\Auth;
 
 class CompanyScope implements Scope
 {
-    /**
-     * Apply the scope to a given Eloquent query builder.
-     */
     public function apply(Builder $builder, Model $model): void
     {
         $companyId = static::restrictedCompanyId();
@@ -26,7 +23,7 @@ class CompanyScope implements Scope
      */
     public static function restrictedCompanyId(): ?int
     {
-        // hasUser() does not load the user, so resolving the logged-in user never re-enters this scope.
+        // hasUser() tidak memuat user, jadi membaca user yang login tidak memicu scope ini lagi.
         return Auth::hasUser() ? Auth::user()->restrictedCompanyId() : null;
     }
 }

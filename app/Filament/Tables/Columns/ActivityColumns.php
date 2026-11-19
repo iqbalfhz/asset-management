@@ -12,6 +12,7 @@ class ActivityColumns
     {
         return TextColumn::make('event')
             ->label(__('Kejadian'))
+            ->sortable()
             ->badge()
             ->formatStateUsing(fn (?string $state): string => match ($state) {
                 'created' => __('Dibuat'),

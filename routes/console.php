@@ -1,16 +1,9 @@
 <?php
 
 use App\Models\LoginLog;
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
 
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
-
-// Di server tidak ada container worker: Scheduled Task Coolify menjalankan `php artisan schedule:run` tiap menit,
-// dan antrean (import, export, backup dari panel) diproses di latar belakang sampai kosong.
+// Tanpa container worker: antrean (import, export, backup) diproses oleh schedule:run tiap menit dari Scheduled Task Coolify.
 Schedule::command('queue:work --stop-when-empty --max-time=55 --tries=3 --timeout=900')
     ->everyMinute()
     ->withoutOverlapping(20)
@@ -32,6 +25,4 @@ Schedule::command('model:prune', ['--model' => [LoginLog::class]])->dailyAt('02:
 
 // Riwayat batch job import/export yang sudah selesai tidak perlu disimpan lama.
 Schedule::command('queue:prune-batches --hours=168')->daily();
-
-// Token API yang sudah kedaluwarsa dihapus.
 Schedule::command('sanctum:prune-expired --hours=24')->daily();

@@ -20,7 +20,6 @@ use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
 
-// Tanggal penting aset (pajak/STNK, servis, kontrak sewa).
 class RemindersRelationManager extends RelationManager
 {
     protected static string $relationship = 'reminders';
