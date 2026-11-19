@@ -9,6 +9,7 @@ use Filament\Facades\Filament;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Jeffgreco13\FilamentBreezy\Livewire\BrowserSessions;
 use Jeffgreco13\FilamentBreezy\Livewire\TwoFactorAuthentication;
 use Jeffgreco13\FilamentBreezy\Livewire\UpdatePassword;
@@ -74,6 +75,15 @@ test('the profile photo is shown through a signed temporary link', function () {
 
     expect($user->getFilamentAvatarUrl())->toContain('signature=')
         ->and(User::factory()->make(['avatar_url' => null])->getFilamentAvatarUrl())->toBeNull();
+});
+
+test('without a photo the avatar shows initials drawn by the app, without calling an outside service', function () {
+    Filament::setCurrentPanel('admin');
+
+    $avatar = Filament::getUserAvatarUrl(User::factory()->make(['name' => 'siti aminah', 'avatar_url' => null]));
+
+    expect($avatar)->toStartWith('data:image/svg+xml;base64,')
+        ->and(base64_decode(Str::after($avatar, ',')))->toContain('>SA</text>');
 });
 
 test('the email digest starts switched off, and each user picks their own in Profile', function (string $panel, string $role) {

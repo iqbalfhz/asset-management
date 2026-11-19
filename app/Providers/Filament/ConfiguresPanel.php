@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Support\InitialsAvatar;
 use App\Http\Middleware\SetUserLocale;
 use App\Livewire\PersonalInfo;
 use Closure;
@@ -29,6 +30,7 @@ trait ConfiguresPanel
     {
         return $panel
             ->viteTheme('resources/css/filament/admin/theme.css')
+            ->defaultAvatarProvider(InitialsAvatar::class)
             ->colors([
                 // Abu-abu hangat (sedikit hijau zaitun), dipakai untuk latar, teks, garis.
                 'gray' => [
