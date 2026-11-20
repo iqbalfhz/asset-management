@@ -13,7 +13,7 @@ class LowStockConsumables extends TableWidget
 {
     use FiltersByDashboard;
 
-    protected static ?int $sort = 10;
+    protected static ?int $sort = 13;
 
     public static function canView(): bool
     {

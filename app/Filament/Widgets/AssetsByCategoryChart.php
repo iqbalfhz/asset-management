@@ -52,7 +52,7 @@ class AssetsByCategoryChart extends DashboardChart
         $categories = $this->largestCategories($rows);
 
         return [
-            'labels' => $categories->keys()->all(),
+            'labels' => $categories->pluck('label')->all(),
             'datasets' => [
                 $this->bars(__('Tersedia'), $categories->pluck('tersedia')->all(), self::GREEN),
                 $this->bars(__('Dipakai'), $categories->pluck('dipakai')->all(), self::BLUE),

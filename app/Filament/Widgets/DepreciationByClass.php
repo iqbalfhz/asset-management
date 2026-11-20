@@ -12,7 +12,7 @@ class DepreciationByClass extends Widget
 {
     use FiltersByDashboard;
 
-    protected static ?int $sort = 11;
+    protected static ?int $sort = 14;
 
     protected int|string|array $columnSpan = 'full';
 

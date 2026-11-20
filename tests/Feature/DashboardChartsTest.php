@@ -1,19 +1,29 @@
 <?php
 
+use App\Enums\AuditResult;
+use App\Enums\AuditStatus;
+use App\Enums\MaintenanceStatus;
 use App\Filament\Pages\Dashboard;
 use App\Filament\Widgets\ActivityChart;
 use App\Filament\Widgets\AssetOverview;
 use App\Filament\Widgets\AssetsByCategoryChart;
+use App\Filament\Widgets\CostliestRepairs;
 use App\Filament\Widgets\DashboardChart;
+use App\Filament\Widgets\LicenseUsageChart;
 use App\Filament\Widgets\RecentAssignments;
+use App\Filament\Widgets\RepairCostChart;
 use App\Filament\Widgets\ReplacementChart;
 use App\Filament\Widgets\ValueByCategoryChart;
 use App\Models\Asset;
 use App\Models\Assignment;
+use App\Models\Audit;
+use App\Models\AuditItem;
 use App\Models\Category;
 use App\Models\Company;
 use App\Models\Depreciation;
 use App\Models\Employee;
+use App\Models\License;
+use App\Models\LicenseSeat;
 use App\Models\Maintenance;
 use App\Models\Role;
 use App\Models\Setting;
@@ -209,7 +219,73 @@ test('every chart is described as a table for screen readers and does not poll t
         ->and($widget)->toBeInstanceOf(ChartWidget::class);
 
     livewire($chart, ['pageFilters' => ['kategori' => (string) $this->laptops->id]])->assertSee($widget->getHeading());
-})->with([AssetsByCategoryChart::class, ActivityChart::class, ReplacementChart::class, ValueByCategoryChart::class]);
+})->with([AssetsByCategoryChart::class, ActivityChart::class, ReplacementChart::class, ValueByCategoryChart::class, RepairCostChart::class, LicenseUsageChart::class]);
+
+test('repair cost is summed in millions by the month the repair finished', function () {
+    $laptop = availableAsset($this->tcm, $this->laptops);
+    $repair = fn (Asset $asset, ?int $cost, ?string $finished) => Maintenance::factory()->create(['asset_id' => $asset->id, 'status' => MaintenanceStatus::Selesai, 'biaya' => $cost, 'tgl_selesai' => $finished]);
+    $repair($laptop, 1_500_000, '2026-10-05');
+    $repair($laptop, 500_000, '2026-10-20');
+    $repair($laptop, null, '2026-10-21');
+    $repair($laptop, 9_000_000, '2025-01-10');
+    $repair(availableAsset($this->tcm, $this->printers), 2_000_000, '2026-11-02');
+
+    expect(chartData(new RepairCostChart, filter: '6')['datasets'][0]['data'])->toBe([0.0, 0.0, 0.0, 0.0, 2.0, 2.0])
+        ->and(chartData(new RepairCostChart, ['kategori' => (string) $this->laptops->id], '6')['datasets'][0]['data'])->toBe([0.0, 0.0, 0.0, 0.0, 2.0, 0.0]);
+});
+
+test('the costliest repairs come first and show their share of the purchase price', function () {
+    $repair = fn (Asset $asset, int $cost) => Maintenance::factory()->create(['asset_id' => $asset->id, 'status' => MaintenanceStatus::Selesai, 'biaya' => $cost, 'tgl_selesai' => '2026-11-01']);
+    $wornOut = availableAsset($this->tcm, $this->laptops, ['harga_beli' => 10_000_000]);
+    $repair($wornOut, 4_000_000);
+    $repair($wornOut, 2_000_000);
+    $healthy = availableAsset($this->tcm, $this->laptops, ['harga_beli' => 20_000_000]);
+    $repair($healthy, 2_000_000);
+    $neverRepaired = availableAsset($this->tcm, $this->laptops);
+    $disposed = assetWithStatus($this->tcm, $this->laptops, Status::DIHAPUSKAN, ['harga_beli' => 1_000_000]);
+    $repair($disposed, 9_000_000);
+
+    livewire(CostliestRepairs::class, ['pageFilters' => []])
+        ->assertCanSeeTableRecords([$wornOut, $healthy], inOrder: true)
+        ->assertCanNotSeeTableRecords([$neverRepaired, $disposed])
+        ->assertTableColumnStateSet('persen_harga_beli', 60, $wornOut)
+        ->assertTableColumnStateSet('persen_harga_beli', 10, $healthy);
+});
+
+test('license usage shows used and unused seats of licenses still running', function () {
+    $office = License::factory()->create(['company_id' => $this->tcm->id, 'nama_software' => 'Microsoft 365 Business', 'jumlah_seat' => 10]);
+    LicenseSeat::factory()->count(3)->create(['license_id' => $office->id]);
+    LicenseSeat::factory()->create(['license_id' => $office->id, 'dilepas_pada' => now()]);
+    License::factory()->create(['company_id' => $this->tcm->id, 'jumlah_seat' => 5, 'tgl_habis' => '2026-11-19']);
+    License::factory()->create(['company_id' => Company::factory()->create()->id, 'nama_software' => 'AutoCAD LT', 'jumlah_seat' => 2]);
+
+    $chart = new LicenseUsageChart;
+    $data = chartData($chart, ['perusahaan' => (string) $this->tcm->id]);
+
+    expect($data['labels'])->toBe(['Microsoft 365 Business'])
+        ->and(array_column($data['datasets'], 'data'))->toBe([[3], [7]])
+        ->and($chart->getDescription())->toStartWith('7 dari 10 seat belum terpakai.');
+});
+
+test('audit numbers count missed audit dates and assets not found in their latest audit', function () {
+    availableAsset($this->tcm, $this->laptops, ['next_audit_date' => '2026-11-19']);
+    availableAsset($this->tcm, $this->laptops, ['next_audit_date' => '2026-11-20']);
+    assetWithStatus($this->tcm, $this->laptops, Status::HILANG, ['next_audit_date' => '2026-11-01']);
+
+    $closed = fn () => Audit::factory()->create(['status' => AuditStatus::Selesai]);
+    $result = fn (Audit $audit, Asset $asset, AuditResult $hasil) => AuditItem::factory()->create(['audit_id' => $audit->id, 'asset_id' => $asset->id, 'hasil' => $hasil]);
+    $first = $closed();
+    $result($first, $missing = availableAsset($this->tcm, $this->laptops), AuditResult::TidakDitemukan);
+    $result($first, $foundLater = availableAsset($this->tcm, $this->laptops), AuditResult::TidakDitemukan);
+    $result($first, $markedLost = availableAsset($this->tcm, $this->laptops), AuditResult::TidakDitemukan);
+    $result($first, $stillWaiting = availableAsset($this->tcm, $this->laptops), AuditResult::TidakDitemukan);
+    $result($closed(), $foundLater, AuditResult::Ditemukan);
+    $result(Audit::factory()->create(), $stillWaiting, AuditResult::Menunggu);
+    $markedLost->transitionTo(Status::named(Status::HILANG));
+
+    expect(overviewValues())->toMatchArray(['Lewat jadwal audit' => 1, 'Tidak ditemukan saat audit' => 2])
+        ->and(overviewValues(['kategori' => (string) $this->printers->id]))->toMatchArray(['Tidak ditemukan saat audit' => 0]);
+});
 
 test('a chart without data says so instead of drawing empty axes', function () {
     livewire(AssetsByCategoryChart::class, ['pageFilters' => []])->assertSee('Belum ada data');

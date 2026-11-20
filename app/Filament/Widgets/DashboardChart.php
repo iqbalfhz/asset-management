@@ -21,8 +21,8 @@ abstract class DashboardChart extends ChartWidget
 
     public const string BRICK = '#b5432c';
 
-    // Kategori sebanyak ini tetap terbaca; sisanya digabung jadi "Lainnya".
-    protected const int CATEGORY_LIMIT = 10;
+    // Batang sebanyak ini tetap terbaca; sisanya digabung jadi "Lainnya".
+    protected const int BAR_LIMIT = 10;
 
     protected ?string $pollingInterval = null;
 
@@ -77,24 +77,33 @@ abstract class DashboardChart extends ChartWidget
     }
 
     /**
-     * Kategori terbesar lebih dulu; sisanya dijumlah jadi "Lainnya".
+     * Yang terbesar lebih dulu; sisanya dijumlah jadi "Lainnya".
      *
-     * @param  Collection<int, array<string, int|float>>  $rows  per category_id
-     * @return Collection<string, array<string, int|float>> per nama kategori
+     * @param  Collection<int, array<string, int|float>>  $rows  per id
+     * @param  Collection<int, string>  $names  per id
+     * @return Collection<int, array<string, int|float|string>> tiap baris berisi 'label' dan nilainya
      */
-    protected function largestCategories(Collection $rows): Collection
+    protected function largestOf(Collection $rows, Collection $names): Collection
     {
-        $names = Category::query()->whereKey($rows->keys())->pluck('nama', 'id');
         $sorted = $rows->sortByDesc(fn (array $row): int|float => array_sum($row));
 
-        $largest = $sorted->take(static::CATEGORY_LIMIT)->mapWithKeys(fn (array $row, int $categoryId): array => [$names[$categoryId] ?? "#{$categoryId}" => $row]);
-        $rest = $sorted->skip(static::CATEGORY_LIMIT);
+        $largest = $sorted->take(static::BAR_LIMIT)->map(fn (array $row, int $id): array => ['label' => $names[$id] ?? "#{$id}", ...$row])->values();
+        $rest = $sorted->skip(static::BAR_LIMIT);
 
         if ($rest->isNotEmpty()) {
-            $largest->put(__('Lainnya'), collect($rest->first())->map(fn (int|float $value, string $key): int|float => $rest->sum($key))->all());
+            $largest->push(['label' => __('Lainnya'), ...collect($rest->first())->map(fn (int|float $value, string $key): int|float => $rest->sum($key))->all()]);
         }
 
         return $largest;
+    }
+
+    /**
+     * @param  Collection<int, array<string, int|float>>  $rows  per category_id
+     * @return Collection<int, array<string, int|float|string>>
+     */
+    protected function largestCategories(Collection $rows): Collection
+    {
+        return $this->largestOf($rows, Category::query()->whereKey($rows->keys())->pluck('nama', 'id'));
     }
 
     /**

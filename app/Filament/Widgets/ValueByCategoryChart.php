@@ -45,7 +45,7 @@ class ValueByCategoryChart extends DashboardChart
         $categories = $this->largestCategories($rows);
 
         return [
-            'labels' => $categories->keys()->all(),
+            'labels' => $categories->pluck('label')->all(),
             'datasets' => [
                 $this->bars(__('Harga beli'), $categories->map(fn (array $row): float => static::millions($row['beli']))->values()->all(), self::BLUE),
                 $this->bars(__('Nilai buku'), $categories->map(fn (array $row): float => static::millions($row['buku']))->values()->all(), self::GREEN),

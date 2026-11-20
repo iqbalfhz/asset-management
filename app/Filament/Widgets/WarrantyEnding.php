@@ -13,7 +13,7 @@ class WarrantyEnding extends TableWidget
 {
     use FiltersByDashboard;
 
-    protected static ?int $sort = 8;
+    protected static ?int $sort = 12;
 
     public function table(Table $table): Table
     {

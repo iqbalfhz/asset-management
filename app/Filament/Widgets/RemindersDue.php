@@ -13,7 +13,7 @@ class RemindersDue extends TableWidget
 {
     use FiltersByDashboard;
 
-    protected static ?int $sort = 7;
+    protected static ?int $sort = 11;
 
     public function table(Table $table): Table
     {

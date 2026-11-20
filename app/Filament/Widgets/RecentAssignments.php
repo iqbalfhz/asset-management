@@ -12,7 +12,7 @@ class RecentAssignments extends TableWidget
 {
     use FiltersByDashboard;
 
-    protected static ?int $sort = 6;
+    protected static ?int $sort = 10;
 
     public function table(Table $table): Table
     {
