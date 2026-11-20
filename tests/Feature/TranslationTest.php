@@ -20,9 +20,10 @@ use Illuminate\Support\Facades\Route;
 /**
  * Semua teks literal di __('...') dalam kode dan view, kecuali kunci terjemahan paket (berisi ::).
  *
+ * @param  list<string>  $functions
  * @return array<int, string>
  */
-function interfaceTexts(): array
+function interfaceTexts(array $functions = ['__', 'trans', 'trans_choice']): array
 {
     $texts = [];
     $files = collect(['app', 'routes', 'resources/views'])
@@ -34,7 +35,7 @@ function interfaceTexts(): array
         $tokens = token_get_all(str_ends_with($file->getFilename(), '.blade.php') ? Blade::compileString($code) : $code);
 
         foreach ($tokens as $index => $token) {
-            if (! is_array($token) || ! in_array($token[1], ['__', 'trans', 'trans_choice'], true)) {
+            if (! is_array($token) || ! in_array($token[1], $functions, true)) {
                 continue;
             }
 
@@ -68,6 +69,14 @@ test('every interface text has an English translation with the same placeholders
     foreach ($english as $text => $translation) {
         expect(placeholdersOf($translation))->toBe(placeholdersOf($text), "Placeholder berbeda: {$text}");
     }
+});
+
+// trans_choice memakai bahasa cadangan (Inggris) kalau kuncinya tidak ada di id.json.
+test('plural labels stay Indonesian for Indonesian users', function () {
+    $indonesian = json_decode(file_get_contents(lang_path('id.json')), true, flags: JSON_THROW_ON_ERROR);
+
+    expect(array_values(array_diff(interfaceTexts(['trans_choice']), array_keys($indonesian))))->toBe([])
+        ->and(AssetResource::getPluralModelLabel())->toBe('Aset');
 });
 
 test('a user who picks English sees the panels in English, including core asset statuses', function () {

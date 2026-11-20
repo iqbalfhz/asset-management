@@ -56,7 +56,7 @@ class KitResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return trans_choice('Kits|Kits', 2);
+        return trans_choice('Paket|Paket', 2);
     }
 
     public static function form(Schema $schema): Schema
