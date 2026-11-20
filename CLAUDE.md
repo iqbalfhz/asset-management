@@ -55,6 +55,7 @@ Kerjakan per fase. Ikuti sub-tab fase yang sedang aktif. Jangan mengerjakan fitu
 - Setiap ada resource Filament baru: `php artisan shield:generate --all --panel=admin`
 - Jangan commit `.env`. Password seeder diambil dari `SEED_PASSWORD` di `.env`
 - Plugin Filament pihak ketiga diputuskan di awal fase yang memakainya; cek dulu dukungan untuk Filament 5
+- Nomor versi di `config/app.php` (`version`, MAJOR.MINOR.PATCH, tampil di footer bersama commit dari Coolify): naikkan MINOR untuk fitur baru, PATCH untuk perbaikan, di commit yang sama dengan perubahannya
 
 ## Prioritas aturan
 

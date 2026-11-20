@@ -1,14 +1,15 @@
 {{-- Footer semua panel: nama aplikasi, versi yang sedang jalan, kontak IT dari Pengaturan, dan pengembang. --}}
 @php
-    $version = substr((string) config('app.version'), 0, 7);
+    $commit = substr((string) config('app.commit'), 0, 7);
     $itContact = \App\Models\Setting::get('kontak_it');
 @endphp
 
 <footer class="kertas-footer">
     <p>
         {{ config('app.name') }}
-        @if ($version !== '')
-            · {{ __('versi :versi', ['versi' => $version]) }}
+        · {{ __('versi :versi', ['versi' => config('app.version')]) }}
+        @if ($commit !== '')
+            ({{ $commit }})
         @endif
         · © {{ now()->year }}
     </p>
