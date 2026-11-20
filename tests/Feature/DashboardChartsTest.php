@@ -160,7 +160,7 @@ test('monthly activity counts hand-overs, returns, and damage reports, and an un
 
     $data = chartData(new ActivityChart, filter: '6');
 
-    expect($data['labels'])->toBe(['Jun 2026', 'Jul 2026', 'Agt 2026', 'Sep 2026', 'Okt 2026', 'Nov 2026'])
+    expect($data['labels'])->toBe(['Jun 26', 'Jul 26', 'Agt 26', 'Sep 26', 'Okt 26', 'Nov 26'])
         ->and(array_column($data['datasets'], 'data'))->toBe([[0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 2, 0]])
         ->and(chartData(new ActivityChart, ['kategori' => (string) $this->laptops->id], '6')['datasets'][2]['data'])->toBe([0, 0, 0, 0, 1, 0])
         ->and(chartData(new ActivityChart, filter: 'semua')['labels'])->toHaveCount(12);
@@ -210,6 +210,15 @@ test('every chart is described as a table for screen readers and does not poll t
 
     livewire($chart, ['pageFilters' => ['kategori' => (string) $this->laptops->id]])->assertSee($widget->getHeading());
 })->with([AssetsByCategoryChart::class, ActivityChart::class, ReplacementChart::class, ValueByCategoryChart::class]);
+
+test('a chart without data says so instead of drawing empty axes', function () {
+    livewire(AssetsByCategoryChart::class, ['pageFilters' => []])->assertSee('Belum ada data');
+    livewire(ActivityChart::class, ['pageFilters' => []])->assertSee('Belum ada data')->assertSee('12 bulan terakhir');
+
+    availableAsset($this->tcm, $this->laptops);
+
+    livewire(AssetsByCategoryChart::class, ['pageFilters' => []])->assertDontSee('Belum ada data');
+});
 
 test('charts are only for users who may see assets', function () {
     expect(AssetsByCategoryChart::canView())->toBeTrue();

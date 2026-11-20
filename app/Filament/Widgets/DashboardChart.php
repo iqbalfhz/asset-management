@@ -33,6 +33,24 @@ abstract class DashboardChart extends ChartWidget
         return auth()->user()?->can('viewAny', Asset::class) ?? false;
     }
 
+    // Tanpa data (semua nol), tampilkan keterangan kosong, bukan sumbu kosong yang terlihat seperti rusak.
+    public function isEmpty(): bool
+    {
+        return collect($this->getCachedData()['datasets'] ?? [])
+            ->flatMap(fn (array $dataset): array => $dataset['data'])
+            ->every(fn (int|float $value): bool => (float) $value === 0.0);
+    }
+
+    public function getEmptyStateHeading(): string
+    {
+        return __('Belum ada data');
+    }
+
+    public function getEmptyStateDescription(): string
+    {
+        return __('Grafik muncul setelah ada data aset yang cocok dengan filter dan periode ini.');
+    }
+
     public function getChartAssistiveContent(): View
     {
         return view('filament.widgets.chart-table', ['data' => $this->getCachedData(), 'caption' => $this->getHeading()]);

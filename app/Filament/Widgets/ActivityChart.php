@@ -59,7 +59,7 @@ class ActivityChart extends DashboardChart
             ->all();
 
         return [
-            'labels' => $periods->map(fn (CarbonInterface $month): string => $month->translatedFormat('M Y'))->all(),
+            'labels' => $periods->map(fn (CarbonInterface $month): string => $month->translatedFormat('M y'))->all(),
             'datasets' => [
                 $this->line(__('Aset diserahkan'), $perMonth($assignments(AssignmentType::Keluar)), self::BLUE),
                 $this->line(__('Aset dikembalikan'), $perMonth($assignments(AssignmentType::Kembali)), self::GREEN),
@@ -71,7 +71,8 @@ class ActivityChart extends DashboardChart
     protected function getOptions(): array
     {
         return $this->chartOptions(
-            ['y' => ['beginAtZero' => true, 'ticks' => ['precision' => 0]]],
+            // Label bulan tegak; kalau tidak muat, sebagian dilewati, bukan dimiringkan.
+            ['x' => ['ticks' => ['maxRotation' => 0, 'autoSkip' => true]], 'y' => ['beginAtZero' => true, 'ticks' => ['precision' => 0]]],
             ['interaction' => ['mode' => 'index', 'intersect' => false]],
         );
     }

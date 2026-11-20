@@ -18,7 +18,8 @@
                         @endif
                     </div>
 
-                    @if ($key === 'jobs')
+                    {{-- Aksi yang di-render manual tidak disembunyikan Filament, jadi visibilitasnya dicek di sini. --}}
+                    @if ($key === 'jobs' && $this->retryFailedJobsAction->isVisible())
                         {{ $this->retryFailedJobsAction }}
                     @endif
 

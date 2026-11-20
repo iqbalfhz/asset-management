@@ -19,6 +19,7 @@ class Dashboard extends BaseDashboard
         return $schema
             ->components([
                 Section::make()
+                    ->columnSpanFull()
                     ->columns(['md' => 3])
                     ->schema([
                         Select::make('perusahaan')

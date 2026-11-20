@@ -78,6 +78,7 @@ test('everything is normal within the limits', function () {
     livewire(SystemHealth::class)
         ->assertSee('Kesehatan sistem')
         ->assertDontSee('Perlu dicek')
+        ->assertDontSee('Kirim ulang semua')
         ->assertActionHidden('retryFailedJobs');
 });
 
@@ -97,6 +98,7 @@ test('each check turns red past its limit and says why', function () {
         ->assertDontSee('#0 trace')
         ->assertSee('Gagal membuat PDF')
         ->assertSee('Cek Scheduled Task di Coolify')
+        ->assertSee('Kirim ulang semua')
         ->assertActionVisible('retryFailedJobs');
 });
 
