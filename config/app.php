@@ -16,7 +16,7 @@ return [
     'name' => env('APP_NAME', 'Laravel'),
 
     // Nomor rilis (MAJOR.MINOR.PATCH), dinaikkan setiap rilis; tampil di footer bersama commit.
-    'version' => '1.0.0',
+    'version' => '1.0.1',
 
     // Commit yang sedang jalan, diisi Coolify.
     'commit' => env('SOURCE_COMMIT'),

@@ -126,6 +126,11 @@
     @apply rounded-full;
 }
 
+/* Label grup: gray-500 bawaan hanya 4,2:1 di latar kertas (hasil Lighthouse) */
+.fi-sidebar-group-label {
+    @apply text-gray-600 dark:text-gray-400;
+}
+
 /* Jumlah badge di judul grup yang tertutup (diisi sidebar-accordion.blade.php) */
 .fi-sidebar-group.fi-collapsed .fi-sidebar-group-label[data-badge]::after {
     content: attr(data-badge);
