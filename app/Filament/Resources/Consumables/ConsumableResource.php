@@ -37,6 +37,11 @@ class ConsumableResource extends Resource
         return trans_choice('Barang habis pakai|Barang habis pakai', 2);
     }
 
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Inventaris');
+    }
+
     public static function form(Schema $schema): Schema
     {
         return ConsumableForm::configure($schema);

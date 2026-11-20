@@ -29,7 +29,7 @@ class AssetRequestResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedHandRaised;
 
-    protected static ?int $navigationSort = 8;
+    protected static ?int $navigationSort = 1;
 
     public static function getModelLabel(): string
     {
@@ -39,6 +39,11 @@ class AssetRequestResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return trans_choice('Permintaan aset|Permintaan aset', 2);
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Transaksi');
     }
 
     public static function canCreate(): bool

@@ -35,6 +35,11 @@ class AuditResource extends Resource
         return trans_choice('Stock opname|Stock opname', 2);
     }
 
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Transaksi');
+    }
+
     public static function form(Schema $schema): Schema
     {
         return AuditForm::configure($schema);

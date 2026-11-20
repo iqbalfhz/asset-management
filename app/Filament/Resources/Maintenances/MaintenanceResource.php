@@ -31,7 +31,7 @@ class MaintenanceResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedWrenchScrewdriver;
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 4;
 
     public static function getModelLabel(): string
     {
@@ -41,6 +41,11 @@ class MaintenanceResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return trans_choice('Perbaikan|Perbaikan', 2);
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Transaksi');
     }
 
     public static function getNavigationBadge(): ?string

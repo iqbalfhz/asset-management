@@ -59,6 +59,11 @@ class KitResource extends Resource
         return trans_choice('Paket|Paket', 2);
     }
 
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Inventaris');
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema

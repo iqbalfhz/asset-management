@@ -45,6 +45,11 @@ class AssetResource extends Resource
         return trans_choice('Aset|Aset', 2);
     }
 
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Inventaris');
+    }
+
     public static function form(Schema $schema): Schema
     {
         return AssetForm::configure($schema);

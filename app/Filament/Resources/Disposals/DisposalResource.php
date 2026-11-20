@@ -30,7 +30,7 @@ class DisposalResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArchiveBoxXMark;
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 6;
 
     public static function getModelLabel(): string
     {
@@ -40,6 +40,11 @@ class DisposalResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return trans_choice('Penghapusan|Penghapusan', 2);
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Transaksi');
     }
 
     public static function getNavigationBadge(): ?string

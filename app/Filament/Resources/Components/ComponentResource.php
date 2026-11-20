@@ -33,6 +33,11 @@ class ComponentResource extends Resource
         return trans_choice('Komponen|Komponen', 2);
     }
 
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Inventaris');
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components(AllocatableStock::formFields());

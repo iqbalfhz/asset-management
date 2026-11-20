@@ -22,9 +22,12 @@ use App\Models\Maintenance;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Actions\Action;
 use Filament\Facades\Filament;
+use Filament\Navigation\NavigationGroup;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Icons\Heroicon;
+use Filament\View\PanelsRenderHook;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Route;
 use ShuvroRoy\FilamentSpatieLaravelBackup\FilamentSpatieLaravelBackupPlugin;
 
@@ -58,6 +61,15 @@ class AdminPanelProvider extends PanelProvider
                 Route::get('stock-opname/{audit}/laporan', DownloadAuditReportController::class)->whereNumber('audit')->middleware([UseIndonesianForDocuments::class, LogDownload::of('Laporan stock opname', Audit::class)])->name('audits.report');
                 Route::get('laporan/unduh', DownloadAssetReportController::class)->middleware([UseIndonesianForDocuments::class, LogDownload::of('Laporan aset')])->name('reports.assets');
             })
+            // Label grup lewat closure supaya diterjemahkan sesuai bahasa user, bukan bahasa saat boot.
+            ->navigationGroups([
+                NavigationGroup::make(fn (): string => __('Inventaris')),
+                NavigationGroup::make(fn (): string => __('Transaksi')),
+                NavigationGroup::make(fn (): string => __('Master Data')),
+                NavigationGroup::make(fn (): string => __('Organisasi')),
+                NavigationGroup::make(fn (): string => __('Administrasi')),
+            ])
+            ->renderHook(PanelsRenderHook::SIDEBAR_NAV_END, fn (): View => view('filament.sidebar-accordion'))
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
@@ -66,7 +78,8 @@ class AdminPanelProvider extends PanelProvider
             // Dashboard hanya berisi widget aplikasi (App\Filament\Widgets), tanpa widget bawaan Filament.
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->plugins([
-                FilamentShieldPlugin::make(),
+                FilamentShieldPlugin::make()
+                    ->navigationGroup(fn (): string => __('Administrasi')),
                 // Token REST API (/api/v1) dibuat sendiri dari Profil; izinnya tetap mengikuti role pemiliknya.
                 $this->profilePlugin()
                     ->enableSanctumTokens(permissions: fn (): array => ['baca-aset' => __('Baca aset'), 'serah-terima' => __('Serah-terima')])

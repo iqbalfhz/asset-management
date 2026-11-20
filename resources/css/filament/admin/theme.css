@@ -126,6 +126,12 @@
     @apply rounded-full;
 }
 
+/* Jumlah badge di judul grup yang tertutup (diisi sidebar-accordion.blade.php) */
+.fi-sidebar-group.fi-collapsed .fi-sidebar-group-label[data-badge]::after {
+    content: attr(data-badge);
+    @apply ms-2 rounded-full bg-primary-50 px-2 py-0.5 text-xs font-medium text-primary-700 dark:bg-primary-400/10 dark:text-primary-300;
+}
+
 /* ---------- Header tabel: label lebih tenang ---------- */
 .fi-ta-header-cell {
     @apply font-medium text-gray-700 dark:text-gray-300;

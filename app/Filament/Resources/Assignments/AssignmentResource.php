@@ -42,6 +42,11 @@ class AssignmentResource extends Resource
         return trans_choice('Serah-terima|Serah-terima', 2);
     }
 
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Transaksi');
+    }
+
     public static function canCreate(): bool
     {
         return false;
