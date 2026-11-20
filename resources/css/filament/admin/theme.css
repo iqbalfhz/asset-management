@@ -139,6 +139,10 @@
     & p + p {
         @apply mt-1;
     }
+
+    & a {
+        @apply underline underline-offset-2 hover:text-gray-900 dark:hover:text-gray-200;
+    }
 }
 
 /* ---------- Header tabel: label lebih tenang ---------- */

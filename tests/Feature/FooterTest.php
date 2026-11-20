@@ -12,7 +12,10 @@ test('every panel shows the footer with the running version and the IT contact',
 
     $this->get($path)
         ->assertOk()
-        ->assertSeeInOrder(['kertas-footer', config('app.name'), 'versi abc1234', '© '.now()->year, 'Ada kendala? Hubungi Tim IT: it@contoh.test'], false)
+        ->assertSeeInOrder([
+            'kertas-footer', config('app.name'), 'versi abc1234', '© '.now()->year, 'Ada kendala? Hubungi Tim IT: it@contoh.test',
+            'Dikembangkan oleh Iqbal Fahrozi', 'href="https://github.com/iqbalfhz" target="_blank" rel="noopener noreferrer"',
+        ], false)
         ->assertDontSee('abc1234def');
 })->with([
     'login' => ['/login', null, 'auth'],
