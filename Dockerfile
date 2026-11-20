@@ -4,7 +4,7 @@
 # Dasar: PHP 8.5 (rilis stabil terbaru; PHP tidak punya jalur LTS) di atas FrankenPHP dan Debian 13 (trixie).
 # Ekstensi: intl untuk format Rupiah, gd untuk gambar di PDF. Klien MySQL untuk dump database oleh spatie/laravel-backup.
 # Klien itu di Debian 13 adalah MariaDB 11.8 yang menolak sertifikat self-signed MySQL; pemeriksaannya dimatikan (koneksi antar-container, tetap terenkripsi).
-FROM serversideup/php:8.5-frankenphp-trixie-v5.1.1 AS base
+FROM serversideup/php:8.5-frankenphp-trixie-v5.1.5 AS base
 USER root
 RUN install-php-extensions intl gd \
     && apt-get update \
