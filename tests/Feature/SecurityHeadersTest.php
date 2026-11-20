@@ -30,9 +30,9 @@ test('HSTS is sent over HTTPS, and always in production where the tunnel reaches
 
 test('in production only the app domain and localhost are served, so links cannot point to a forged host', function () {
     $this->app['env'] = 'production';
-    config(['app.url' => 'https://asset.iqbalfhz.my.id']);
+    config(['app.url' => 'https://aset.contoh.test']);
 
-    $this->get('https://asset.iqbalfhz.my.id/login')->assertOk();
+    $this->get('https://aset.contoh.test/login')->assertOk();
     $this->get('http://localhost/up')->assertOk();
     $this->get('https://palsu.example/login')->assertBadRequest();
 

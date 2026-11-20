@@ -1,166 +1,140 @@
 # Asset Management
 
-Aplikasi manajemen aset internal: pendataan aset, serah-terima dengan BAST dan tanda tangan, perbaikan, penghapusan, stock opname (QR), lisensi, barang habis pakai, aksesori, komponen, paket (kits), permintaan aset, peminjaman barang, pengingat tanggal penting, dan laporan PDF. Dua bahasa (Indonesia/English), multi-perusahaan.
+Aplikasi manajemen aset internal berbasis **Laravel + Filament**, dirancang untuk perusahaan yang ingin mendata aset, mencatat serah-terima resmi (BAST) dengan tanda tangan, serta mengelola perawatan, lisensi, dan perlengkapan dalam satu sistem.
 
-> Dokumen ini adalah **contekan operasional**. Rencana lengkap (PRD, ERD, panduan per fase) ada di [dokumen rencana](https://claude.ai/artifact/EeufZa4NcNAVG5zE8Hsej2). Aturan teknis proyek ada di `CLAUDE.md`.
+Antarmuka berbahasa Indonesia dan Inggris (pilihan per pengguna), mendukung multi-perusahaan, dan menerbitkan dokumen resmi (BAST, berita acara, laporan) dalam PDF berbahasa Indonesia.
 
 ---
 
-## 🚨 Darurat: sistem diduga diretas
+## Fitur
 
-Semua dijalankan dari **Terminal Coolify** / SSH server. Cari container aplikasi lewat port 8091:
+- **Aset** — pendataan dengan kode unik (`PT-KATEGORI-TAHUN-NOMOR`), spesifikasi fleksibel, foto, label QR/barcode, penyusutan & nilai buku.
+- **Serah-terima (BAST)** — ke karyawan/ruang/departemen/aset lain, dengan tanda tangan di layar atau unggah foto BAST tercetak, status berubah hanya lewat transaksi.
+- **Perawatan & penghapusan** — laporan kerusakan oleh karyawan, perbaikan, dan penghapusan dengan berita acara.
+- **Stock opname** — sesi audit per ruang dengan pemindaian QR.
+- **Lisensi, barang habis pakai, aksesori, komponen, paket (kits)** — lengkap dengan stok dan riwayat.
+- **Permintaan & peminjaman** — karyawan meminta aset atau memesan barang bersama (mis. proyektor) per jam.
+- **Pengingat** — tanggal penting aset (pajak, servis, kontrak) dengan notifikasi email.
+- **Laporan PDF, kalender, dasbor, log aktivitas & log masuk.**
+- **Multi-perusahaan**, hak akses granular (Filament Shield), 2FA opsional, dua bahasa.
+
+## Teknologi
+
+- [Laravel 13](https://laravel.com) · [Filament 5](https://filamentphp.com) (Livewire, Alpine, Tailwind)
+- PHP 8.3+ · MySQL/MariaDB (atau SQLite untuk test)
+- [Pest](https://pestphp.com) · [Laravel Shield](https://filamentphp.com/plugins/bezhan-shield) · [spatie/laravel-backup](https://spatie.be/docs/laravel-backup) · [spatie/laravel-activitylog](https://spatie.be/docs/laravel-activitylog)
+- Produksi: [FrankenPHP](https://frankenphp.dev) via `Dockerfile`
+
+---
+
+## Persyaratan
+
+- PHP **8.3+** dengan ekstensi umum Laravel + `intl` dan `gd`
+- Composer, Node.js 20+ & npm
+- Database: MySQL 8+/MariaDB (SQLite cukup untuk menjalankan test)
+
+## Instalasi
 
 ```bash
-CID=$(docker ps --filter publish=8091 -q)
+git clone https://github.com/iqbalfhz/asset-management.git
+cd asset-management
 
-# 1. Kunci cepat: logout semua sesi + cabut semua token API
-docker exec $CID php artisan lockdown --force
+composer install
+npm install
 
-# 2. Kunci penuh: + bekukan semua akun (hanya super-admin yang masih bisa masuk)
-docker exec $CID php artisan lockdown --accounts --force
+cp .env.example .env
+php artisan key:generate
+# Isi SEED_PASSWORD di .env (min. 12 karakter, huruf & angka) sebelum seeding.
 
-# 3. Buka kembali setelah aman (hanya akun yang tadi dikunci, bukan yang resign)
-docker exec $CID php artisan lockdown --lift
+php artisan migrate --seed
+php artisan shield:generate --all --panel=admin   # generate izin
+
+npm run build        # atau: npm run dev (saat pengembangan)
+php artisan serve    # buka http://localhost:8000
 ```
 
-`lockdown` **tidak** menghapus data, password, `APP_KEY`, atau backup — semua bisa dikembalikan. Super-admin tidak pernah ikut dibekukan.
-
-**Urutan tanggap darurat:**
-1. Cloudflare → **Under Attack Mode** ON. Kalau data disedot aktif, Stop container di Coolify.
-2. Jalankan `lockdown` (langkah di atas).
-3. Ganti semua password admin, **nyalakan 2FA** untuk semuanya.
-4. Selidiki lewat menu **Log masuk** (IP & jam penyerang) dan **Log aktivitas** (data yang berubah).
-5. Pulihkan dari backup bersih bila ada data dirusak.
-6. **Jangan ganti `APP_KEY`** — data terenkripsi (2FA, product key) jadi tidak terbaca.
-7. Tutup lubangnya, lalu nyalakan lagi.
+Login awal: username **`administrator`**, password = nilai `SEED_PASSWORD`.
 
 ---
 
-## Akses
+## Konfigurasi `.env` penting
 
-| | |
+| Variabel | Keterangan |
 |---|---|
-| Production | https://asset.iqbalfhz.my.id |
-| Login (semua role) | `/login` |
-| Panel pengelola aset | `/admin` |
-| Panel karyawan | `/karyawan` |
-| Login awal | username `administrator`, password dari `SEED_PASSWORD` di `.env` |
+| `APP_KEY` | Kunci enkripsi. Data terenkripsi (secret 2FA, product key) bergantung padanya — **jangan ganti di produksi.** |
+| `APP_URL` | URL dasar aplikasi; dipakai untuk tautan dan pembatasan host. |
+| `SEED_PASSWORD` | Password akun `administrator` saat seeding. |
+| `DB_*` | Koneksi database. |
+| `MAIL_*` | Pengiriman email (notifikasi, reset password). |
+| `BACKUP_ARCHIVE_PASSWORD` | Password enkripsi arsip backup. Simpan terpisah — tanpanya backup tidak bisa dibuka. |
 
-Role: `super_admin`, `admin_it`, `admin_ga`, `karyawan`. 2FA opsional, diaktifkan sendiri dari Profil.
-
----
-
-## Stack
-
-- **Laravel 13** + **Filament 5**, PHP 8.5, tema "Kertas"
-- **MySQL** (server 9.7 LTS, laptop 8.4 LTS), **Pest** untuk test
-- Deploy: **Coolify** + **FrankenPHP** (`Dockerfile`), HTTPS & domain lewat **Cloudflare Tunnel**
-- Image server: `serversideup/php:8.5-frankenphp-trixie-v5.1.5`
-- Antrean & jadwal: **Scheduled Task Coolify** (`schedule:run` tiap menit), tanpa container worker
-- Backup: **spatie/laravel-backup** ke **Cloudflare R2** (terenkripsi, dikunci 7 hari)
+Jangan commit `.env`. Isi rahasia langsung di server/panel deploy.
 
 ---
 
-## Pengembangan lokal (Herd)
+## Penggunaan
 
-```bash
-cp .env.example .env            # isi APP_KEY (php artisan key:generate), SEED_PASSWORD, dll
-php artisan migrate --seed      # SEED_PASSWORD wajib diisi dulu
-npm install && npm run dev      # aset front-end (atau: npm run build)
-```
-
-Herd menyajikan situs otomatis. Setelah menambah resource Filament: `php artisan shield:generate --all --panel=admin`.
-
----
-
-## Test
-
-```bash
-php artisan test               # seluruh suite
-php artisan test --compact tests/Feature/NamaTest.php
-vendor/bin/pint                # rapikan gaya kode
-```
-
-Fitur baru wajib punya Pest test, terutama untuk akses (siapa boleh melihat/mengubah apa).
-
----
-
-## Deploy
-
-**Push ke `main` = deploy langsung ke production** (Coolify auto-deploy). Ada downtime singkat ~15–30 detik tiap deploy.
-
-Cek runtime server:
-```bash
-CID=$(docker ps --filter publish=8091 -q)
-docker exec $CID php -v                 # patch PHP 8.5
-docker exec $CID frankenphp version     # harus >= 1.12.3
-```
-
-Cek update dependensi (dari laptop):
-```bash
-composer outdated --direct              # paket PHP
-composer audit                          # celah keamanan
-npm outdated
-```
-
-Update patch PHP/FrankenPHP di server = naikkan tag image di `Dockerfile` (lihat tag terbaru di Docker Hub: `serversideup/php`), lalu push.
-
----
-
-## Tugas terjadwal (waktu Asia/Jakarta)
-
-| Jam | Tugas |
+| Rute | Untuk |
 |---|---|
-| tiap menit | antrean (import/export/backup diproses) |
-| 01:00 | `backup:clean` (buang backup lama) |
-| 01:30 | `backup:run` (backup ke R2) |
-| 02:00 | `model:prune` (log masuk > 1 tahun dihapus) |
-| 03:00 | `backup:monitor` (cek kesehatan backup) |
-| 07:00 | `notifikasi:ringkasan` + `pengingat:kirim` (email) |
+| `/login` | Halaman masuk semua role |
+| `/admin` | Panel pengelola aset |
+| `/karyawan` | Panel karyawan (aset saya, lapor kerusakan, terima aset) |
 
-Backup manual & cek:
+Role bawaan: `super_admin`, `admin_it`, `admin_ga`, `karyawan`. Tiap kategori aset ditangani satu role; admin hanya melihat kategori yang dikelolanya. 2FA diaktifkan sendiri dari Profil.
+
+Setiap kali menambah resource Filament, jalankan ulang:
 ```bash
-docker exec $CID php artisan backup:run
-docker exec $CID php artisan backup:list
+php artisan shield:generate --all --panel=admin
 ```
-Restore: unduh zip dari R2 → buka dengan `BACKUP_ARCHIVE_PASSWORD` → import file `.sql`-nya.
+
+## Testing
+
+```bash
+php artisan test          # seluruh suite (Pest)
+vendor/bin/pint           # formatter gaya kode
+```
 
 ---
 
-## Operasi admin umum (di aplikasi)
+## Deployment
 
-- **Reset 2FA user** (ganti HP): menu **User** → tombol Reset 2FA (hanya super-admin).
-- **Nonaktifkan karyawan resign**: menu **Karyawan** → Nonaktifkan (menolak kalau masih pegang barang; super-admin bisa paksa dengan alasan).
-- **Pengaturan per PT** (kop BAST, logo, format nomor, ukuran label): menu **Pengaturan** (super-admin).
-- **Pindah aset antar PT**: tombol di halaman aset (butuh izin khusus).
+Aplikasi berjalan dari satu image **FrankenPHP** (`Dockerfile`) dan bisa di-deploy ke host Docker mana pun (contoh: [Coolify](https://coolify.io)). HTTPS dan domain dapat ditangani oleh reverse proxy atau Cloudflare Tunnel.
 
----
+Yang perlu disiapkan saat deploy:
 
-## ⚠️ Wajib diingat (keamanan)
+- **Scheduler**: jalankan `php artisan schedule:run` tiap menit (cron atau scheduled task). Ini memproses antrean, backup, dan email terjadwal — tanpa perlu container worker terpisah.
+- **Migrasi**: `php artisan migrate --force` saat rilis.
+- **Backup**: `php artisan backup:run` (dijadwalkan). Restore: unduh arsip → buka dengan `BACKUP_ARCHIVE_PASSWORD` → import `.sql`.
 
-- **Nyalakan 2FA di semua akun admin** dan di **Coolify** (`coolify.iqbalfhz.my.id` bisa diakses dari internet). Password bocor tanpa 2FA = data karyawan terbuka.
-- **Simpan di luar server** (password manager): `APP_KEY` dan `BACKUP_ARCHIVE_PASSWORD`. Hilang = data/backup tidak bisa dipulihkan.
-- **Jangan commit `.env`.** Rahasia (SMTP, R2, password DB) diisi langsung di Coolify.
-- Uji pulihkan backup secara berkala — backup yang belum pernah dicoba belum tentu bisa dipakai.
+Jadwal bawaan (zona waktu aplikasi): backup harian dini hari, ringkasan & pengingat email pukul 07:00, pembersihan log masuk lama.
 
 ---
 
-## Variabel `.env` penting
+## Operasional & keamanan
 
-| Variabel | Guna |
-|---|---|
-| `APP_KEY` | kunci enkripsi (2FA, product key). **Jangan diganti di production.** |
-| `SEED_PASSWORD` | password akun awal `administrator` saat seeding |
-| `BACKUP_ARCHIVE_PASSWORD` | password enkripsi file backup di R2 |
-| `APP_URL` | `https://asset.iqbalfhz.my.id` (dipakai untuk tautan & batas host) |
+Beberapa praktik yang disarankan bagi siapa pun yang menjalankan aplikasi ini di produksi:
+
+- **Aktifkan 2FA** untuk semua akun admin. Hak admin mencakup data pribadi karyawan, jadi password saja tidak cukup.
+- **Simpan `APP_KEY` dan `BACKUP_ARCHIVE_PASSWORD`** di luar server (mis. password manager). Hilang = data/backup tak terpulihkan.
+- **Uji pulihkan backup** secara berkala.
+- Jaga agar panel kontrol infrastruktur (reverse proxy, dashboard deploy) tidak terekspos publik tanpa autentikasi kuat + 2FA.
+
+### Rem darurat `lockdown`
+
+Saat sistem diduga dibobol, jalankan dari CLI server (di dalam container aplikasi):
+
+```bash
+php artisan lockdown            # logout semua sesi + cabut semua token API
+php artisan lockdown --accounts # + bekukan semua akun non-super-admin
+php artisan lockdown --lift     # aktifkan kembali akun yang tadi dikunci
+```
+
+Tidak menghapus data, password, `APP_KEY`, atau backup. Super-admin tidak pernah ikut dibekukan, sehingga pemilik tetap bisa masuk untuk menyelidiki (menu **Log masuk** & **Log aktivitas**).
+
+Urutan tanggap insiden: putus akses → `lockdown` → ganti password & nyalakan 2FA → selidiki → pulihkan dari backup bila perlu. **Jangan ganti `APP_KEY`** (merusak data terenkripsi).
 
 ---
 
-## Perintah artisan khusus aplikasi
+## Lisensi
 
-| Perintah | Guna |
-|---|---|
-| `php artisan lockdown` | rem darurat (lihat bagian Darurat di atas) |
-| `php artisan notifikasi:ringkasan` | kirim ringkasan email (otomatis 07:00) |
-| `php artisan pengingat:kirim` | kirim email pengingat tanggal penting (otomatis 07:00) |
-| `php artisan shield:generate --all --panel=admin` | regen izin setelah tambah resource |
+[MIT](https://opensource.org/licenses/MIT).
