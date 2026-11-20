@@ -15,6 +15,9 @@ return [
 
     'name' => env('APP_NAME', 'Laravel'),
 
+    // Commit yang sedang jalan, diisi Coolify; tampil di footer.
+    'version' => env('SOURCE_COMMIT'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Environment

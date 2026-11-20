@@ -36,6 +36,7 @@
     ":terpakai dari :jumlah": ":terpakai of :jumlah",
     ":tersedia dari :jumlah": ":tersedia of :jumlah",
     "Ada kekurangan": "Something is missing",
+    "Ada kendala? Hubungi Tim IT: :kontak": "Need help? Contact the IT team: :kontak",
     "Admin": "Admin",
     "Admin akan mengecek laporan Anda.": "An admin will review your report.",
     "Administrasi": "Administration",
@@ -452,6 +453,7 @@
     "Konfirmasi penerimaan": "Confirm receipt",
     "Konfirmasi penerimaan BAST :nomor": "Confirm receipt of BAST :nomor",
     "Kontak": "Contact",
+    "Kontak IT": "IT contact",
     "Kontak support": "Support contact",
     "Kop BAST": "BAST letterhead",
     "Kosong = 0 (tidak dipantau).": "Empty = 0 (not monitored).",
@@ -830,6 +832,7 @@
     "Syarat penggunaan: :kategori": "Terms of use: :kategori",
     "Tahunan (setiap 1 Januari)": "Yearly (every 1 January)",
     "Tambah pengingat": "Add reminder",
+    "Tampil di footer semua halaman, termasuk halaman login. Contoh: it@perusahaan.com atau ext. 123.": "Shown in the footer of every page, including the login page. Example: it@company.com or ext. 123.",
     "Tanda tangan": "Signature",
     "Tanda tangan di layar ini": "Sign on this screen",
     "Tanda tangan karyawan": "Employee's signature",
@@ -950,5 +953,6 @@
     "tidak": "no",
     "transaksi": "transactions",
     "verifikasi dua langkah": "two-step verification",
+    "versi :versi": "version :versi",
     "ya": "yes"
 }

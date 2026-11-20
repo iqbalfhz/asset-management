@@ -132,6 +132,15 @@
     @apply ms-2 rounded-full bg-primary-50 px-2 py-0.5 text-xs font-medium text-primary-700 dark:bg-primary-400/10 dark:text-primary-300;
 }
 
+/* ---------- Footer semua panel (resources/views/filament/footer.blade.php) ---------- */
+.kertas-footer {
+    @apply px-4 py-6 text-center text-xs text-gray-600 dark:text-gray-400;
+
+    & p + p {
+        @apply mt-1;
+    }
+}
+
 /* ---------- Header tabel: label lebih tenang ---------- */
 .fi-ta-header-cell {
     @apply font-medium text-gray-700 dark:text-gray-300;

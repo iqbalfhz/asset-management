@@ -16,6 +16,8 @@ use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Panel;
 use Filament\Support\Icons\Heroicon;
+use Filament\View\PanelsRenderHook;
+use Illuminate\Contracts\View\View;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -34,6 +36,7 @@ trait ConfiguresPanel
     {
         return $panel
             ->viteTheme('resources/css/filament/admin/theme.css')
+            ->renderHook(PanelsRenderHook::FOOTER, fn (): View => view('filament.footer'))
             ->defaultAvatarProvider(InitialsAvatar::class)
             ->colors([
                 // Abu-abu hangat (sedikit hijau zaitun), dipakai untuk latar, teks, garis.

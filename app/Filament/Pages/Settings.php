@@ -73,6 +73,10 @@ class Settings extends Page
                         Toggle::make('email_notifikasi')
                             ->label(__('Kirim notifikasi email'))
                             ->helperText(__('Laporan kerusakan, permintaan aset, dan ringkasan email yang dipilih tiap user di Profil. Email kode lupa password tetap terkirim.')),
+                        TextInput::make('kontak_it')
+                            ->label(__('Kontak IT'))
+                            ->helperText(__('Tampil di footer semua halaman, termasuk halaman login. Contoh: it@perusahaan.com atau ext. 123.'))
+                            ->maxLength(150),
                     ]),
                 Section::make(__('Per perusahaan'))
                     ->schema([
@@ -143,6 +147,7 @@ class Settings extends Page
 
         Setting::put('company_separation', (bool) $data['company_separation']);
         Setting::put('email_notifikasi', (bool) $data['email_notifikasi']);
+        Setting::put('kontak_it', $data['kontak_it'] ?? null);
 
         foreach (['logo', 'kop_bast', 'format_nomor_bast', 'label_ukuran', 'label_isi'] as $key) {
             Setting::put($key, $data[$key] ?? null, (int) $data['company_id']);
@@ -159,6 +164,7 @@ class Settings extends Page
         $this->form->fill([
             'company_separation' => $this->data['company_separation'] ?? (bool) Setting::get('company_separation', false),
             'email_notifikasi' => $this->data['email_notifikasi'] ?? (bool) Setting::get('email_notifikasi', true),
+            'kontak_it' => $this->data['kontak_it'] ?? Setting::get('kontak_it'),
             'company_id' => $companyId,
             'logo' => Setting::get('logo', null, $companyId),
             'kop_bast' => Setting::get('kop_bast', null, $companyId),
