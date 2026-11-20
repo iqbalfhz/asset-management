@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Filament\Resources\Consumables\ConsumableResource;
+use App\Filament\Widgets\Concerns\FiltersByDashboard;
 use App\Models\Consumable;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -10,7 +11,9 @@ use Filament\Widgets\TableWidget;
 
 class LowStockConsumables extends TableWidget
 {
-    protected static ?int $sort = 6;
+    use FiltersByDashboard;
+
+    protected static ?int $sort = 10;
 
     public static function canView(): bool
     {
@@ -21,7 +24,7 @@ class LowStockConsumables extends TableWidget
     {
         return $table
             ->heading(__('Stok barang habis pakai menipis'))
-            ->query(Consumable::query()->lowStock())
+            ->query($this->filterCompany(Consumable::query())->lowStock())
             ->defaultSort('stok')
             ->paginated([5])
             ->emptyStateHeading(__('Semua stok masih di atas batas minimum'))

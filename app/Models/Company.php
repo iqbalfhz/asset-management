@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\LogsChanges;
+use App\Models\Scopes\CompanyScope;
 use Database\Factories\CompanyFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -22,6 +23,13 @@ class Company extends Model
     protected function active(Builder $query): void
     {
         $query->where('is_active', true);
+    }
+
+    // Perusahaan yang boleh dipilih user yang login: hanya perusahaannya sendiri saat pemisahan perusahaan menyala.
+    #[Scope]
+    protected function visibleToCurrentUser(Builder $query): void
+    {
+        $query->when(CompanyScope::restrictedCompanyId(), fn (Builder $query, int $companyId) => $query->whereKey($companyId));
     }
 
     // Kode dipakai sebagai awalan kode aset, jadi selalu disimpan huruf besar.

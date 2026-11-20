@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Filament\Resources\Assets\AssetResource;
+use App\Filament\Widgets\Concerns\FiltersByDashboard;
 use App\Models\AssetReminder;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -10,13 +11,15 @@ use Filament\Widgets\TableWidget;
 
 class RemindersDue extends TableWidget
 {
-    protected static ?int $sort = 3;
+    use FiltersByDashboard;
+
+    protected static ?int $sort = 7;
 
     public function table(Table $table): Table
     {
         return $table
             ->heading(__('Pengingat jatuh tempo dalam :hari hari', ['hari' => AssetReminder::WARNING_DAYS]))
-            ->query(AssetReminder::query()->dueBy(today()->addDays(AssetReminder::WARNING_DAYS))->with('asset'))
+            ->query($this->filterByAsset(AssetReminder::query()->dueBy(today()->addDays(AssetReminder::WARNING_DAYS))->with('asset')))
             ->defaultSort('tanggal')
             ->paginated([5])
             ->emptyStateHeading(__('Tidak ada pengingat yang segera jatuh tempo'))

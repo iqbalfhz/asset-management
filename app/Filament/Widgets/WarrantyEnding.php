@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Filament\Resources\Assets\AssetResource;
+use App\Filament\Widgets\Concerns\FiltersByDashboard;
 use App\Models\Asset;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -10,13 +11,15 @@ use Filament\Widgets\TableWidget;
 
 class WarrantyEnding extends TableWidget
 {
-    protected static ?int $sort = 3;
+    use FiltersByDashboard;
+
+    protected static ?int $sort = 8;
 
     public function table(Table $table): Table
     {
         return $table
             ->heading(__('Garansi habis dalam :hari hari', ['hari' => Asset::WARRANTY_WARNING_DAYS]))
-            ->query(Asset::query()->warrantyEndingSoon()->with('category'))
+            ->query($this->filterAssets(Asset::query())->warrantyEndingSoon()->with('category'))
             ->defaultSort('garansi_sampai')
             ->paginated([5])
             ->emptyStateHeading(__('Tidak ada garansi yang segera habis'))

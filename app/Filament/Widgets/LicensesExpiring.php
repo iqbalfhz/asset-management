@@ -4,6 +4,7 @@ namespace App\Filament\Widgets;
 
 use App\Filament\Resources\Licenses\LicenseResource;
 use App\Filament\Resources\Licenses\Tables\LicensesTable;
+use App\Filament\Widgets\Concerns\FiltersByDashboard;
 use App\Models\License;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -11,7 +12,9 @@ use Filament\Widgets\TableWidget;
 
 class LicensesExpiring extends TableWidget
 {
-    protected static ?int $sort = 5;
+    use FiltersByDashboard;
+
+    protected static ?int $sort = 9;
 
     public static function canView(): bool
     {
@@ -22,7 +25,7 @@ class LicensesExpiring extends TableWidget
     {
         return $table
             ->heading(__('Lisensi habis dalam :hari hari', ['hari' => License::EXPIRY_WARNING_DAYS]))
-            ->query(License::query()->expiringSoon()->withCount('activeSeats'))
+            ->query($this->filterCompany(License::query())->expiringSoon()->withCount('activeSeats'))
             ->defaultSort('tgl_habis')
             ->paginated([5])
             ->emptyStateHeading(__('Tidak ada lisensi yang segera habis'))

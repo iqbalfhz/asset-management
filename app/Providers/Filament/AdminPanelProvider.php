@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Dashboard;
 use App\Http\Controllers\DownloadAssetReportController;
 use App\Http\Controllers\DownloadAttachmentController;
 use App\Http\Controllers\DownloadAuditReportController;
@@ -21,7 +22,6 @@ use App\Models\Maintenance;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Actions\Action;
 use Filament\Facades\Filament;
-use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Icons\Heroicon;

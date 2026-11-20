@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Widgets\Concerns\FiltersByDashboard;
 use App\Models\Asset;
 use App\Models\Status;
 use Filament\Widgets\Widget;
@@ -9,7 +10,9 @@ use Illuminate\Support\Collection;
 
 class DepreciationByClass extends Widget
 {
-    protected static ?int $sort = 4;
+    use FiltersByDashboard;
+
+    protected static ?int $sort = 11;
 
     protected int|string|array $columnSpan = 'full';
 
@@ -24,7 +27,7 @@ class DepreciationByClass extends Widget
     {
         $rows = collect();
 
-        Asset::query()
+        $this->filterAssets(Asset::query())
             ->with('depreciation')
             ->whereNotNull('depreciation_id')
             ->whereNotNull('harga_beli')

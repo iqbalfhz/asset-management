@@ -5,7 +5,6 @@ namespace App\Filament\Pages;
 use App\Models\Asset;
 use App\Models\Company;
 use App\Models\Department;
-use App\Models\Scopes\CompanyScope;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
@@ -16,7 +15,6 @@ use Filament\Schemas\Components\EmbeddedSchema;
 use Filament\Schemas\Components\Form;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use Illuminate\Database\Eloquent\Builder;
 
 class AssetReport extends Page
 {
@@ -67,11 +65,7 @@ class AssetReport extends Page
             ->components([
                 Select::make('perusahaan')
                     ->label(__('Perusahaan'))
-                    ->options(fn (): array => Company::query()
-                        ->when(CompanyScope::restrictedCompanyId(), fn (Builder $query, int $companyId) => $query->whereKey($companyId))
-                        ->orderBy('nama')
-                        ->pluck('nama', 'id')
-                        ->all())
+                    ->options(fn (): array => Company::query()->visibleToCurrentUser()->orderBy('nama')->pluck('nama', 'id')->all())
                     ->required(),
                 Select::make('departemen')
                     ->label(__('Departemen'))
