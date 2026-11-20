@@ -2,10 +2,12 @@
 
 namespace App\Providers\Filament;
 
+use App\Enums\Language;
 use App\Filament\Support\InitialsAvatar;
 use App\Http\Middleware\SetUserLocale;
 use App\Livewire\PersonalInfo;
 use Closure;
+use Filament\Actions\Action;
 use Filament\FontProviders\LocalFontProvider;
 use Filament\Forms\Components\FileUpload;
 use Filament\Http\Middleware\Authenticate;
@@ -13,6 +15,7 @@ use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Panel;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -21,6 +24,7 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Jeffgreco13\FilamentBreezy\BreezyCore;
+use Livewire\Component;
 
 // Bagian yang sama di ketiga panel (admin, karyawan, auth), supaya tema dan keamanannya tidak berbeda antar-panel.
 trait ConfiguresPanel
@@ -87,6 +91,20 @@ trait ConfiguresPanel
     protected function sharedLogin(): Closure
     {
         return fn (): RedirectResponse => redirect()->route('filament.auth.auth.login');
+    }
+
+    // Ganti bahasa sekali klik dari menu user; labelnya bahasa tujuan, ditulis dalam bahasanya sendiri.
+    protected function languageMenuItem(): Action
+    {
+        $otherLanguage = fn (): Language => auth()->user()->locale === Language::Indonesia ? Language::English : Language::Indonesia;
+
+        return Action::make('switchLanguage')
+            ->label(fn (): string => $otherLanguage()->getLabel())
+            ->icon(Heroicon::OutlinedLanguage)
+            ->action(function (Component $livewire) use ($otherLanguage): void {
+                auth()->user()->update(['locale' => $otherLanguage()]);
+                $livewire->js('window.location.reload()');
+            });
     }
 
     protected function profilePlugin(): BreezyCore

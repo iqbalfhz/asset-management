@@ -44,6 +44,7 @@ class AdminPanelProvider extends PanelProvider
             ->login($this->sharedLogin())
             // Admin juga memegang aset; pindah ke panel karyawan untuk melihat aset sendiri.
             ->userMenuItems([
+                $this->languageMenuItem(),
                 Action::make('karyawanPanel')
                     ->label(fn (): string => __('Panel karyawan'))
                     ->icon(Heroicon::OutlinedArrowsRightLeft)

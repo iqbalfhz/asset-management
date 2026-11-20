@@ -6,6 +6,7 @@ use App\Livewire\ApiTokens;
 use App\Livewire\PersonalInfo;
 use App\Models\User;
 use Filament\Facades\Filament;
+use Filament\Livewire\Topbar;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
@@ -118,3 +119,21 @@ test('a user switches the interface language in Profile', function () {
     expect($user->refresh()->locale)->toBe(Language::English)
         ->and($user->preferredLocale())->toBe('en');
 });
+
+test('the user menu switches the language back and forth in one click, in both panels', function (string $panel, string $role) {
+    Filament::setCurrentPanel($panel);
+    $user = userWithRole($role, $panel);
+    $this->actingAs($user);
+
+    livewire(Topbar::class)
+        ->assertActionHasLabel('switchLanguage', 'English')
+        ->callAction('switchLanguage');
+
+    expect($user->refresh()->locale)->toBe(Language::English);
+
+    livewire(Topbar::class)
+        ->assertActionHasLabel('switchLanguage', 'Bahasa Indonesia')
+        ->callAction('switchLanguage');
+
+    expect($user->refresh()->locale)->toBe(Language::Indonesia);
+})->with([['admin', 'admin_it'], ['karyawan', 'karyawan']]);

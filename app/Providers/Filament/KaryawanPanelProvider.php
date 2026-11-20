@@ -24,6 +24,7 @@ class KaryawanPanelProvider extends PanelProvider
             ->path('karyawan')
             ->login($this->sharedLogin())
             ->userMenuItems([
+                $this->languageMenuItem(),
                 Action::make('adminPanel')
                     ->label(fn (): string => __('Panel admin'))
                     ->icon(Heroicon::OutlinedArrowsRightLeft)
