@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Enums\LoginResult;
+use App\Http\Middleware\LogDownload;
 use App\Http\Responses\LoginResponse;
 use App\Livewire\ApiTokens;
 use App\Livewire\PersonalInfo;
@@ -107,6 +108,17 @@ class AppServiceProvider extends ServiceProvider
         ExportColumn::configureUsing(fn (ExportColumn $column) => $column->preventFormulaInjection());
 
         Gate::policy(Export::class, ExportPolicy::class);
+
+        // Export Excel ikut log unduhan: siapa meminta data apa, berapa baris.
+        Export::created(fn (Export $export) => activity(LogDownload::LOG)
+            ->performedOn($export)
+            ->event('diekspor')
+            ->withProperties([
+                'dokumen' => 'Export Excel',
+                'data' => class_basename($export->exporter::getModel()),
+                'baris' => $export->total_rows,
+            ])
+            ->log('Export Excel'));
     }
 
     private function limitImports(): void

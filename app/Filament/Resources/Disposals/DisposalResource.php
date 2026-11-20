@@ -42,6 +42,18 @@ class DisposalResource extends Resource
         return trans_choice('Penghapusan|Penghapusan', 2);
     }
 
+    public static function getNavigationBadge(): ?string
+    {
+        $count = Disposal::query()->where('status', DisposalStatus::Diajukan)->count();
+
+        return $count > 0 ? (string) $count : null;
+    }
+
+    public static function getNavigationBadgeTooltip(): string
+    {
+        return __('Penghapusan yang menunggu persetujuan');
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema

@@ -4,15 +4,18 @@ use App\Filament\Pages\ActivityLog;
 use App\Filament\Widgets\AssetOverview;
 use App\Filament\Widgets\DepreciationByClass;
 use App\Models\Asset;
+use App\Models\Assignment;
 use App\Models\Category;
 use App\Models\Company;
 use App\Models\Depreciation;
+use App\Models\Employee;
 use App\Models\Role;
 use App\Models\Status;
 use Database\Seeders\RoleSeeder;
 use Database\Seeders\StatusSeeder;
 use Filament\Facades\Filament;
 use Filament\Widgets\StatsOverviewWidget\Stat;
+use Illuminate\Database\Eloquent\Collection;
 use Spatie\Activitylog\Models\Activity;
 
 use function Pest\Livewire\livewire;
@@ -58,6 +61,19 @@ test('the dashboard counts only the assets the admin manages', function () {
 
     expect($stats['Tersedia'])->toBe(1)
         ->and($stats['Garansi habis'])->toBe(0);
+});
+
+test('loans past their return date are counted for the admin who manages them', function () {
+    $this->actingAs(userWithRole('super_admin', attributes: ['company_id' => $this->tcm->id]));
+    $employee = Employee::factory()->create(['company_id' => $this->tcm->id]);
+    $lend = fn (Asset $asset, string $returnDate) => Assignment::handOver(new Collection([$asset]), $employee, ['tanggal' => '2026-11-01', 'kondisi' => 'Baik', 'expected_return_at' => $returnDate]);
+    $lend(assetIn($this->tcm, $this->itCategory), '2026-11-10');
+    $lend(assetIn($this->tcm, $this->itCategory), '2026-11-11');
+    $lend(assetIn($this->tcm, $this->gaCategory), '2026-11-10');
+
+    $this->actingAs(userWithRole('admin_it', attributes: ['company_id' => $this->tcm->id]));
+
+    expect(statValues(new AssetOverview)['Lewat tanggal kembali'])->toBe(1);
 });
 
 test('depreciation is summed per class, leaving out BYOD devices', function () {

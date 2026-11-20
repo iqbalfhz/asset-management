@@ -35,6 +35,8 @@ class AssetOverview extends StatsOverviewWidget
                 ->description(__('Belum dicek admin')),
             Stat::make(__('Menunggu diterima'), Assignment::query()->where('status', AssignmentStatus::Menunggu)->count())
                 ->description(__('Serah-terima ke karyawan')),
+            Stat::make(__('Lewat tanggal kembali'), Assignment::query()->returnDueSoon(today()->subDay())->count())
+                ->description(__('Pinjaman yang belum dikembalikan')),
             Stat::make(__('Garansi habis'), Asset::query()->warrantyEndingSoon()->count())
                 ->description(__('Dalam :hari hari ke depan', ['hari' => Asset::WARRANTY_WARNING_DAYS])),
         ];

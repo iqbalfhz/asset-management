@@ -85,6 +85,9 @@ class ActivityLog extends Page implements HasTable
                     ->query(fn (Builder $query, array $data): Builder => blank($data['value'] ?? null)
                         ? $query
                         : $query->where('causer_type', (new User)->getMorphClass())->where('causer_id', $data['value'])),
+                SelectFilter::make('event')
+                    ->label(__('Kejadian'))
+                    ->options(ActivityColumns::eventLabels()),
                 Filter::make('aset')
                     ->schema([
                         Select::make('asset_id')

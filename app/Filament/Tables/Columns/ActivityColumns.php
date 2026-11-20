@@ -14,14 +14,23 @@ class ActivityColumns
             ->label(__('Kejadian'))
             ->sortable()
             ->badge()
-            ->formatStateUsing(fn (?string $state): string => match ($state) {
-                'created' => __('Dibuat'),
-                'updated' => __('Diubah'),
-                'deleted' => __('Dihapus'),
-                'dinonaktifkan_paksa' => __('Nonaktif paksa'),
-                'ditemukan_kembali' => __('Ditemukan kembali'),
-                default => (string) $state,
-            });
+            ->formatStateUsing(fn (?string $state): string => static::eventLabels()[$state] ?? (string) $state);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function eventLabels(): array
+    {
+        return [
+            'created' => __('Dibuat'),
+            'updated' => __('Diubah'),
+            'deleted' => __('Dihapus'),
+            'dinonaktifkan_paksa' => __('Nonaktif paksa'),
+            'ditemukan_kembali' => __('Ditemukan kembali'),
+            'diunduh' => __('Diunduh'),
+            'diekspor' => __('Diekspor'),
+        ];
     }
 
     public static function changes(): TextColumn

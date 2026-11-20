@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetUserLocale;
+use App\Models\ErrorLog;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -33,6 +34,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectGuestsTo(fn (): string => route('filament.auth.auth.login'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // Error yang dilaporkan ikut tercatat untuk widget Kesehatan sistem; 404, validasi, dan akses ditolak tidak dilaporkan.
+        $exceptions->report(fn (Throwable $exception) => ErrorLog::record($exception));
+
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );

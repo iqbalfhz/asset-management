@@ -2,6 +2,7 @@
 
 use App\Enums\DisposalMethod;
 use App\Enums\DisposalStatus;
+use App\Filament\Resources\Disposals\DisposalResource;
 use App\Filament\Resources\Disposals\Pages\CreateDisposal;
 use App\Filament\Resources\Disposals\Pages\ListDisposals;
 use App\Models\Asset;
@@ -45,6 +46,14 @@ function brokenLaptop(Company $company, Category $category, string $status = Sta
 
     return $asset;
 }
+
+test('the disposal menu counts submissions waiting for approval', function () {
+    expect(DisposalResource::getNavigationBadge())->toBeNull();
+
+    Disposal::submit($this->broken, ['alasan' => 'Rusak', 'metode' => DisposalMethod::Dibuang]);
+
+    expect(DisposalResource::getNavigationBadge())->toBe('1');
+});
 
 test('an admin submits a disposal for a broken asset', function () {
     livewire(CreateDisposal::class)

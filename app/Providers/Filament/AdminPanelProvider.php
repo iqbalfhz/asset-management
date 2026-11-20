@@ -10,8 +10,14 @@ use App\Http\Controllers\DownloadDisposalReportController;
 use App\Http\Controllers\PrintAssetLabelsController;
 use App\Http\Controllers\ScanAssetController;
 use App\Http\Controllers\ShowMaintenancePhotoController;
+use App\Http\Middleware\LogDownload;
 use App\Http\Middleware\UseIndonesianForDocuments;
 use App\Livewire\ApiTokens;
+use App\Models\Assignment;
+use App\Models\Attachment;
+use App\Models\Audit;
+use App\Models\Disposal;
+use App\Models\Maintenance;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Actions\Action;
 use Filament\Facades\Filament;
@@ -43,14 +49,14 @@ class AdminPanelProvider extends PanelProvider
             ->databaseNotifications()
             // Route di dalam panel ikut login, 2FA, dan akses panel.
             ->authenticatedRoutes(function (): void {
-                Route::get('lampiran/{attachment}', DownloadAttachmentController::class)->name('attachments.download');
-                Route::get('bast/{assignment}', [DownloadBastController::class, 'admin'])->whereNumber('assignment')->middleware(UseIndonesianForDocuments::class)->name('bast.download');
-                Route::get('perbaikan/{maintenance}/foto', ShowMaintenancePhotoController::class)->whereNumber('maintenance')->name('maintenances.photo');
-                Route::get('penghapusan/{disposal}/berita-acara', DownloadDisposalReportController::class)->whereNumber('disposal')->middleware(UseIndonesianForDocuments::class)->name('disposals.report');
+                Route::get('lampiran/{attachment}', DownloadAttachmentController::class)->middleware(LogDownload::of('Lampiran', Attachment::class))->name('attachments.download');
+                Route::get('bast/{assignment}', [DownloadBastController::class, 'admin'])->whereNumber('assignment')->middleware([UseIndonesianForDocuments::class, LogDownload::of('BAST', Assignment::class)])->name('bast.download');
+                Route::get('perbaikan/{maintenance}/foto', ShowMaintenancePhotoController::class)->whereNumber('maintenance')->middleware(LogDownload::of('Foto kerusakan', Maintenance::class))->name('maintenances.photo');
+                Route::get('penghapusan/{disposal}/berita-acara', DownloadDisposalReportController::class)->whereNumber('disposal')->middleware([UseIndonesianForDocuments::class, LogDownload::of('Berita acara penghapusan', Disposal::class)])->name('disposals.report');
                 Route::get('scan/{kode}', [ScanAssetController::class, 'admin'])->where('kode', '[A-Za-z0-9-]+')->name('assets.scan');
                 Route::get('label', PrintAssetLabelsController::class)->middleware(UseIndonesianForDocuments::class)->name('labels');
-                Route::get('stock-opname/{audit}/laporan', DownloadAuditReportController::class)->whereNumber('audit')->middleware(UseIndonesianForDocuments::class)->name('audits.report');
-                Route::get('laporan/unduh', DownloadAssetReportController::class)->middleware(UseIndonesianForDocuments::class)->name('reports.assets');
+                Route::get('stock-opname/{audit}/laporan', DownloadAuditReportController::class)->whereNumber('audit')->middleware([UseIndonesianForDocuments::class, LogDownload::of('Laporan stock opname', Audit::class)])->name('audits.report');
+                Route::get('laporan/unduh', DownloadAssetReportController::class)->middleware([UseIndonesianForDocuments::class, LogDownload::of('Laporan aset')])->name('reports.assets');
             })
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
